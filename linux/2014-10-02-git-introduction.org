@@ -1,0 +1,137 @@
+#+TITLE: Git Introduction
+#+AUTHOR: Micky Ching
+#+OPTIONS: H:4 ^:nil toc:nil
+#+LATEX_CLASS: latex-doc
+
+* 基本用法
+** 全局配置
+#+BEGIN_SRC sh
+  # 如果只想针对当前项目配置就不用加--global选项
+  git config --global user.name "Micky Ching"
+  git config --global user.email "mickyching@gmail.com"
+#+END_SRC
+** 常用操作
+#+BEGIN_SRC sh
+  git init                                # 初始化项目
+  git status                              # 查看项目状态
+  git branch                              # 查看分支
+  git log                                 # 查看日志
+  git add <files>                         # 添加文件/文件夹
+  git commit                              # 提交
+  git commit -m <message>                 # 直接把信息写入提交
+  git commit --amend                      # 以修改方式提交
+  git diff <commit>                       # 查看相对于指定提交的更改
+  git tag <v0.1>                          # 添加tag
+  git tag                                 # 列举tag
+#+END_SRC
+** 分支管理
+#+BEGIN_SRC sh
+  git branch <branchname>                 # 创建分支
+  git branch -d <branchname>              # 删除已合并的分支
+  git branch -D <branchname>              # 删除分支
+  git branch -dr <remote/branch>          # 删除本地下载的远程分支
+  git checkout <branchname>               # 切换分支
+  git reset <commit>                      # 复位到指定提交
+  git merge <branchname>                  # 合并指定分支
+  git rebase <branchname>                 # 基于指定分支
+#+END_SRC
+** 远程管理
+*** 远程配置
+创建ssh密钥
+#+BEGIN_SRC sh
+  ssh-keygen -t rsa -C "mickyching@gmail.com" -f ~/.ssh/micky-gmail
+  ssh-add ~/.ssh/micky-gmail                    # 添加密钥
+  ssh -i ~/.ssh/micky-gmail -T git@github.com   # 验证测试
+#+END_SRC
+如果不添加密钥，可能会出现如下错误提示：
+#+BEGIN_QUOTE
+Agent admitted failure to sign using the key
+#+END_QUOTE
+
+如果要配置多个远程仓库帐号，需要编辑配置文件~/.ssh/config指定登录信息。
+#+BEGIN_SRC text
+  Host github                             # 主机名，可任意命名
+      HostName github.com                 # 登录地址
+      User git
+      Port 22
+      IdentityFile ~/.ssh/micky-gmail     # 证书路径
+#+END_SRC
+
+一旦配置好ssh就可以下载和上传了。
+#+BEGIN_SRC sh
+  git clone git@github:mickyching/org-pages.git
+#+END_SRC
+*** 远程操作
+#+BEGIN_SRC sh
+  git remote add <repo-name> <repo-url>   # 添加远程仓库地址
+  git remote -v                           # 查看远程仓库地址
+  git remote set-url <repo-name> <url>    # 更改仓库地址
+  git pull <repo-name> <branch>           # 拉取远程仓库分支到当前分支
+  git fetch <repo-name>                   # 下载远程仓库
+  git fetch <repo-name> <a>:<b>           # 将远程分支a下载为分支b
+  git push <repo-name> <branch>           # 将当前分支发送到远程分支
+  git push <repo-name> <a>:<b>            # 将分支a发送到远程分支b
+  git push <repo-name> :<b>               # 删除远程分支
+  git push --tags                         # 推送tag
+#+END_SRC
+
+** 清除命令
+#+BEGIN_SRC sh
+  git clean -ndx                          # 显示要删除的文件列表
+  git clean -fdx                          # 删除仓库外的文件
+#+END_SRC
+** 利用git提交补丁
+#+BEGIN_SRC sh
+  git format-patch -1
+  git format-patch --cover-letter --thread -2
+  git format-patch --cover-letter --thread \
+      --subject-prefix="PATCH v2" -2
+#+END_SRC
+在给内核提交补丁时，如果是生成一个提交的patch，直接指定提交数量即可。
+如果要生成多个提交的补丁，就需要一个封面概括提交的内容，并且要用thread方式，
+这样可以用一个邮件将所有提交发送出去，而不是每个提交占用一封邮件。
+如果是第二次提交，那么有必要修改头部信息，以便能够显示版本信息。
+
+生成好补丁以后就需要提交，可以利用msmtp发送邮件，不过需要配置，发送邮件的命令如下。
+#+BEGIN_SRC sh
+  git send-email --smtp-server /usr/bin/msmtp \
+  --from mickyching@gmail.com \
+  --to somebody1@email.com \
+  --to somebody2@email.com \
+  --cc somebody3@email.com \
+  --cc somebody4@email.com \
+  1.patch 2.patch ...
+#+END_SRC
+
+msmtp的配置文件位于~/.msmtprc，大致格式如下。
+#+BEGIN_SRC text
+  # set default values for all following accounts.
+  defaults
+  logfile ~/.msmtp.log
+
+  # account setting
+  account <yourname>
+  protocol smtp
+  host <mail-host>                        # eg: mail.xxx.com
+  from <youremail>
+  user <youremail>
+  password <yourpassword>
+  port <port-number>
+  auth ntlm
+  syslog LOG_MAIL
+
+  # set a default account
+  account default: <yourname>
+#+END_SRC
+
+* 配置文件
+** 全局配置
+全局配置文件位于[[file:src/scripts/cfg/gitconfig.cfg][=~/.gitconfig=]]， 如下所示。
+#+INCLUDE: src/scripts/cfg/gitconfig.cfg src sh
+
+* 高级用法
+在首次提交前，添加了错误文件时，由于没有HEAD，不能使用git reset HEAD撤销，
+此时可以使用如下命令。
+#+BEGIN_SRC sh
+  git rm -r --cached <files>              # 撤销add添加的文件
+#+END_SRC
