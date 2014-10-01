@@ -1,0 +1,159 @@
+#+TITLE: RHEL Install Guide
+#+AUTHOR: Micky Ching
+#+OPTIONS: H:4 ^:nil toc:nil
+#+LATEX_CLASS: latex-doc
+
+* 安装rhel7
+RHEL的全称为Red Hat Enterprise Linux，
+分三版，Client面向娱乐办公，Workstation面向开发程序，Server没有GUI。
+
+** 制作镜像
+下载[[ftp://ftp.wallawalla.edu/pub/isos/rhel/7.0/][rhel7镜像]] 制作U盘镜像，首先确保U盘未被挂载，用如下命令制作。
+#+BEGIN_SRC sh
+dd if=disk.iso of=/dev/sdx bs=4M
+#+END_SRC
+与rhel6相反，此时如果用windows下的ulraiso制作反而不能成功。
+
+** 安装步骤
+启动U盘，选择键盘语言，设置时区、分区、网络等。
+设置密码、用户名等。
+
+** 软件更新
+rhel利用yum工具包进行软件更新，但是需要注册，
+通过替换yum可以绕过注册。
+
+删除自带的yum工具包。
+#+BEGIN_SRC sh
+  rpm -aq|grep yum|xargs rpm -e --nodeps
+#+END_SRC
+
+从[[http://mirrors.163.com/centos/7/updates/x86_64/Packages/][163 rpm packages]]下载四个文件：
+#+BEGIN_SRC text
+  python-iniparse-0.3.1-2.1.el6.noarch.rpm
+  yum-metadata-parser-1.1.2-16.el6.i686.rpm
+  yum-3.2.29-40.el6.centos.noarch.rpm
+  yum-plugin-fastestmirror-1.1.30-14.el6.noarch.rpm
+#+END_SRC
+
+按照如下顺序安装：
+#+BEGIN_SRC sh
+  # 导入证书
+  rpm --import http://mirrors.163.com/centos/RPM-GPG-KEY-CentOS-7
+  rpm -ivh python-iniparse-0.3.1-2.1.el6.noarch.rpm
+  rpm -ivh yum-metadata-parser-1.1.2-16.el6.i686.rpm
+  rpm -ivh yum-3.2.29-40.el6.centos.noarch.rpm \
+      yum-plugin-fastestmirror-1.1.30-14.el6.noarch.rpm
+#+END_SRC
+
+编辑文件[[file:src/rhel/rhel7-163.repo][/etc/yum.repo.d/rhel7-163.repo]]，
+将如下内容写入文件，详细帮助可以查看[[http://mirrors.163.com/.help/centos.html][CentOS镜像使用帮助]]。
+#+INCLUDE: src/rhel/rhel7-163.repo src text
+
+设置好源之后执行如下命令
+#+BEGIN_SRC sh
+  yum clean all
+  yum makecache
+#+END_SRC
+
+常用yum命令如下。
+#+BEGIN_SRC sh
+  yum search <pkgname>                    # 搜索软件包
+  yum install <pkgname>                   # 安装软件包
+  yum update --skip-broken                # 更新系统
+#+END_SRC
+
+** 编译安装内核
+
+有时候为了重新配置内核，添加对特定设备的支持，需要从源代码安装内核，
+按照如下步骤进行。
+
+安装软件依赖
+#+BEGIN_SRC sh
+  yum install rpm-build redhat-rpm-config asciidoc hmaccalc \
+      perl-ExtUtils-Embed pesign xmlto
+  yum install audit-libs-devel binutils-devel elfutils-devel \
+      elfutils-libelf-devel
+  yum install newt-devel numactl-devel pciutils-devel \
+      python-devel zlib-devel
+  yum install gcc ncurses-devel
+#+END_SRC
+
+内核的rpm源码包可以从[[http://vault.centos.org/][CentOS server]]下载，找到对应的版本号，
+进入os/Source/SPackages/查找要下载的[[http://vault.centos.org/7.0.1406/os/Source/SPackages/kernel-3.10.0-123.el7.src.rpm][rpm包]] 并下载。
+使用如下命令将内核源代码安装到~/rpmbuild/目录。
+#+BEGIN_SRC sh
+  rpm -i kernel-3.10.0-123.el7.src.rpm
+#+END_SRC
+
+通过如下命令编译安装内核。
+#+BEGIN_SRC sh
+  cd ~/rpmbuild/SPECS
+  rpmbuild -bp --target=$(uname -m) kernel.spec # 生成源码树
+  cd ~/rpmbuild/BUILD/<kernel-src>              # 进入源码树
+  make menuconfig
+  make
+  make modules_install
+  make install
+#+END_SRC
+
+参考文档
+- [[http://wiki.centos.org/HowTos/I_need_the_Kernel_Source][I Need the Kernel Source]]
+
+* 安装rhel6
+** 制作镜像
+使用windows下的ultraiso制作，经测试用dd命令不成功。
+需要注意，如果已经使用过dd命令制作镜像后必须清零。
+不然用blkid检测可能得到如下结果，从而在安装时出现错误。
+#+BEGIN_SRC text
+  $ blkid /dev/sdx
+  LABEL="RHEL_..." TYPE="iso9660"
+  $ blkid /dev/sdx1
+  LABEL="RHEL_..." UUID="..." TYPE="vfat"
+#+END_SRC
+
+清零的命令：
+#+BEGIN_SRC sh
+dd if=/dev/zero of=/dev/sdx bs=4M count=1000
+#+END_SRC
+
+如果不清零，会出现错误：
+#+BEGIN_SRC text
+Unknown Device : The installation source given by device['/dev/sdb1']
+could not be found. Please check your parameters and try again.
+#+END_SRC
+
+这份报告[[https://bugzilla.redhat.com/show_bug.cgi?id=702382][Bug702382]] 详细说明这个情况的解决。
+
+仅仅写入ISO镜像是不够的，还需要将安装镜像复制到U盘。
+
+** 安装步骤
+启动U盘，选择安装，语言选择英语，键盘选择US。
+安装盘类型选择Hard drive，选择/dev/sdx。
+出现启动画面以后选择Next，设置主机名mpc后进入Next，
+设置时区Asia/ShangHai，进入Next，设置Root密码。
+设置磁盘分区，选择最后一项Create Custom Layout进行手动设置，
+需要注意这里不要将bootloader装到sda上面了，主要为了方便windows恢复，
+因此建议安装到系统所在分区。
+选择安装软件，选择Desktop，进入Next，开始漫长的软件安装过程。
+安装完成重启即可。
+
+** 软件更新
+替换yum的方法和rhel7处理类似，设置软件源，编辑文件[[file:src/rhel/rhel6-163.repo][/etc/yum.repo.d/rhel6-163.repo]]，
+将如下内容写入文件，详细帮助可以查看[[http://mirrors.163.com/.help/centos.html][CentOS镜像使用帮助]]。
+#+INCLUDE: src/rhel/rhel6-163.repo src text
+
+yum的使用方法同rhel7。
+
+** 编译安装内核
+安装软件依赖
+#+BEGIN_SRC sh
+  yum install rpm-build redhat-rpm-config asciidoc \
+      hmaccalc perl-ExtUtils-Embed xmlto
+  yum install audit-libs-devel binutils-devel \
+      elfutils-devel elfutils-libelf-devel
+  yum install newt-devel python-devel zlib-devel
+  yum install gcc ncurses-devel
+#+END_SRC
+
+内核的rpm源码包下载方式和rhel7一样，找到rhel6的内核源码下载[[http://vault.centos.org/6.5/updates/Source/SPackages/kernel-2.6.32-431.29.2.el6.src.rpm][地址]] 即可下载安装。
+编译安装方法和rhel7完全一样。

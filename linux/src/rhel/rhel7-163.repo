@@ -1,0 +1,26 @@
+[base]
+name=CentOS-7 - Base - 163.com
+baseurl=http://mirrors.163.com/centos/7/os/$basearch/
+gpgcheck=0
+
+[updates]
+name=CentOS-7 - Updates - 163.com
+baseurl=http://mirrors.163.com/centos/7/updates/$basearch/
+gpgcheck=0
+
+[extras]
+name=CentOS-7 - Extras - 163.com
+baseurl=http://mirrors.163.com/centos/7/extras/$basearch/
+gpgcheck=0
+
+[centosplus]
+name=CentOS-7 - Plus - 163.com
+baseurl=http://mirrors.163.com/centos/7/centosplus/$basearch/
+gpgcheck=0
+enabled=0
+
+[contrib]
+name=CentOS-7 - Contrib - 163.com
+baseurl=http://mirrors.163.com/centos/7/contrib/$basearch/
+gpgcheck=0
+enabled=0

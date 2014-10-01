@@ -1,0 +1,26 @@
+[base]
+name=CentOS-6 - Base - 163.com
+baseurl=http://mirrors.163.com/centos/6/os/$basearch/
+gpgcheck=0
+
+[updates]
+name=CentOS-6 - Updates - 163.com
+baseurl=http://mirrors.163.com/centos/6/updates/$basearch/
+gpgcheck=0
+
+[extras]
+name=CentOS-6 - Extras - 163.com
+baseurl=http://mirrors.163.com/centos/6/extras/$basearch/
+gpgcheck=0
+
+[centosplus]
+name=CentOS-6 - Plus - 163.com
+baseurl=http://mirrors.163.com/centos/6/centosplus/$basearch/
+gpgcheck=0
+enabled=0
+
+[contrib]
+name=CentOS-6 - Contrib - 163.com
+baseurl=http://mirrors.163.com/centos/6/contrib/$basearch/
+gpgcheck=0
+enabled=0
