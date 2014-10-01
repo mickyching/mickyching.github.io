@@ -1,0 +1,136 @@
+#+TITLE: Fio Introduction
+#+AUTHOR: Micky Ching
+#+OPTIONS: H:4 ^:nil toc:nil
+#+LATEX_CLASS: latex-doc
+
+* 简介
+FIO的简称是flexible I/O tester，能够创建一定数量的线程以实现特定的IO操作。
+FIO是一个命令行工具，命令格式为：
+#+BEGIN_SRC text
+  fio [options] [jobfile]...
+#+END_SRC
+选项不是很重要，重要的是jobfile，jobfile遵循"ini"格式，
+实际上就是每一行包含一个参数和一个值。
+一个jobfile可以包含很多组，组名放在方括号中。
+以分号或井号开头作为注释符。
+
+还有一个关键字叫global，一个jobfile可以有多个global组，
+每一个组只会受到上层中最接近的global影响。
+
+* 选项
+| 常用选项          | 含义                              |
+|-------------------+-----------------------------------|
+| --output=filename | 将报告输出到文件                  |
+| --timeout=timeout | 限制执行时间，单位秒              |
+| --latency-log=1   | 对每个job生成传输日志             |
+| --bandwidth-log=1 | 对每个job生成带宽日志             |
+| --minimal         | 生成紧凑格式的日志，可读性很差    |
+| --showcmd         | 将jobfile转换为命令行选项         |
+| --readonly        | 检查只读安全，确保jobfile没有写入 |
+
+* jobfile格式
+参数类型
+| 类型       | 　含义                                           |
+|------------+--------------------------------------------------|
+| str        | 字符串                                              |
+| int        | 可以包含前缀，如0x，或后缀，如kMGTP、KiB/MiB/GiB |
+| irange     | lower:upper或者lower-upper                       |
+|            | 多组range可以用分号或者斜杠分割                  |
+| float-list | 用冒号分割一系列浮点数                           |
+如果选项有可选参数，一般是指可以独立设置读写。
+
+常见参数
+| 表达式          | 含义                           |
+|-----------------+--------------------------------|
+| name=str        | job name，默认同组名           |
+| description=str | 描述，一般不用设置             |
+| directory=str   | 前缀目录，默认是当前目录       |
+| filename=str    | 指定文件名，默认同job name     |
+| rw=str          | [rand](read/write), [rand]rw   |
+| bs_unaligned    | 不能和direct IO使用            |
+| direct=bool     | 打开O_DIRECT，默认未打开       |
+| offset=int      | 文件中的偏移位置               |
+| thread          | 用pthread_create(3)替代fork(2) |
+
+引擎参数
+| ioengine=str | 选项     | 含义                          |
+|--------------+----------+-------------------------------|
+|              | sync     | read(2), write(2), fseek(2)   |
+|              | psync    | pread(2), pwrite(2)           |
+|              | vsync    | readv(2),  writev(2)          |
+|              | libaio   | Linux native asynchronous I/O |
+|              | posixaio | aio_read(3), aio_write(3)     |
+|              | mmap     | mmap(2), memcpy(3)            |
+|              | splice   | splice(2), vmsplice(2)        |
+|              | sg       | SCSI generic sg v3 I/O        |
+|              | net      | Transfer over the network     |
+
+验证参数
+| verify=str        | 含义                                   |
+|-------------------+----------------------------------------|
+|                   | md5 crc16 crc32 crc32c crc32c-intel    |
+|                   | crc64 crc7 sha256 sha512 sha1          |
+| verify_fatal=bool | 当发现验证错误时立即退出，默认不会退出 |
+| verify_dump=bool  | 验证出错的时候打印数据                 |
+
+控制job数量的参数
+| job数目       | 含义                   |
+|---------------+------------------------|
+| iodepth=int   | 对同一文件操作的进程数 |
+| numjobs=int   | clone当前job的进程数量 |
+| nrfiles=int   | 总共产生的文件数目     |
+| openfiles=int | 保持打开的文件数目     |
+| loops=int     | 当前job的迭代次数      |
+
+控制IO数量的参数
+| IO数目                  | 含义               |
+|-------------------------+--------------------|
+| size=int                | 总数据大小         |
+| filesize=irange         | 单个文件的大小范围 |
+| bs=int[,int]            | 块大小             |
+| bsrange=irange[,irange] | 块范围             |
+| ba=int[,int]            | 块对齐大小         |
+
+* 报告格式
+运行期间的格式如下
+#+BEGIN_SRC text
+  Threads: 1: [_r] [24.8% done] [ 13509/  8334 kb/s] [eta 00h:01m:31s]
+#+END_SRC
+第一组括号表示线程状态，具体如下表。
+| P | Setup but not started.                        |
+| C | Thread created.                               |
+| I | Initialized, waiting.                         |
+| R | Running, doing sequential reads.              |
+| r | Running, doing random reads.                  |
+| W | Running, doing sequential writes.             |
+| w | Running, doing random writes.                 |
+| M | Running, doing mixed sequential reads/writes. |
+| m | Running, doing mixed random reads/writes.     |
+| F | Running, currently waiting for fsync(2).      |
+| V | Running, verifying written data.              |
+| E | Exited, not reaped by main thread.            |
+| - | Exited, thread reaped.                        |
+
+运行结束之后会打印每个job的状态，主要参数如下。
+| io        | 总传输量                       |
+| bw        | 带宽                           |
+| iops      | IO操作数                       |
+| runt      | 运行时间                       |
+| clat      | 完成传输时间，提交之后完成之前 |
+| lat       | 总传输时间                     |
+| cpu       | CPU使用统计                    |
+| IO depth  | IO分布                         |
+| IO issued | 发送的读写请求数目             |
+| aggrb     | 综合传输速度                   |
+| minb      | 最小传输速度                   |
+| maxb      | 最大传输速度                   |
+| mint/maxt | 传输时间                       |
+| ios       | 总IO数目                       |
+| merge     | IO调度器合并的数目             |
+| ticks     | 磁盘busy的ticks数目            |
+| io_queue  | 在磁盘队列等待的总时间         |
+| util      | 磁盘利用率                     |
+
+* 样本文件
+- [[file:src/fio/fio-sample.ini][fio-sample.ini]]
+#+INCLUDE: src/fio/fio-sample.ini src text
