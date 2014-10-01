@@ -1,0 +1,180 @@
+#+TITLE: Linux Kernel List
+#+AUTHOR: Micky Ching
+#+OPTIONS: H:4 ^:nil toc:nil
+#+LATEX_CLASS: latex-doc
+
+* 双向链表
+相关文件为：
+- include/linux/list.h
+
+#+BEGIN_SRC cpp
+  struct list_head {
+      struct list_head *next, *prev;
+  };
+#+END_SRC
+双向链表的结构只有两个指针，那么如何保存数据呢，
+和其他嵌入式数据结构一样，双向链表嵌入到其他数据结构中，
+可以根据二者在内存中的位置关系利用链表地址反向计算数据地址。
+计算的函数如下。
+#+BEGIN_SRC cpp
+  #define list_entry(ptr, type, member) \
+      container_of(ptr, type, member)
+  #define container_of(ptr, type, member) \
+      (type *)((char *)(ptr) - (char *) &((type *)0)->member)
+#+END_SRC
+根据提供的链表指针ptr，包含的数据类型type，以及链表在type的成员名字member，
+就可以反向计算出type的地址。
+** 生命周期
+#+BEGIN_SRC cpp
+  // 将链表初始化，也就是prev和next都指向自身
+  #define LIST_HEAD_INIT(name) { &(name), &(name) }
+  #define LIST_HEAD(name) \               // 静态定义一个双向链表
+            struct list_head name = LIST_HEAD_INIT(name)
+  // 和LIST_HEAD_INIT功能一样，这里传递的是指针，而前面传递的是对象
+  void INIT_LIST_HEAD(struct list_head *list);
+#+END_SRC
+** 基本操作
+#+BEGIN_SRC cpp
+  // entry被添加到head后面
+  void list_add(struct list_head *entry, struct list_head *head);
+  // entry被添加到尾部，也就是head的前面
+  void list_add_tail(struct list_head *entry, struct list_head *head);
+  // 从链表删除entry
+  void list_del(struct list_head *entry);
+  // 从链表删除entry，并对entry本身初始化
+  void list_del_init(struct list_head *entry);
+  // 用new去替换掉old
+  void list_replace(struct list_head *old, struct list_head *new);
+  // 替换掉old之后对old初始化
+  void list_replace_init(struct list_head *old, struct list_head *new);
+  // 首先删除list，再将其添加到head后面
+  void list_move(struct list_head *list, struct list_head *head);
+  // 从链表中先将list删除，然后将其插入到链表尾部
+  void list_move_tail(struct list_head *list, struct list_head *head);
+  // 判断是否为空链表，空链表的next一定指向head
+  bool list_empty(struct list_head *head);
+  // 不仅判断next，还会判断prev是否也指向head
+  int list_empty_careful(const struct list_head *head);
+  // 判断list是否为最后一个节点
+  int list_is_last(const struct list_head *list,
+                   const struct list_head *head);
+  // 判断链表是否只有一个节点，是的话第一个节点也是最后一个节点
+  int list_is_singular(const struct list_head *head);
+  // 向左移就是将第一个节点移动到尾巴去
+  void list_rotate_left(struct list_head *head);
+#+END_SRC
+** 链表遍历
+在使用双向链表的时候要遵循一个规则，那就是链表头不能嵌入到数据中，
+也就是说链表头和普通的链表节点是不一样的。
+所以不能对链表头调用list_entry()，而必须使用下面的宏。
+#+BEGIN_SRC cpp
+  #define list_first_entry(ptr, type, member) \
+      list_entry((ptr)->next, type, member)
+  #define list_last_entry(ptr, type, member) \
+      list_entry((ptr)->prev, type, member)
+#+END_SRC
+
+另外比较常用的操作是迭代链表，主要可以用如下一些宏。
+#+BEGIN_SRC cpp
+  #define __container_of(ptr, sample, member)                     \
+      (void *)container_of((ptr), typeof(*(sample)), member)
+#+END_SRC
+这个宏的特殊之处在于我们不是去指定链表保存的数据类型，而是直接传递数据指针，
+由typeof去帮我们提取数据类型。
+
+#+BEGIN_SRC cpp
+  #define list_for_each_entry(pos, head, member)                  \
+      for (pos = __container_of((head)->next, pos, member);       \
+           &pos->member != (head);                                \
+           pos = __container_of(pos->member.next, pos, member))
+  #define list_for_each_entry_safe(pos, tmp, head, member);
+#+END_SRC
+pos是我们想要得到的数据指针，head是链表头，所以必须从next开始获取，
+结束条件是我们拿到了head的数据，显然这个数据是无效的。
+一旦我们有了pos，往后面迭代的时候就不需要使用head，而直接可以使用pos->member了。
+当然，如果我们在迭代过程中将当前节点删除，还不会有什么问题，
+但是一旦我们删除后有对当前节点初始化，那么迭代就会终止。
+更可怕的是如果我们将当前节点移动到了别的地方，那么就会产生致命错误，极可能系统崩溃。
+
+安全版本运行删除当前元素，因为已经用tmp记录了下一个元素的位置。
+此外还可以进行反向迭代。
+#+BEGIN_SRC cpp
+  #define list_for_each_entry_reverse(pos, head, member);
+  #define list_for_each_entry_safe_reverse(pos, tmp, head, member);
+#+END_SRC
+
+** 高级操作
+#+BEGIN_SRC cpp
+  // 从head到entry为第一部分，包括entry本身将传递给list，
+  // entry后面的部分作为第二部分，这部分给head
+  void list_cut_position(struct list_head *list, struct list_head *head,
+                         struct list_head *entry);
+  // 将list链表插入到head头部，注意list是链表头，就是说list本身不会被插进去
+  void list_splice(const struct list_head *list,
+                   struct list_head *head);
+  void list_splice_tail(struct list_head *list,
+                        struct list_head *head);
+  // 插入list到head之后对list进行初始化
+  void list_splice_init(struct list_head *list,
+                        struct list_head *head);
+  void list_splice_tail_init(struct list_head *list,
+                             struct list_head *head);
+
+#+END_SRC
+* 哈希链表
+相关文件为：
+- include/linux/list.h
+
+哈希链表其实是单向链表，当next为NULL的时候就是链表尾部。
+#+BEGIN_SRC cpp
+  struct hlist_head {
+      struct hlist_node *first;
+  };
+  struct hlist_node {
+      struct hlist_node *next, **pprev;
+  };
+#+END_SRC
+哈希表的本质是hlist_head的一个数组，既然是数组，长度就是固定的，
+每当要向表中一个位置添加节点时，就将hlist_node加入到hlist_head所指定的链表中。
+这里和双向链表的设计思路完全一样，链表头不用来存放数据，仅仅作为重要的参照标志。
+为了节省空间，链表头只包含一个指针。
+
+这里出现了一个pprev指针，它指向上一个hlist_node的next指针的地址，
+如果前一个节点是hlist_head，那么就是hlist_head的first的地址。
+
+** 生命周期
+#+BEGIN_SRC cpp
+  #define HLIST_HEAD(name) struct hlist_head name = { .first = NULL }
+  #define HLIST_HEAD_INIT { .first = NULL }
+  #define INIT_HLIST_HEAD(ptr) ((ptr)->first = NULL)
+  static inline void INIT_HLIST_NODE(struct hlist_node *h)
+  {
+      h->next = NULL;
+      h->pprev = NULL;
+  }
+#+END_SRC
+
+** 基本操作
+#+BEGIN_SRC cpp
+  #define hlist_entry(ptr, type, member); // 和list_entry()原理一样
+  // 判断哈希表节点是否未hash，实际判断其pprev是否为空
+  int hlist_unhashed(const struct hlist_node *h);
+  // 判断hasb链表是否为空，实际判断first是否为空
+  int hlist_empty(const struct hlist_head *h);
+  void hlist_del(struct hlist_node *n);
+  void hlist_del_init(struct hlist_node *n);
+  // 就是将n插入到h的第一个节点位置
+  void hlist_add_head(struct hlist_node *n, struct hlist_head *h);
+  // 将n插入到next之前
+  void hlist_add_before(struct hlist_node *n, struct hlist_node *next);
+  // 将n插入到prev之后
+  void hlist_add_behind(struct hlist_node *n, struct hlist_node *prev);
+  // 将old移动到new，old->first指向NULL
+  void hlist_move_list(struct hlist_head *old, struct hlist_head *new);
+#+END_SRC
+
+哈希链表的遍历和双向链表工作原理一样，不过实现上要复杂一点，并且没有反向迭代的版本。
+#+BEGIN_SRC cpp
+  #define hlist_for_each_entry(pos, head, member);
+  #define hlist_for_each_entry_safe(pos, tmp, head, member);
+#+END_SRC
