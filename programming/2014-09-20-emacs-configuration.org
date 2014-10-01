@@ -1,0 +1,167 @@
+#+TITLE: emacs configuration
+#+AUTHOR: Micky Ching
+#+OPTIONS: H:4 ^:nil toc:nil
+#+LATEX_CLASS: latex-doc
+
+* 安装指南
+** 克隆配置文件
+#+BEGIN_SRC sh
+  git clone https://github.com/mickyching/emacsd.git ~/.emacs.d
+#+END_SRC
+
+配置文件仅仅包含配置信息，而依赖的软件包在第一次打开emacs时会自动下载，
+由于下载和编译软件包需要大量时间，因此可以选择直接克隆软件包。
+需要注意的是克隆的软件包版本相对比较老，但是也会稳定一些。
+#+BEGIN_SRC sh
+  git clone https://github.com/mickyching/elpa.git ~/.emacs.d/elpa
+#+END_SRC
+
+** 安装emacs
+*** emacs @ ubuntu
+安装emacs-24.3会和fill-column-indicator插件冲突，因为在24.3中有一个小的bug，
+下面是安装emacs-24.3的代码。
+#+BEGIN_SRC sh
+  sudo apt-get install libgtk-3-dev libxpm-dev libjpeg-dev \
+      libncurses5-dev libgif-dev libtiff-dev automake
+  wget http://mirrors.ustc.edu.cn/gnu/emacs/emacs-24.3.tar.gz
+  tar -xzvf emacs-24.3.tar.gz
+  cd emacs-24.3
+  ./configure
+  make
+  sudo make install
+#+END_SRC
+
+推荐安装emacs-24.4，依赖和emacs-24.3基本一样，安装方法如下：
+#+BEGIN_SRC sh
+  git clone https://gitshell.com/micky/emacs
+  cd emacs
+  ./autogen.sh
+  ./configure
+  make
+  sudo make install
+#+END_SRC
+
+*** emacs @ windows
+windows下可以直接下载程序，绿色程序无需安装，
+解压后直接点击runemacs.exe即可运行。下载地址：
+#+BEGIN_SRC sh
+  wget http://mirrors.ustc.edu.cn/gnu/emacs/windows/\
+  emacs-24.3-bin-i386.zip
+#+END_SRC
+
+** 安装字体
+- emacs font: WenQuanYi Micro Hei Mono/WenQuanYi Micro Hei Mono.
+- latex article/book font
+  - main/sans: Times New Roman/SimSun.
+  - mono: Fantasque Sans Mono/WenQuanYi Micro Hei Mono.
+- beamer font
+  - main/sans: WenQuanYi Micro Hei/WenQuanYi Micro Hei
+  - mono: Fantasque Sans Mono/WenQuanYi Micro Hei Mono.
+- org mode font
+  - 为了能够在org mode下让table表格整齐，需要把中文字体放大。
+  - 快捷键C-x C-=用于设置是否将中文放大。
+
+** 安装latex
+主要用于org mode输出pdf文件。
+
+*** latex @ ubuntu
+#+BEGIN_SRC sh
+  sudo apt-get install texlive-xetex texlive-full \
+      latex-cjk-all texlive-extra-utils
+#+END_SRC
+
+** 安装minted
+主要用于org mode输出pdf文件。
+
+*** minted @ ubuntu
+#+BEGIN_SRC sh
+  sudo apt-get install python-setuptools python-dev build-essential
+  easy_install Pygments
+  git clone https://github.com/gpoore/minted.git
+  mkdir -p /usr/share/texmf/tex/latex/minted
+  sudo cp minted/source/minted.sty /usr/share/texmf/tex/latex/minted
+  sudo texhash /usr/share/texmf
+#+END_SRC
+
+如果minted下载出现问题，
+可以使用~/.emacs.d/tool/下面的minted.sty备份。
+执行输出pdf命令的时候需要加选项-shell-escape。
+
+minted使用pygmentize语法高亮，支持的语言和风格可以通过如下命令查看：
+#+BEGIN_SRC sh
+  pygmentize -L styles            # 支持的高亮风格
+  pygmentize -L lexers            # 支持的语言
+#+END_SRC
+
+** 安装flycheck
+主要用于代码检查。
+
+*** flycheck @ ubuntu
+#+BEGIN_SRC sh
+  sudo apt-get install python-pip cppcheck
+  sudo pip install flake8 pylint
+#+END_SRC
+
+** 其他org mode可以直接运行的语言
+在org mode下可以直接运行的语言详细请参考[[http://orgmode.org/worg/org-contrib/babel/languages.html][Babel: Languages]]。
+
+| 工具名称 | 下载软件名 | 用途       |
+|----------+------------+------------|
+| graphviz | graphviz   | 绘制流程图 |
+| ditaa    | ditaa      | 文本绘图   |
+| plantuml | plantuml   | UML绘图    |
+| calc     | apcalc     | 计算器     |
+| gnuplot  | gnuplot    | 科学绘图   |
+| C        | gcc & g++  | 程序设计   |
+| Python   | python     | 程序设计   |
+| shell    | sh         | 脚本       |
+
+** 设置中文输入
+如果在Linux下不能使用中文输入，可能需要配置语言环境：
+#+BEGIN_SRC sh
+  LC_CTYPE=zh_CN.UTF-8 emacs
+#+END_SRC
+
+* 配置说明
+** 功能键设置规则
+| 编号    | 用途           |
+|---------+----------------|
+| F1 - F4 | 预留给后续使用 |
+| F5      | cscope         |
+| F6      | ctags          |
+| F7      | ecb            |
+| F8      | magit          |
+| F9      | flycheck       |
+| F10     | gnus           |
+| F11     | screen control |
+| F12     | 预留           |
+
+** 常用键设定
+| 按键     | 子功能 | 功能                                           |
+|----------+--------+------------------------------------------------|
+| M-;      |        | 注释与反注释，使用非常频繁                     |
+| C-'      |        | 折叠与打开代码块                               |
+| C-"      |        | 折叠与打开所有代码块                           |
+| M-.      |        | gtags定义查找                                  |
+| M-,      |        | gtags字符串抓取                                |
+| C-/      |        | 智能补全                                       |
+|          | M-[np] | 在候选中上下选取                               |
+| C-x C-b  |        | buffer管理                                     |
+|          | h      | 显示所有帮助信息，非常重要的按键               |
+|          | `      | 显示和关闭更新栏                               |
+|          | q      | 退出管理                                       |
+|          | t      | 全部反选，如果在仓库标题使用，只作用于当前仓库 |
+|          | m      | 选中一个buffer并指向下一个buffer               |
+|          | u      | 撤销一个选中并指向下一个buffer                 |
+|          | D      | 关闭选中缓冲区                                 |
+| C->      |        | 向前跳到指定字符                               |
+| C-<      |        | 向后跳到指定字符                               |
+| C-<lrud> |        | 窗口缩放                                       |
+| M-_      |        | 强制插入1个TAB                                 |
+| M--      |        | 强制插入4个SPC                                 |
+| C-x C-=  |        | 控制是否让中文显示是英文宽度两倍               |
+| C-x C--  |        | 缩小字体                                       |
+| C-x C-+  |        | 放大字体                                       |
+
+** 附加按键设置
+附加按键是指绑定到micky-prefix-key的按键，具体参考mc-setkey.el文件定义。
