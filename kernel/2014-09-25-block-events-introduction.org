@@ -1,0 +1,145 @@
+#+TITLE: Block Device Events Introduction
+#+AUTHOR: Micky Ching
+#+OPTIONS: H:4 ^:nil toc:nil
+#+LATEX_CLASS: latex-doc
+
+* 简介
+在内核空间对磁盘进行检测是在linux-2.6.38的时候才引入，
+主要是增加一个工作队列对所有磁盘进行轮询，如果磁盘状态发生改变就会通知用户。
+
+* 数据结构
+** disk_events
+#+BEGIN_SRC cpp
+  struct disk_events {
+      struct list_head    node;
+      struct gendisk      *disk;
+      spinlock_t          lock;
+
+      struct mutex        block_mutex;
+      int                 block;
+      unsigned int        pending;
+      unsigned int        clearing;
+
+      long                poll_msecs;
+      struct delayed_work dwork;
+  };
+#+END_SRC
+- node ::
+  每个磁盘的disk_events会被添加到一个全局的链表中，这个链表的名字就叫disk_events，
+  和这个数据结构的类型名相同，定义也在同一个文件。
+  node用于将disk_events结构体插入到链表disk_events中。
+
+  既然链表是一个全局对象，就必须要有同步措施，这里使用disk_events_mutex进行同步。
+
+- block ::
+  用于指示锁定深度，只要block大于0就不会启动轮询工作。
+- pending ::
+  已经发出去的事件。
+- clearing ::
+  正在清理的事件。
+- lock ::
+  因为用到了工作队列，就必须要适当的同步措施，用lock保护的对象如下表。
+  | lock |              |
+  |------+--------------|
+  |      | clearing     |
+  |      | pending      |
+  |      | dwork(queue) |
+
+- block_mutex ::
+  用于防止在锁定的时候多次cancel轮询工作，因为cancel的时候要休眠，
+  所以不能使用lock同步。
+  插入工作的时候不会休眠，所以用的lock来同步。
+
+* 基本操作
+** 生命周期
+- 分配磁盘事件
+  - 分配存储，设置block深度为1，也就是说初始状态是不会轮询的
+  - 设置poll_msecs为-1
+
+- 添加磁盘事件
+  - 创建sysfs文件
+  - 添加事件到全局链表
+  - 解锁事件，此时开始轮询
+
+分配和添加磁盘事件都是在add_disk()这个重量级函数中调用的，
+都是用于初始化，只不过分配的时间比较早，此时初始化工作还没完成，不能立即开启轮询。
+所以将其分成两步来实现。
+
+- 删除磁盘事件
+  - 锁定事件
+  - 从全局链表中删除当前磁盘的事件
+  - 删除sysfs文件
+
+- 释放磁盘事件
+  - 释放存储空间
+** 间隔设定
+影响轮询间隔的有两个参数，一个是poll_msecs，这个是在每个磁盘内部拥有的，
+如果这个值小于0，就视为无效，此时使用全局的disk_events_dfl_poll_msecs。
+有一个函数disk_events_poll_jiffies()用于获取轮询间隔。
+
+在每个磁盘的sysfs文件系统目录下面都有一个叫events_poll_msecs的文件，
+该文件用与显示和设定间隔。
+除了这个文件，还有一个全局间隔设定文件，位于如下路径：
+#+BEGIN_SRC text
+  /sys/module/block/parameters/events_dfl_poll_msecs
+#+END_SRC
+我们一般不会去单独设定每个磁盘的轮询间隔，而是统一设定所有磁盘的轮询间隔。
+
+** 锁定与解锁
+- 锁定磁盘事件
+  - 增加锁定深度，如果原来是开启的就关闭
+
+- 解锁磁盘事件
+  - 减少锁定深度，减少到0的时候才真正开启轮询
+
+** 轮询工作
+轮询工作有两种调用方式，一种是以函数方式执行，一种是以工作队列方式执行。
+- 检查磁盘事件
+  - 调用fops->check_events()，获得events
+
+    在block_device_operations中有两个和磁盘检测有关的函数指针，
+    其中的media_changed()已经被标识为待废除，将用check_events()替代。
+  - 将获得的events去掉pending部分，并将新的events加入到pending
+  - 如果未锁定，再度调度dwork
+  - 如果接收到磁盘事件就填充环境变量，并发出uevent
+
+** 刷新与清除
+- 刷新磁盘事件
+
+  刷新通过传递一个mask给clearing来实现，
+  所以clearing就存储了要清除的事件。
+  检查事件的时候要对clearing进行处理。
+
+  如果当前在锁定状态，就仅将要刷新的值加入到clearing而已。
+
+- 清除磁盘事件
+  - 由参数提供一个mask，指定要清除的事件。
+  - 阻塞事件，确保不会因为并发操作造成混乱
+  - 提取clearing，调用检测函数，传递clearing给检测函数
+
+    提取的clearing是event->clearing和mask的并集，
+    提取之后event->clearing将被清除，
+    注意这里是调用函数而不是启动工作队列，因为这里必须要顺序进行。
+  - 解锁磁盘事件
+  - 返回pending事件
+
+    pending是event->pending和mask的交集，
+    提取之后event->pending将清除mask部分。
+
+* 工作原理
+检查磁盘是否更改，并在已经更改的情况下清除无效缓存数据，
+是通过调用check_disk_change()函数执行的。
+这个函数会在打开设备，或者执行mount的时候调用。
+前面提到只要磁盘事件未被锁定，就会启动轮询，但是轮询本身不会清除无效缓存，
+当发现有磁盘事件产生时，它只会将事件记录到pending中，
+直到clear的时候才会清除pending。
+而clear正是在check_disk_change()函数中调用。
+所以轮询是持续的，而清除任务则只会在打开或挂载磁盘时执行。
+
+如果磁盘被更换，而又只有等到访问磁盘的时候才做处理，就可能出现相当长的滞后。
+这个问题是通过用户空间应用程序配合来解决的，
+因为在第一次轮询发现磁盘变更的时候就会发出uevent，
+此时会调用用户空间的uevent_helper程序，如udev和mdev，它们会在此时对磁盘进行访问，
+从而启动check_disk_change()函数，以便清除pending。
+如果没有uevent_helper的帮助，那么pending就可能长时间不被清除，
+所以必须借助uevent_helper。
