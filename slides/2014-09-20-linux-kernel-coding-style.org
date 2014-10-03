@@ -2,6 +2,7 @@
 #+AUTHOR: Micky Ching
 #+OPTIONS: H:3 ^:nil toc:nil
 #+LATEX_CLASS: latex-slide
+#+LATEX_HEADER: \logo{\includegraphics[height=0.8cm]{fig/coding-style/logo}\vspace{7.5cm}}
 
 * 内核编码规范
 ** 引言
