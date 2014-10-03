@@ -1,0 +1,62 @@
+#+TITLE: Publish Org
+#+AUTHOR: Micky Ching
+#+OPTIONS: H:4 ^:nil toc:nil
+#+LATEX_CLASS: latex-doc
+
+* 简介
+org mode是emacs下一个非常强大的主模式。
+这里不介绍org mode的用法，而是介绍如何将org mode生成各种格式的文档。
+
+org mode提供了一中可以直接在编辑区导出所需文档的方法，
+这个方法的弊端是导出的过程中将不能做任何编辑工作。
+一种理想的方式是写Makefile，如同写latex一样，
+但是Makefile一方面需要在每个项目下编写，比较费事，
+另一方面从org mode的导出方式来看，似乎并不适合用Makefile。
+
+于是我这里采用了一种emacs配置文件加python脚本的方式进行发布。
+
+** emacs org mode配置
+我的eamcs配置可以通过如下方式获得
+#+BEGIN_SRC sh
+  git clone https://github.com/mickyching/emacsd.git
+#+END_SRC
+和org mode相关的配置都放在 =lisp/mc-org.el= 配置文件中，
+
+虽然希望直接拿一个配置文件就可以编译，但实际上是不行的，
+因为最起码还需要color-theme插件的支持，以生成漂亮的源代码。
+所以至少需要安装插件color-theme和org。
+
+** org mode发布脚本
+发布脚本名字为 [[file:src/scripts/puborg.py][=puborg.py=]] ，依赖另一个文件 [[file:src/scripts/bin_simops.py][=bin_simops.py=]] ，
+可以发布多种格式的文档。
+
+** 生成pdf
+#+BEGIN_SRC sh
+  puborg -d dirs...                       # 生成pdf文档
+  puborg -s dirs...                       # 生成pdf演示
+#+END_SRC
+如果是生成pdf文档，会对每个目录下面的org文件生成pdf文档，
+因此要确保路径下面的每个org文件都能够生成pdf文档，否则会出错。
+生成pdf演示要求相同。
+
+** 生成html
+#+BEGIN_SRC sh
+  puborg -i dirs...                       # 生成html index
+  puborg -p dirs...                       # 生成html
+#+END_SRC
+html index和html的区别在于二者使用的css和js路径不同，
+html index使用的是当前路径，而html使用的是父目录。
+
+** 生成jekyll
+#+BEGIN_SRC sh
+  puborg -j dirs...
+#+END_SRC
+gh-pages使用jekyll引擎，故加上jekyll输出。
+我们假定jekyll目录位于 =~/.org-pages/= ，如果不是可以添加一个符号链接。
+指定的目录作为category，
+插入的图片必须位于fig目录下，引用的源代码必须位于src目录下，
+并且最好位于它们的子目录下。
+
+插入图片和源代码要使用相对路径，
+在发布到jekyll的时候就会用脚本转换为绝对路径。
+所有的附件将被导入到 =~/.org-pages/source/= 中去。
