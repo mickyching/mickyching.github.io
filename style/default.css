@@ -1,0 +1,33 @@
+h1 {color: darkslategray; text-align: center;}
+h2 {color: #114488; font-size: 1.7em;}
+h3 {color: #880000; font-size: 1.5em;}
+h4 {color: #224444; font-size: 1.2em;}
+
+body {
+    max-width: 48em;
+    margin: 0 auto;
+    font-size: 120%;
+}
+
+pre {
+    padding: 0.7em;
+    background-color: #eeeeee;
+    box-shadow: inset 3px 0px blue;
+    overflow: auto;
+}
+
+a:link {
+    color: #0000BB;
+    text-decoration: none;
+}
+a:visited {
+    color: #C00000;
+    text-decoration: none;
+}
+
+code {
+    color: #C00000;
+    background-color: #eee;
+}
+
+img {max-width: 100%;}
