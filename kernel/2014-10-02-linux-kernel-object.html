@@ -1,0 +1,594 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<title>Linux Kernel Object</title>
+<meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta  name="generator" content="Org-mode" />
+<meta  name="author" content="Micky Ching" />
+<link rel="stylesheet" type="text/css" href="../style/default.css" />
+
+<script type="text/javascript" src="../style/default.js">
+/**
+ *
+ * @source: ../style/default.js
+ *
+ * @licstart  The following is the entire license notice for the
+ *  JavaScript code in ../style/default.js.
+ *
+ * Copyright (C) 2012-2013 Free Software Foundation, Inc.
+ *
+ *
+ * The JavaScript code in this tag is free software: you can
+ * redistribute it and/or modify it under the terms of the GNU
+ * General Public License (GNU GPL) as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option)
+ * any later version.  The code is distributed WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+ *
+ * As additional permission under GNU GPL version 3 section 7, you
+ * may distribute non-source (e.g., minimized or compacted) forms of
+ * that code without the copy of the GNU GPL normally required by
+ * section 4, provided you include this license notice and a URL
+ * through which recipients can access the Corresponding Source.
+ *
+ * @licend  The above is the entire license notice
+ * for the JavaScript code in ../style/default.js.
+ *
+ */
+</script>
+
+<script type="text/javascript">
+
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+
+<!--/*--><![CDATA[/*><!--*/
+org_html_manager.set("TOC_DEPTH", "4");
+org_html_manager.set("LINK_HOME", "");
+org_html_manager.set("LINK_UP", "");
+org_html_manager.set("LOCAL_TOC", "0");
+org_html_manager.set("VIEW_BUTTONS", "0");
+org_html_manager.set("MOUSE_HINT", "underline");
+org_html_manager.set("FIXED_TOC", "0");
+org_html_manager.set("TOC", "0");
+org_html_manager.set("VIEW", "showall");
+org_html_manager.setup();  // activate after the parameters are set
+/*]]>*///-->
+</script>
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+</head>
+<body>
+<div id="content">
+<h1 class="title">Linux Kernel Object</h1>
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#sec-1">1. kobject</a>
+<ul>
+<li><a href="#sec-1-1">1.1. kref</a></li>
+<li><a href="#sec-1-2">1.2. kobj_type</a></li>
+<li><a href="#sec-1-3">1.3. kset</a></li>
+<li><a href="#sec-1-4">1.4. kobject操作</a></li>
+</ul>
+</li>
+<li><a href="#sec-2">2. uevent</a>
+<ul>
+<li><a href="#sec-2-1">2.1. kobject_uevent()</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-1" class="outline-2">
+<h2 id="sec-1"><span class="section-number-2">1</span> kobject</h2>
+<div class="outline-text-2" id="text-1">
+<p>
+相关文件：
+</p>
+<ul class="org-ul">
+<li>include/linux/kobject.h
+</li>
+<li>include/linux/kref.h
+</li>
+<li>lib/kobject.c
+</li>
+<li>lib/kobject_uevent.c
+</li>
+</ul>
+
+<p>
+在使用的时候将kobject嵌入到其他数据结构中。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kobject</span> {
+    <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span>              *<span style="color: #000000;">name</span>;      <span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#30446;&#24405;&#21517;&#23383;</span>
+    <span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">list_head</span>        <span style="color: #000000;">entry</span>;      <span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">head: kset-&gt;list</span>
+    <span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kobject</span>          *<span style="color: #000000;">parent</span>;    <span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#29238;&#23545;&#35937;</span>
+    <span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kset</span>             *<span style="color: #000000;">kset</span>;      <span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#25152;&#23646;&#38598;&#21512;</span>
+    <span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kobj_type</span>        *<span style="color: #000000;">ktype</span>;     <span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#25152;&#23646;&#31867;&#22411;</span>
+    <span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kernfs_node</span>      *<span style="color: #000000;">sd</span>;        <span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#20851;&#32852;&#23545;&#35937;&#19982;sysfs</span>
+    <span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kref</span>             <span style="color: #000000;">kref</span>;       <span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#24341;&#29992;&#35745;&#25968;</span>
+<span style="color: #000000;">#ifdef</span> CONFIG_DEBUG_KOBJECT_RELEASE
+    <span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">delayed_work</span>     <span style="color: #000000;">release</span>;
+<span style="color: #000000;">#endif</span>
+    <span style="color: #0000ff;">unsigned</span> <span style="color: #0000ff;">int</span> <span style="color: #000000;">state_initialized</span>:1;
+    <span style="color: #0000ff;">unsigned</span> <span style="color: #0000ff;">int</span> <span style="color: #000000;">state_in_sysfs</span>:1;
+    <span style="color: #0000ff;">unsigned</span> <span style="color: #0000ff;">int</span> <span style="color: #000000;">state_add_uevent_sent</span>:1;
+    <span style="color: #0000ff;">unsigned</span> <span style="color: #0000ff;">int</span> <span style="color: #000000;">state_remove_uevent_sent</span>:1;
+    <span style="color: #0000ff;">unsigned</span> <span style="color: #0000ff;">int</span> <span style="color: #000000;">uevent_suppress</span>:1;     <span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#31105;&#27490;&#21457;&#36865;uevent</span>
+};
+</pre>
+</div>
+<p>
+kset和ktype容易混淆，ktype的概念类似于类型，因为包含析构函数，
+而kset的概念类似于集合，将多个kobject放在一起。
+</p>
+</div>
+
+<div id="outline-container-sec-1-1" class="outline-3">
+<h3 id="sec-1-1"><span class="section-number-3">1.1</span> kref</h3>
+<div class="outline-text-3" id="text-1-1">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kref</span> {
+    <span style="color: #0000ff;">atomic_t</span> <span style="color: #000000;">refcount</span>;
+};
+<span style="color: #0000ff;">void</span> <span style="color: #8b008b; font-weight: bold;">kref_init</span>(<span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kref</span> *<span style="color: #000000;">kref</span>);      <span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#21021;&#22987;&#21270;&#20026;1</span>
+<span style="color: #0000ff;">void</span> <span style="color: #8b008b; font-weight: bold;">kref_get</span>(<span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kref</span> *<span style="color: #000000;">kref</span>);       <span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#22686;&#21152;&#35745;&#25968;</span>
+<span style="color: #0000ff;">int</span> <span style="color: #8b008b; font-weight: bold;">kref_put</span>(<span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kref</span> *<span style="color: #000000;">kref</span>,         <span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#20943;&#23569;&#35745;&#25968;</span>
+             <span style="color: #0000ff;">void</span> (*<span style="color: #000000;">release</span>)(<span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kref</span> *<span style="color: #000000;">kref</span>));
+<span style="color: #0000ff;">int</span> <span style="color: #8b008b; font-weight: bold;">__must_check</span> kref_get_unless_zero(<span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kref</span> *<span style="color: #000000;">kref</span>);
+</pre>
+</div>
+<p>
+当kref的计数减少到0的时候，就会有别的线程去释放对象，
+此时如果去执行kref_get()就会出现竞态问题，
+比较安全的做法是使用kref_get_unless_zero()。
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-1-2" class="outline-3">
+<h3 id="sec-1-2"><span class="section-number-3">1.2</span> kobj_type</h3>
+<div class="outline-text-3" id="text-1-2">
+<p>
+kobj_type相当于kobject的类型，包括了对sysfs操作的方法，
+以及对kobject释放的析构函数。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kobj_type</span> {
+    <span style="color: #0000ff;">void</span> (*<span style="color: #8b008b; font-weight: bold;">release</span>)(<span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kobject</span> *<span style="color: #000000;">kobj</span>);
+    <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">sysfs_ops</span> *<span style="color: #000000;">sysfs_ops</span>;
+    <span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">attribute</span> **<span style="color: #000000;">default_attrs</span>;
+    <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kobj_ns_type_operations</span> *
+    (*<span style="color: #8b008b; font-weight: bold;">child_ns_type</span>)(<span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kobject</span> *<span style="color: #000000;">kobj</span>);
+    <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">void</span> *(*<span style="color: #0000ff; font-weight: bold;">namespace</span>)(<span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kobject</span> *<span style="color: #000000;">kobj</span>);
+};
+<span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">sysfs_ops</span> {
+    <span style="color: #0000ff;">ssize_t</span> (*<span style="color: #8b008b; font-weight: bold;">show</span>)(<span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kobject</span> *<span style="color: #000000;">kobj</span>, <span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">attribute</span> *<span style="color: #000000;">attr</span>,
+                    <span style="color: #0000ff;">char</span> *<span style="color: #000000;">buf</span>);
+    <span style="color: #0000ff;">ssize_t</span> (*<span style="color: #8b008b; font-weight: bold;">store</span>)(<span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kobject</span> *<span style="color: #000000;">kobj</span>, <span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">attribute</span> *<span style="color: #000000;">attr</span>,
+                     <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">buf</span>, <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">len</span>);
+};
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-sec-1-3" class="outline-3">
+<h3 id="sec-1-3"><span class="section-number-3">1.3</span> kset</h3>
+<div class="outline-text-3" id="text-1-3">
+<p>
+kset是一个kobject的集合，通过链表将集合内部的kobject串接起来。
+并且kset本身也被设计为一个kobject对象，
+因此也可以进一步将多个kset放到一个更大的kset中去。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kset</span> {
+    <span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">list_head</span> <span style="color: #000000;">list</span>;              <span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">node: kobj-&gt;list</span>
+    <span style="color: #0000ff;">spinlock_t</span> <span style="color: #000000;">list_lock</span>;
+    <span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kobject</span> <span style="color: #000000;">kobj</span>;
+    <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kset_uevent_ops</span> *<span style="color: #000000;">uevent_ops</span>;
+};
+
+<span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kset_uevent_ops</span> {
+    <span style="color: #0000ff;">int</span> (* <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #8b008b; font-weight: bold;">filter</span>)(<span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kset</span> *<span style="color: #000000;">kset</span>, <span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kobject</span> *<span style="color: #000000;">kobj</span>);
+    <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *(* <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #8b008b; font-weight: bold;">name</span>)(<span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kset</span> *<span style="color: #000000;">kset</span>,
+                               <span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kobject</span> *<span style="color: #000000;">kobj</span>);
+    <span style="color: #0000ff;">int</span> (* <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #8b008b; font-weight: bold;">uevent</span>)(<span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kset</span> *<span style="color: #000000;">kset</span>, <span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kobject</span> *<span style="color: #000000;">kobj</span>,
+                         <span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kobj_uevent_env</span> *<span style="color: #000000;">env</span>);
+};
+</pre>
+</div>
+<p>
+kset_uevent_ops简单说明：
+</p>
+<ul class="org-ul">
+<li>filter() 过滤不需要发送的uevent事件
+</li>
+<li>name() 用于获取subsystem的名字
+</li>
+<li>uevent() 一般负责添加更多的环境变量和执行dev-&gt;bus-&gt;uevent()
+</li>
+</ul>
+
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kobj_uevent_env</span> {
+    <span style="color: #0000ff;">char</span> *<span style="color: #000000;">argv</span>[3];
+    <span style="color: #0000ff;">char</span> *<span style="color: #000000;">envp</span>[UEVENT_NUM_ENVP];
+    <span style="color: #0000ff;">int</span> <span style="color: #000000;">envp_idx</span>;
+    <span style="color: #0000ff;">char</span> <span style="color: #000000;">buf</span>[UEVENT_BUFFER_SIZE];
+    <span style="color: #0000ff;">int</span> <span style="color: #000000;">buflen</span>;
+};
+</pre>
+</div>
+<p>
+kobject_uevent_env用于保存环境变量。
+</p>
+
+<p>
+kset相关操作如下
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #0000ff;">void</span> <span style="color: #8b008b; font-weight: bold;">kset_init</span>(<span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kset</span> *<span style="color: #000000;">kset</span>);
+<span style="color: #0000ff;">int</span> <span style="color: #8b008b; font-weight: bold;">__must_check</span> kset_register(<span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kset</span> *<span style="color: #000000;">kset</span>);
+<span style="color: #0000ff; font-weight: bold;">extern</span> <span style="color: #0000ff;">void</span> <span style="color: #8b008b; font-weight: bold;">kset_unregister</span>(<span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kset</span> *<span style="color: #000000;">kset</span>);
+<span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kset</span> * <span style="color: #8b008b; font-weight: bold;">__must_check</span>
+kset_create_and_add(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">name</span>,
+                    <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kset_uevent_ops</span> *<span style="color: #000000;">uops</span>,
+                    <span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kobject</span> *<span style="color: #000000;">parent</span>);
+<span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kset</span> *<span style="color: #8b008b; font-weight: bold;">to_kset</span>(<span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kobject</span> *<span style="color: #000000;">kobj</span>);
+<span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kset</span> *<span style="color: #8b008b; font-weight: bold;">kset_get</span>(<span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kset</span> *<span style="color: #000000;">kset</span>);  <span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#35843;&#29992;kobject_get()</span>
+<span style="color: #0000ff;">void</span> <span style="color: #8b008b; font-weight: bold;">kset_put</span>(<span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kset</span> *<span style="color: #000000;">kset</span>);          <span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#35843;&#29992;kobject_put()</span>
+<span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kobj_type</span> *<span style="color: #8b008b; font-weight: bold;">get_ktype</span>(<span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kobject</span> *<span style="color: #000000;">kobj</span>);
+<span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kobject</span> *<span style="color: #8b008b; font-weight: bold;">kset_find_obj</span>(<span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kset</span> *<span style="color: #000000;">kset</span>, <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">name</span>);
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-sec-1-4" class="outline-3">
+<h3 id="sec-1-4"><span class="section-number-3">1.4</span> kobject操作</h3>
+<div class="outline-text-3" id="text-1-4">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#35813;&#20989;&#25968;&#20250;&#20998;&#37197;&#20445;&#23384;&#21517;&#23383;&#25152;&#38656;&#30340;&#31354;&#38388;</span>
+<span style="color: #0000ff;">int</span> <span style="color: #8b008b; font-weight: bold;">kobject_set_name</span>(<span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kobject</span> *<span style="color: #000000;">kobj</span>, <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">name</span>, ...);
+<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #8b008b; font-weight: bold;">kobject_name</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kobject</span> *<span style="color: #000000;">kobj</span>);
+<span style="color: #0000ff;">void</span> <span style="color: #8b008b; font-weight: bold;">kobject_init</span>(<span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kobject</span> *<span style="color: #000000;">kobj</span>, <span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kobj_type</span> *<span style="color: #000000;">ktype</span>);
+<span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#20250;&#35843;&#29992;kobject_set_name()&#35774;&#32622;&#21517;&#23383;</span>
+<span style="color: #0000ff;">int</span> <span style="color: #8b008b; font-weight: bold;">kobject_add</span>(<span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kobject</span> *<span style="color: #000000;">kobj</span>, <span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kobject</span> *<span style="color: #000000;">parent</span>,
+                <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">fmt</span>, ...);
+<span style="color: #0000ff;">int</span> <span style="color: #8b008b; font-weight: bold;">kobject_init_and_add</span>(<span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kobject</span> *<span style="color: #000000;">kobj</span>,
+                         <span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kobj_type</span> *<span style="color: #000000;">ktype</span>,
+                         <span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kobject</span> *<span style="color: #000000;">parent</span>,
+                         <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">fmt</span>, ...);
+<span style="color: #0000ff;">void</span> <span style="color: #8b008b; font-weight: bold;">kobject_del</span>(<span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kobject</span> *<span style="color: #000000;">kobj</span>);
+<span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kobject</span> * <span style="color: #8b008b; font-weight: bold;">__must_check</span> kobject_create(<span style="color: #0000ff;">void</span>);
+<span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kobject</span> * <span style="color: #8b008b; font-weight: bold;">__must_check</span>
+kobject_create_and_add(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">name</span>, <span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kobject</span> *<span style="color: #000000;">parent</span>);
+<span style="color: #0000ff;">int</span> <span style="color: #8b008b; font-weight: bold;">__must_check</span> kobject_rename(<span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kobject</span> *<span style="color: #000000;">kobj</span>,
+                                <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">name</span>);
+<span style="color: #0000ff;">int</span> <span style="color: #8b008b; font-weight: bold;">__must_check</span> kobject_move(<span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kobject</span> *<span style="color: #000000;">kobj</span>,
+                              <span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kobject</span> *<span style="color: #000000;">new_parent</span>);
+<span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kobject</span> *<span style="color: #8b008b; font-weight: bold;">kobject_get</span>(<span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kobject</span> *<span style="color: #000000;">kobj</span>);
+<span style="color: #0000ff;">void</span> <span style="color: #8b008b; font-weight: bold;">kobject_put</span>(<span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kobject</span> *<span style="color: #000000;">kobj</span>);
+</pre>
+</div>
+
+<p>
+kobject和uevent是紧密相连的，下面几个是和uevent相关的函数。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #0000ff;">int</span> <span style="color: #8b008b; font-weight: bold;">kobject_uevent</span>(<span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kobject</span> *<span style="color: #000000;">kobj</span>, <span style="color: #0000ff; font-weight: bold;">enum</span> <span style="color: #0000ff;">kobject_action</span> <span style="color: #000000;">action</span>);
+<span style="color: #0000ff;">int</span> <span style="color: #8b008b; font-weight: bold;">kobject_uevent_env</span>(<span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kobject</span> *<span style="color: #000000;">kobj</span>,
+                       <span style="color: #0000ff; font-weight: bold;">enum</span> <span style="color: #0000ff;">kobject_action</span> <span style="color: #000000;">action</span>,
+                       <span style="color: #0000ff;">char</span> *<span style="color: #000000;">envp</span>[]);
+<span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#23558;&#29615;&#22659;&#21464;&#37327;&#21152;&#20837;&#21040;env&#20013;</span>
+<span style="color: #0000ff;">int</span> <span style="color: #8b008b; font-weight: bold;">add_uevent_var</span>(<span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kobj_uevent_env</span> *<span style="color: #000000;">env</span>,
+                   <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">format</span>, ...);
+<span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#23558;&#23383;&#31526;&#20018;&#36716;&#25442;&#20026;enum</span>
+<span style="color: #0000ff;">int</span> <span style="color: #8b008b; font-weight: bold;">kobject_action_type</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">buf</span>, <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">len</span>,
+                        <span style="color: #0000ff; font-weight: bold;">enum</span> <span style="color: #0000ff;">kobject_action</span> *<span style="color: #000000;">type</span>);
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-2" class="outline-2">
+<h2 id="sec-2"><span class="section-number-2">2</span> uevent</h2>
+<div class="outline-text-2" id="text-2">
+<p>
+提到kobject就不得不提到uevent，uevent是User space EVENT的缩写。
+当用户插拔设备的时候，内核检测到设备插拔并发出插拔事件，
+调用/proc/sys/kernel/hotplug中指定的用户空间应用对事件进行处理。
+</p>
+
+<p>
+kobject代表一个sysfs目录，kobj_type代表类型，
+提供对象的析构函数和对sysfs操作的接口。
+kset代表子系统，包括了对子系统的操作集，如过滤，获取参数，填充环境变量等，
+同一个kset内部的kobject共享一组uevent_ops。
+</p>
+
+<p>
+以device_add为例，该函数的主要工作如下：
+</p>
+<ul class="org-ul">
+<li>如果没有名字，设置设备的名字
+</li>
+<li>设置其kobj的parent，kobj_add()添加kobject到parent下
+</li>
+<li>创建设备sysfs目录下的文件
+<ul class="org-ul">
+<li>uevent
+</li>
+<li>dev：有设备号才会创建
+</li>
+</ul>
+</li>
+<li>device_add_class_symlinks()
+<ul class="org-ul">
+<li>subsystem：位于设备属性下，指向所属的子系统的符号链接。
+</li>
+<li>device：位于设备属性下，有父亲且不是分区时才会创建，
+指向父设备的符号链接。
+</li>
+<li>name：位于子系统属性下，指向设备属性，
+名字和设备名相同，如果是块设备就不会创建，
+因为已经在/sys/block下面创建了和设备名相同的符号链接。
+</li>
+</ul>
+</li>
+<li>device_add_attrs()
+<ul class="org-ul">
+<li>dev-&gt;class-&gt;dev_groups
+</li>
+<li>dev-&gt;type-&gt;groups
+</li>
+<li>dev-&gt;groups
+</li>
+<li>dev_attr_online
+</li>
+</ul>
+</li>
+<li>bus_add_device()
+<ul class="org-ul">
+<li>device_add_attrs() 添加总线属性，不同于设备属性
+</li>
+<li>bus-&gt;dev_groups
+</li>
+<li>name：位于总线属性下，指向设备的符号链接
+</li>
+<li>subsystem：位于设备属性下，指向总线的符号链接
+</li>
+</ul>
+</li>
+<li>dpm_sysfs_add()
+<ul class="org-ul">
+<li>动态PM相关sysfs文件
+</li>
+</ul>
+</li>
+<li>device_pm_add()
+将设备添加到PM核心链表
+</li>
+<li>blocking_notifier_call_chain()
+</li>
+<li><code>kobject_uevent(&amp;dev-&gt;kobj, KOBJ_ADD);</code>
+</li>
+<li>bus_probe_device()
+为设备探测合适的驱动
+</li>
+</ul>
+
+<p>
+该函数会通过kobject_uevent()发出uevent事件，甚至此时内核中可能没有对应的驱动，
+但是用户空间的uevent_helper可以利用uevent信息来载入驱动，
+载入驱动的时候也会执行一次设备和驱动间的匹配，从而实现动态载入驱动。
+</p>
+</div>
+
+<div id="outline-container-sec-2-1" class="outline-3">
+<h3 id="sec-2-1"><span class="section-number-3">2.1</span> kobject_uevent()</h3>
+<div class="outline-text-3" id="text-2-1">
+<p>
+这个函数有必要梳理一下
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #0000ff;">int</span> <span style="color: #8b008b; font-weight: bold;">kobject_uevent</span>(<span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kobject</span> *<span style="color: #000000;">kobj</span>, <span style="color: #0000ff; font-weight: bold;">enum</span> <span style="color: #0000ff;">kobject_action</span> <span style="color: #000000;">action</span>)
+{
+    <span style="color: #0000ff; font-weight: bold;">return</span> kobject_uevent_env(kobj, action, <span style="color: #5f9ea0;">NULL</span>);
+}
+</pre>
+</div>
+<p>
+这里假定所有函数都能成功执行，将其简化后如下所示。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #0000ff;">int</span> <span style="color: #8b008b; font-weight: bold;">kobject_uevent_env</span>(<span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kobject</span> *<span style="color: #000000;">kobj</span>,
+                       <span style="color: #0000ff; font-weight: bold;">enum</span> <span style="color: #0000ff;">kobject_action</span> <span style="color: #000000;">action</span>,
+                       <span style="color: #0000ff;">char</span> *<span style="color: #000000;">envp_ext</span>[])
+{
+    <span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kobj_uevent_env</span> *<span style="color: #000000;">env</span> =
+        kzalloc(<span style="color: #0000ff; font-weight: bold;">sizeof</span>(<span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kobj_uevent_env</span>), GFP_KERNEL);
+    <span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#21033;&#29992;&#23383;&#31526;&#20018;&#25968;&#32452;&#23558;enum&#36716;&#25442;&#20026;&#23383;&#31526;&#20018;</span>
+    <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">action_string</span> = kobject_actions[action];
+    <span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kobject</span> *<span style="color: #000000;">top_kobj</span> = ...;             <span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#24517;&#39035;&#25214;&#21040;kset</span>
+    <span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kset</span> *<span style="color: #000000;">kset</span> = top_kobj-&gt;kset;
+    <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">kset_uevent_ops</span> *<span style="color: #000000;">uevent_ops</span> = kset-&gt;uevent_ops;
+    <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">subsystem</span>;
+
+    <span style="color: #0000ff; font-weight: bold;">if</span> (kobj-&gt;uevent_suppress)                  <span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#31105;&#27490;&#21457;&#20986;</span>
+        <span style="color: #0000ff; font-weight: bold;">return</span> 0;
+    <span style="color: #0000ff; font-weight: bold;">if</span> (uevent_ops &amp;&amp; uevent_ops-&gt;filter)
+        <span style="color: #0000ff; font-weight: bold;">if</span> (!uevent_ops-&gt;filter(kset, kobj))    <span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#34987;&#36807;&#28388;</span>
+            <span style="color: #0000ff; font-weight: bold;">return</span> 0;
+
+    <span style="color: #0000ff; font-weight: bold;">if</span> (uevent_ops &amp;&amp; uevent_ops-&gt;name)
+        subsystem = uevent_ops-&gt;name(kset, kobj);
+    <span style="color: #0000ff; font-weight: bold;">else</span>
+        subsystem = kobject_name(&amp;kset-&gt;kobj);
+    <span style="color: #0000ff; font-weight: bold;">if</span> (!subsystem)                             <span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#24517;&#39035;&#26377;&#23376;&#31995;&#32479;</span>
+        <span style="color: #0000ff; font-weight: bold;">return</span> 0;
+
+    <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">devpath</span> = kobject_get_path(kobj, GFP_KERNEL);
+    add_uevent_var(env, <span style="color: #ff0000;">"ACTION=%s"</span>, action_string);
+    add_uevent_var(env, <span style="color: #ff0000;">"DEVPATH=%s"</span>, devpath);
+    add_uevent_var(env, <span style="color: #ff0000;">"SUBSYSTEM=%s"</span>, subsystem);
+    <span style="color: #0000ff; font-weight: bold;">for</span> (<span style="color: #0000ff;">int</span> <span style="color: #000000;">i</span> = 0; envp_ext &amp;&amp; envp_ext[i]; i++) <span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#39069;&#22806;&#29615;&#22659;&#21464;&#37327;</span>
+            add_uevent_var(env, <span style="color: #ff0000;">"%s"</span>, envp_ext[i]);
+    <span style="color: #0000ff; font-weight: bold;">if</span> (uevent_ops &amp;&amp; uevent_ops-&gt;uevent)       <span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">kset&#25805;&#20316;</span>
+        uevent_ops-&gt;uevent(kset, kobj, env);
+
+    <span style="color: #0000ff; font-weight: bold;">if</span> (action == KOBJ_ADD)
+        kobj-&gt;state_add_uevent_sent = 1;
+    <span style="color: #0000ff; font-weight: bold;">else</span> <span style="color: #0000ff; font-weight: bold;">if</span> (action == KOBJ_REMOVE)
+        kobj-&gt;state_remove_uevent_sent = 1;
+
+    mutex_lock(&amp;uevent_sock_mutex);
+    add_uevent_var(env, <span style="color: #ff0000;">"SEQNUM=%llu"</span>,          <span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#24207;&#21015;&#21495;</span>
+                   (<span style="color: #0000ff;">unsigned</span> <span style="color: #0000ff;">long</span> <span style="color: #0000ff;">long</span>)++uevent_seqnum);
+
+<span style="color: #000000;">#ifdef</span> CONFIG_NET
+    <span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">uevent_sock</span> *<span style="color: #000000;">ue_sk</span>;
+    <span style="color: #000000;">list_for_each_entry</span>(ue_sk, &amp;uevent_sock_list, <span style="color: #0000ff;">list</span>) {
+        <span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">sock</span> *<span style="color: #000000;">uevent_sock</span> = ue_sk-&gt;sk;
+        <span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">sk_buff</span> *<span style="color: #000000;">skb</span>;
+        <span style="color: #0000ff;">char</span> *<span style="color: #000000;">scratch</span>;
+        <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">len</span>;
+
+        <span style="color: #0000ff; font-weight: bold;">if</span> (!netlink_has_listeners(uevent_sock, 1))
+            <span style="color: #0000ff; font-weight: bold;">continue</span>;
+
+        len = strlen(action_string) + strlen(devpath) + 2;
+        skb = alloc_skb(len + env-&gt;buflen, GFP_KERNEL);
+
+        scratch = skb_put(skb, len);
+        sprintf(scratch, <span style="color: #ff0000;">"%s@%s"</span>, action_string, devpath);
+
+        <span style="color: #0000ff; font-weight: bold;">for</span> (i = 0; i &lt; env-&gt;envp_idx; i++) {
+            len = strlen(env-&gt;envp[i]) + 1;
+            scratch = skb_put(skb, len);
+            strcpy(scratch, env-&gt;envp[i]);
+        }
+
+        NETLINK_CB(skb).dst_group = 1;
+        netlink_broadcast_filtered(uevent_sock, skb, 0, 1, GFP_KERNEL,
+                                   kobj_bcast_filter, kobj);
+    }
+<span style="color: #000000;">#endif</span>
+    mutex_unlock(&amp;uevent_sock_mutex);
+
+<span style="color: #000000;">#ifdef</span> CONFIG_UEVENT_HELPER
+    <span style="color: #0000ff; font-weight: bold;">if</span> (uevent_helper[0] &amp;&amp; !kobj_usermode_filter(kobj)) {
+        <span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">subprocess_info</span> *<span style="color: #000000;">info</span>;
+        <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">path</span> = <span style="color: #ff0000;">"PATH=/sbin:/bin:/usr/sbin:/usr/bin"</span>
+        add_uevent_var(env, <span style="color: #ff0000;">"HOME=/"</span>);
+        add_uevent_var(env, path);
+        init_uevent_argv(env, subsystem);
+        info = call_usermodehelper_setup(env-&gt;argv[0], env-&gt;argv,
+                                         env-&gt;envp, GFP_KERNEL, <span style="color: #5f9ea0;">NULL</span>,
+                                         cleanup_uevent_env, env);
+        call_usermodehelper_exec(info, UMH_NO_WAIT);
+        env = <span style="color: #5f9ea0;">NULL</span>;     <span style="color: #228b22; font-style: italic;">/* </span><span style="color: #228b22; font-style: italic;">freed by cleanup_uevent_env */</span>
+    }
+<span style="color: #000000;">#endif</span>
+
+ <span style="color: #5f9ea0;">exit</span>:
+    kfree(devpath);
+    kfree(env);
+    <span style="color: #0000ff; font-weight: bold;">return</span> 0;
+}
+</pre>
+</div>
+<p>
+从中可以看出，要使用netlink发出uevent，必须配置NET，
+同样，要使用uevent_helper发出uevent，必须配置UEVENT_HELPER。
+udev通过netlink监听，mdev则通过uevent_helper监听。
+</p>
+</div>
+</div>
+</div>
+</div>
+</body>
+</html>

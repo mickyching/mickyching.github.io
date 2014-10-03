@@ -1,0 +1,711 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<title>emacs configuration</title>
+<meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta  name="generator" content="Org-mode" />
+<meta  name="author" content="Micky Ching" />
+<link rel="stylesheet" type="text/css" href="../style/default.css" />
+
+<script type="text/javascript" src="../style/default.js">
+/**
+ *
+ * @source: ../style/default.js
+ *
+ * @licstart  The following is the entire license notice for the
+ *  JavaScript code in ../style/default.js.
+ *
+ * Copyright (C) 2012-2013 Free Software Foundation, Inc.
+ *
+ *
+ * The JavaScript code in this tag is free software: you can
+ * redistribute it and/or modify it under the terms of the GNU
+ * General Public License (GNU GPL) as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option)
+ * any later version.  The code is distributed WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+ *
+ * As additional permission under GNU GPL version 3 section 7, you
+ * may distribute non-source (e.g., minimized or compacted) forms of
+ * that code without the copy of the GNU GPL normally required by
+ * section 4, provided you include this license notice and a URL
+ * through which recipients can access the Corresponding Source.
+ *
+ * @licend  The above is the entire license notice
+ * for the JavaScript code in ../style/default.js.
+ *
+ */
+</script>
+
+<script type="text/javascript">
+
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+
+<!--/*--><![CDATA[/*><!--*/
+org_html_manager.set("TOC_DEPTH", "4");
+org_html_manager.set("LINK_HOME", "");
+org_html_manager.set("LINK_UP", "");
+org_html_manager.set("LOCAL_TOC", "0");
+org_html_manager.set("VIEW_BUTTONS", "0");
+org_html_manager.set("MOUSE_HINT", "underline");
+org_html_manager.set("FIXED_TOC", "0");
+org_html_manager.set("TOC", "0");
+org_html_manager.set("VIEW", "showall");
+org_html_manager.setup();  // activate after the parameters are set
+/*]]>*///-->
+</script>
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+</head>
+<body>
+<div id="content">
+<h1 class="title">emacs configuration</h1>
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#sec-1">1. 安装指南</a>
+<ul>
+<li><a href="#sec-1-1">1.1. 克隆配置文件</a></li>
+<li><a href="#sec-1-2">1.2. 安装emacs</a>
+<ul>
+<li><a href="#sec-1-2-1">1.2.1. emacs @ ubuntu</a></li>
+<li><a href="#sec-1-2-2">1.2.2. emacs @ windows</a></li>
+</ul>
+</li>
+<li><a href="#sec-1-3">1.3. 安装字体</a></li>
+<li><a href="#sec-1-4">1.4. 安装latex</a>
+<ul>
+<li><a href="#sec-1-4-1">1.4.1. latex @ ubuntu</a></li>
+</ul>
+</li>
+<li><a href="#sec-1-5">1.5. 安装minted</a>
+<ul>
+<li><a href="#sec-1-5-1">1.5.1. minted @ ubuntu</a></li>
+</ul>
+</li>
+<li><a href="#sec-1-6">1.6. 安装flycheck</a>
+<ul>
+<li><a href="#sec-1-6-1">1.6.1. flycheck @ ubuntu</a></li>
+</ul>
+</li>
+<li><a href="#sec-1-7">1.7. 其他org mode可以直接运行的语言</a></li>
+<li><a href="#sec-1-8">1.8. 设置中文输入</a></li>
+</ul>
+</li>
+<li><a href="#sec-2">2. 配置说明</a>
+<ul>
+<li><a href="#sec-2-1">2.1. 功能键设置规则</a></li>
+<li><a href="#sec-2-2">2.2. 常用键设定</a></li>
+<li><a href="#sec-2-3">2.3. 附加按键设置</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-1" class="outline-2">
+<h2 id="sec-1"><span class="section-number-2">1</span> 安装指南</h2>
+<div class="outline-text-2" id="text-1">
+</div><div id="outline-container-sec-1-1" class="outline-3">
+<h3 id="sec-1-1"><span class="section-number-3">1.1</span> 克隆配置文件</h3>
+<div class="outline-text-3" id="text-1-1">
+<div class="org-src-container">
+
+<pre class="src src-sh">git clone https://github.com/mickyching/emacsd.git ~/.emacs.d
+</pre>
+</div>
+
+<p>
+配置文件仅仅包含配置信息，而依赖的软件包在第一次打开emacs时会自动下载，
+由于下载和编译软件包需要大量时间，因此可以选择直接克隆软件包。
+需要注意的是克隆的软件包版本相对比较老，但是也会稳定一些。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">git clone https://github.com/mickyching/elpa.git ~/.emacs.d/elpa
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-1-2" class="outline-3">
+<h3 id="sec-1-2"><span class="section-number-3">1.2</span> 安装emacs</h3>
+<div class="outline-text-3" id="text-1-2">
+</div><div id="outline-container-sec-1-2-1" class="outline-4">
+<h4 id="sec-1-2-1"><span class="section-number-4">1.2.1</span> emacs @ ubuntu</h4>
+<div class="outline-text-4" id="text-1-2-1">
+<p>
+安装emacs-24.3会和fill-column-indicator插件冲突，因为在24.3中有一个小的bug，
+下面是安装emacs-24.3的代码。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">sudo apt-get install libgtk-3-dev libxpm-dev libjpeg-dev <span style="color: #ff0000;">\</span>
+    libncurses5-dev libgif-dev libtiff-dev automake
+wget http://mirrors.ustc.edu.cn/gnu/emacs/emacs-24.3.tar.gz
+tar -xzvf emacs-24.3.tar.gz
+<span style="color: #000000;">cd</span> emacs-24.3
+./configure
+make
+sudo make install
+</pre>
+</div>
+
+<p>
+推荐安装emacs-24.4，依赖和emacs-24.3基本一样，安装方法如下：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">git clone https://gitshell.com/micky/emacs
+<span style="color: #000000;">cd</span> emacs
+./autogen.sh
+./configure
+make
+sudo make install
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-1-2-2" class="outline-4">
+<h4 id="sec-1-2-2"><span class="section-number-4">1.2.2</span> emacs @ windows</h4>
+<div class="outline-text-4" id="text-1-2-2">
+<p>
+windows下可以直接下载程序，绿色程序无需安装，
+解压后直接点击runemacs.exe即可运行。下载地址：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">wget http://mirrors.ustc.edu.cn/gnu/emacs/windows/<span style="color: #ff0000;">\</span>
+emacs-24.3-bin-i386.zip
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-1-3" class="outline-3">
+<h3 id="sec-1-3"><span class="section-number-3">1.3</span> 安装字体</h3>
+<div class="outline-text-3" id="text-1-3">
+<ul class="org-ul">
+<li>emacs font: WenQuanYi Micro Hei Mono/WenQuanYi Micro Hei Mono.
+</li>
+<li>latex article/book font
+<ul class="org-ul">
+<li>main/sans: Times New Roman/SimSun.
+</li>
+<li>mono: Fantasque Sans Mono/WenQuanYi Micro Hei Mono.
+</li>
+</ul>
+</li>
+<li>beamer font
+<ul class="org-ul">
+<li>main/sans: WenQuanYi Micro Hei/WenQuanYi Micro Hei
+</li>
+<li>mono: Fantasque Sans Mono/WenQuanYi Micro Hei Mono.
+</li>
+</ul>
+</li>
+<li>org mode font
+<ul class="org-ul">
+<li>为了能够在org mode下让table表格整齐，需要把中文字体放大。
+</li>
+<li>快捷键C-x C-=用于设置是否将中文放大。
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-1-4" class="outline-3">
+<h3 id="sec-1-4"><span class="section-number-3">1.4</span> 安装latex</h3>
+<div class="outline-text-3" id="text-1-4">
+<p>
+主要用于org mode输出pdf文件。
+</p>
+</div>
+
+<div id="outline-container-sec-1-4-1" class="outline-4">
+<h4 id="sec-1-4-1"><span class="section-number-4">1.4.1</span> latex @ ubuntu</h4>
+<div class="outline-text-4" id="text-1-4-1">
+<div class="org-src-container">
+
+<pre class="src src-sh">sudo apt-get install texlive-xetex texlive-full <span style="color: #ff0000;">\</span>
+    latex-cjk-all texlive-extra-utils
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-1-5" class="outline-3">
+<h3 id="sec-1-5"><span class="section-number-3">1.5</span> 安装minted</h3>
+<div class="outline-text-3" id="text-1-5">
+<p>
+主要用于org mode输出pdf文件。
+</p>
+</div>
+
+<div id="outline-container-sec-1-5-1" class="outline-4">
+<h4 id="sec-1-5-1"><span class="section-number-4">1.5.1</span> minted @ ubuntu</h4>
+<div class="outline-text-4" id="text-1-5-1">
+<div class="org-src-container">
+
+<pre class="src src-sh">sudo apt-get install python-setuptools python-dev build-essential
+easy_install Pygments
+git clone https://github.com/gpoore/minted.git
+mkdir -p /usr/share/texmf/tex/latex/minted
+sudo cp minted/source/minted.sty /usr/share/texmf/tex/latex/minted
+sudo texhash /usr/share/texmf
+</pre>
+</div>
+
+<p>
+如果minted下载出现问题，
+可以使用~/.emacs.d/tool/下面的minted.sty备份。
+执行输出pdf命令的时候需要加选项-shell-escape。
+</p>
+
+<p>
+minted使用pygmentize语法高亮，支持的语言和风格可以通过如下命令查看：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">pygmentize -L styles            <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#25903;&#25345;&#30340;&#39640;&#20142;&#39118;&#26684;</span>
+pygmentize -L lexers            <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#25903;&#25345;&#30340;&#35821;&#35328;</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-1-6" class="outline-3">
+<h3 id="sec-1-6"><span class="section-number-3">1.6</span> 安装flycheck</h3>
+<div class="outline-text-3" id="text-1-6">
+<p>
+主要用于代码检查。
+</p>
+</div>
+
+<div id="outline-container-sec-1-6-1" class="outline-4">
+<h4 id="sec-1-6-1"><span class="section-number-4">1.6.1</span> flycheck @ ubuntu</h4>
+<div class="outline-text-4" id="text-1-6-1">
+<div class="org-src-container">
+
+<pre class="src src-sh">sudo apt-get install python-pip cppcheck
+sudo pip install flake8 pylint
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-1-7" class="outline-3">
+<h3 id="sec-1-7"><span class="section-number-3">1.7</span> 其他org mode可以直接运行的语言</h3>
+<div class="outline-text-3" id="text-1-7">
+<p>
+在org mode下可以直接运行的语言详细请参考<a href="http://orgmode.org/worg/org-contrib/babel/languages.html">Babel: Languages</a>。
+</p>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="left" />
+
+<col  class="left" />
+
+<col  class="left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="left">工具名称</th>
+<th scope="col" class="left">下载软件名</th>
+<th scope="col" class="left">用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="left">graphviz</td>
+<td class="left">graphviz</td>
+<td class="left">绘制流程图</td>
+</tr>
+
+<tr>
+<td class="left">ditaa</td>
+<td class="left">ditaa</td>
+<td class="left">文本绘图</td>
+</tr>
+
+<tr>
+<td class="left">plantuml</td>
+<td class="left">plantuml</td>
+<td class="left">UML绘图</td>
+</tr>
+
+<tr>
+<td class="left">calc</td>
+<td class="left">apcalc</td>
+<td class="left">计算器</td>
+</tr>
+
+<tr>
+<td class="left">gnuplot</td>
+<td class="left">gnuplot</td>
+<td class="left">科学绘图</td>
+</tr>
+
+<tr>
+<td class="left">C</td>
+<td class="left">gcc &amp; g++</td>
+<td class="left">程序设计</td>
+</tr>
+
+<tr>
+<td class="left">Python</td>
+<td class="left">python</td>
+<td class="left">程序设计</td>
+</tr>
+
+<tr>
+<td class="left">shell</td>
+<td class="left">sh</td>
+<td class="left">脚本</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<div id="outline-container-sec-1-8" class="outline-3">
+<h3 id="sec-1-8"><span class="section-number-3">1.8</span> 设置中文输入</h3>
+<div class="outline-text-3" id="text-1-8">
+<p>
+如果在Linux下不能使用中文输入，可能需要配置语言环境：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #000000;">LC_CTYPE</span>=zh_CN.UTF-8 emacs
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-2" class="outline-2">
+<h2 id="sec-2"><span class="section-number-2">2</span> 配置说明</h2>
+<div class="outline-text-2" id="text-2">
+</div><div id="outline-container-sec-2-1" class="outline-3">
+<h3 id="sec-2-1"><span class="section-number-3">2.1</span> 功能键设置规则</h3>
+<div class="outline-text-3" id="text-2-1">
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="left" />
+
+<col  class="left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="left">编号</th>
+<th scope="col" class="left">用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="left">F1 - F4</td>
+<td class="left">预留给后续使用</td>
+</tr>
+
+<tr>
+<td class="left">F5</td>
+<td class="left">cscope</td>
+</tr>
+
+<tr>
+<td class="left">F6</td>
+<td class="left">ctags</td>
+</tr>
+
+<tr>
+<td class="left">F7</td>
+<td class="left">ecb</td>
+</tr>
+
+<tr>
+<td class="left">F8</td>
+<td class="left">magit</td>
+</tr>
+
+<tr>
+<td class="left">F9</td>
+<td class="left">flycheck</td>
+</tr>
+
+<tr>
+<td class="left">F10</td>
+<td class="left">gnus</td>
+</tr>
+
+<tr>
+<td class="left">F11</td>
+<td class="left">screen control</td>
+</tr>
+
+<tr>
+<td class="left">F12</td>
+<td class="left">预留</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<div id="outline-container-sec-2-2" class="outline-3">
+<h3 id="sec-2-2"><span class="section-number-3">2.2</span> 常用键设定</h3>
+<div class="outline-text-3" id="text-2-2">
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="left" />
+
+<col  class="left" />
+
+<col  class="left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="left">按键</th>
+<th scope="col" class="left">子功能</th>
+<th scope="col" class="left">功能</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="left">M-;</td>
+<td class="left">&#xa0;</td>
+<td class="left">注释与反注释，使用非常频繁</td>
+</tr>
+
+<tr>
+<td class="left">C-'</td>
+<td class="left">&#xa0;</td>
+<td class="left">折叠与打开代码块</td>
+</tr>
+
+<tr>
+<td class="left">C-"</td>
+<td class="left">&#xa0;</td>
+<td class="left">折叠与打开所有代码块</td>
+</tr>
+
+<tr>
+<td class="left">M-.</td>
+<td class="left">&#xa0;</td>
+<td class="left">gtags定义查找</td>
+</tr>
+
+<tr>
+<td class="left">M-,</td>
+<td class="left">&#xa0;</td>
+<td class="left">gtags字符串抓取</td>
+</tr>
+
+<tr>
+<td class="left">C-/</td>
+<td class="left">&#xa0;</td>
+<td class="left">智能补全</td>
+</tr>
+
+<tr>
+<td class="left">&#xa0;</td>
+<td class="left">M-[np]</td>
+<td class="left">在候选中上下选取</td>
+</tr>
+
+<tr>
+<td class="left">C-x C-b</td>
+<td class="left">&#xa0;</td>
+<td class="left">buffer管理</td>
+</tr>
+
+<tr>
+<td class="left">&#xa0;</td>
+<td class="left">h</td>
+<td class="left">显示所有帮助信息，非常重要的按键</td>
+</tr>
+
+<tr>
+<td class="left">&#xa0;</td>
+<td class="left">`</td>
+<td class="left">显示和关闭更新栏</td>
+</tr>
+
+<tr>
+<td class="left">&#xa0;</td>
+<td class="left">q</td>
+<td class="left">退出管理</td>
+</tr>
+
+<tr>
+<td class="left">&#xa0;</td>
+<td class="left">t</td>
+<td class="left">全部反选，如果在仓库标题使用，只作用于当前仓库</td>
+</tr>
+
+<tr>
+<td class="left">&#xa0;</td>
+<td class="left">m</td>
+<td class="left">选中一个buffer并指向下一个buffer</td>
+</tr>
+
+<tr>
+<td class="left">&#xa0;</td>
+<td class="left">u</td>
+<td class="left">撤销一个选中并指向下一个buffer</td>
+</tr>
+
+<tr>
+<td class="left">&#xa0;</td>
+<td class="left">D</td>
+<td class="left">关闭选中缓冲区</td>
+</tr>
+
+<tr>
+<td class="left">C-&gt;</td>
+<td class="left">&#xa0;</td>
+<td class="left">向前跳到指定字符</td>
+</tr>
+
+<tr>
+<td class="left">C-&lt;</td>
+<td class="left">&#xa0;</td>
+<td class="left">向后跳到指定字符</td>
+</tr>
+
+<tr>
+<td class="left">C-&lt;lrud&gt;</td>
+<td class="left">&#xa0;</td>
+<td class="left">窗口缩放</td>
+</tr>
+
+<tr>
+<td class="left">M-_</td>
+<td class="left">&#xa0;</td>
+<td class="left">强制插入1个TAB</td>
+</tr>
+
+<tr>
+<td class="left">M--</td>
+<td class="left">&#xa0;</td>
+<td class="left">强制插入4个SPC</td>
+</tr>
+
+<tr>
+<td class="left">C-x C-=</td>
+<td class="left">&#xa0;</td>
+<td class="left">控制是否让中文显示是英文宽度两倍</td>
+</tr>
+
+<tr>
+<td class="left">C-x C--</td>
+<td class="left">&#xa0;</td>
+<td class="left">缩小字体</td>
+</tr>
+
+<tr>
+<td class="left">C-x C-+</td>
+<td class="left">&#xa0;</td>
+<td class="left">放大字体</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<div id="outline-container-sec-2-3" class="outline-3">
+<h3 id="sec-2-3"><span class="section-number-3">2.3</span> 附加按键设置</h3>
+<div class="outline-text-3" id="text-2-3">
+<p>
+附加按键是指绑定到micky-prefix-key的按键，具体参考mc-setkey.el文件定义。
+</p>
+</div>
+</div>
+</div>
+</div>
+</body>
+</html>

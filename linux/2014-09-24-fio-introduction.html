@@ -1,0 +1,788 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<title>Fio Introduction</title>
+<meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta  name="generator" content="Org-mode" />
+<meta  name="author" content="Micky Ching" />
+<link rel="stylesheet" type="text/css" href="../style/default.css" />
+
+<script type="text/javascript" src="../style/default.js">
+/**
+ *
+ * @source: ../style/default.js
+ *
+ * @licstart  The following is the entire license notice for the
+ *  JavaScript code in ../style/default.js.
+ *
+ * Copyright (C) 2012-2013 Free Software Foundation, Inc.
+ *
+ *
+ * The JavaScript code in this tag is free software: you can
+ * redistribute it and/or modify it under the terms of the GNU
+ * General Public License (GNU GPL) as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option)
+ * any later version.  The code is distributed WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+ *
+ * As additional permission under GNU GPL version 3 section 7, you
+ * may distribute non-source (e.g., minimized or compacted) forms of
+ * that code without the copy of the GNU GPL normally required by
+ * section 4, provided you include this license notice and a URL
+ * through which recipients can access the Corresponding Source.
+ *
+ * @licend  The above is the entire license notice
+ * for the JavaScript code in ../style/default.js.
+ *
+ */
+</script>
+
+<script type="text/javascript">
+
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+
+<!--/*--><![CDATA[/*><!--*/
+org_html_manager.set("TOC_DEPTH", "4");
+org_html_manager.set("LINK_HOME", "");
+org_html_manager.set("LINK_UP", "");
+org_html_manager.set("LOCAL_TOC", "0");
+org_html_manager.set("VIEW_BUTTONS", "0");
+org_html_manager.set("MOUSE_HINT", "underline");
+org_html_manager.set("FIXED_TOC", "0");
+org_html_manager.set("TOC", "0");
+org_html_manager.set("VIEW", "showall");
+org_html_manager.setup();  // activate after the parameters are set
+/*]]>*///-->
+</script>
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+</head>
+<body>
+<div id="content">
+<h1 class="title">Fio Introduction</h1>
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#sec-1">1. 简介</a></li>
+<li><a href="#sec-2">2. 选项</a></li>
+<li><a href="#sec-3">3. jobfile格式</a></li>
+<li><a href="#sec-4">4. 报告格式</a></li>
+<li><a href="#sec-5">5. 样本文件</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-1" class="outline-2">
+<h2 id="sec-1"><span class="section-number-2">1</span> 简介</h2>
+<div class="outline-text-2" id="text-1">
+<p>
+FIO的简称是flexible I/O tester，能够创建一定数量的线程以实现特定的IO操作。
+FIO是一个命令行工具，命令格式为：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-text">fio [options] [jobfile]...
+</pre>
+</div>
+<p>
+选项不是很重要，重要的是jobfile，jobfile遵循"ini"格式，
+实际上就是每一行包含一个参数和一个值。
+一个jobfile可以包含很多组，组名放在方括号中。
+以分号或井号开头作为注释符。
+</p>
+
+<p>
+还有一个关键字叫global，一个jobfile可以有多个global组，
+每一个组只会受到上层中最接近的global影响。
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-2" class="outline-2">
+<h2 id="sec-2"><span class="section-number-2">2</span> 选项</h2>
+<div class="outline-text-2" id="text-2">
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="left" />
+
+<col  class="left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="left">常用选项</th>
+<th scope="col" class="left">含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="left">&#x2013;output=filename</td>
+<td class="left">将报告输出到文件</td>
+</tr>
+
+<tr>
+<td class="left">&#x2013;timeout=timeout</td>
+<td class="left">限制执行时间，单位秒</td>
+</tr>
+
+<tr>
+<td class="left">&#x2013;latency-log=1</td>
+<td class="left">对每个job生成传输日志</td>
+</tr>
+
+<tr>
+<td class="left">&#x2013;bandwidth-log=1</td>
+<td class="left">对每个job生成带宽日志</td>
+</tr>
+
+<tr>
+<td class="left">&#x2013;minimal</td>
+<td class="left">生成紧凑格式的日志，可读性很差</td>
+</tr>
+
+<tr>
+<td class="left">&#x2013;showcmd</td>
+<td class="left">将jobfile转换为命令行选项</td>
+</tr>
+
+<tr>
+<td class="left">&#x2013;readonly</td>
+<td class="left">检查只读安全，确保jobfile没有写入</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<div id="outline-container-sec-3" class="outline-2">
+<h2 id="sec-3"><span class="section-number-2">3</span> jobfile格式</h2>
+<div class="outline-text-2" id="text-3">
+<p>
+参数类型
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="left" />
+
+<col  class="left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="left">类型</th>
+<th scope="col" class="left">　含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="left">str</td>
+<td class="left">字符串</td>
+</tr>
+
+<tr>
+<td class="left">int</td>
+<td class="left">可以包含前缀，如0x，或后缀，如kMGTP、KiB/MiB/GiB</td>
+</tr>
+
+<tr>
+<td class="left">irange</td>
+<td class="left">lower:upper或者lower-upper</td>
+</tr>
+
+<tr>
+<td class="left">&#xa0;</td>
+<td class="left">多组range可以用分号或者斜杠分割</td>
+</tr>
+
+<tr>
+<td class="left">float-list</td>
+<td class="left">用冒号分割一系列浮点数</td>
+</tr>
+</tbody>
+</table>
+<p>
+如果选项有可选参数，一般是指可以独立设置读写。
+</p>
+
+<p>
+常见参数
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="left" />
+
+<col  class="left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="left">表达式</th>
+<th scope="col" class="left">含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="left">name=str</td>
+<td class="left">job name，默认同组名</td>
+</tr>
+
+<tr>
+<td class="left">description=str</td>
+<td class="left">描述，一般不用设置</td>
+</tr>
+
+<tr>
+<td class="left">directory=str</td>
+<td class="left">前缀目录，默认是当前目录</td>
+</tr>
+
+<tr>
+<td class="left">filename=str</td>
+<td class="left">指定文件名，默认同job name</td>
+</tr>
+
+<tr>
+<td class="left">rw=str</td>
+<td class="left">[rand](read/write), [rand]rw</td>
+</tr>
+
+<tr>
+<td class="left">bs_unaligned</td>
+<td class="left">不能和direct IO使用</td>
+</tr>
+
+<tr>
+<td class="left">direct=bool</td>
+<td class="left">打开O_DIRECT，默认未打开</td>
+</tr>
+
+<tr>
+<td class="left">offset=int</td>
+<td class="left">文件中的偏移位置</td>
+</tr>
+
+<tr>
+<td class="left">thread</td>
+<td class="left">用pthread_create(3)替代fork(2)</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+引擎参数
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="left" />
+
+<col  class="left" />
+
+<col  class="left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="left">ioengine=str</th>
+<th scope="col" class="left">选项</th>
+<th scope="col" class="left">含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="left">&#xa0;</td>
+<td class="left">sync</td>
+<td class="left">read(2), write(2), fseek(2)</td>
+</tr>
+
+<tr>
+<td class="left">&#xa0;</td>
+<td class="left">psync</td>
+<td class="left">pread(2), pwrite(2)</td>
+</tr>
+
+<tr>
+<td class="left">&#xa0;</td>
+<td class="left">vsync</td>
+<td class="left">readv(2),  writev(2)</td>
+</tr>
+
+<tr>
+<td class="left">&#xa0;</td>
+<td class="left">libaio</td>
+<td class="left">Linux native asynchronous I/O</td>
+</tr>
+
+<tr>
+<td class="left">&#xa0;</td>
+<td class="left">posixaio</td>
+<td class="left">aio_read(3), aio_write(3)</td>
+</tr>
+
+<tr>
+<td class="left">&#xa0;</td>
+<td class="left">mmap</td>
+<td class="left">mmap(2), memcpy(3)</td>
+</tr>
+
+<tr>
+<td class="left">&#xa0;</td>
+<td class="left">splice</td>
+<td class="left">splice(2), vmsplice(2)</td>
+</tr>
+
+<tr>
+<td class="left">&#xa0;</td>
+<td class="left">sg</td>
+<td class="left">SCSI generic sg v3 I/O</td>
+</tr>
+
+<tr>
+<td class="left">&#xa0;</td>
+<td class="left">net</td>
+<td class="left">Transfer over the network</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+验证参数
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="left" />
+
+<col  class="left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="left">verify=str</th>
+<th scope="col" class="left">含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="left">&#xa0;</td>
+<td class="left">md5 crc16 crc32 crc32c crc32c-intel</td>
+</tr>
+
+<tr>
+<td class="left">&#xa0;</td>
+<td class="left">crc64 crc7 sha256 sha512 sha1</td>
+</tr>
+
+<tr>
+<td class="left">verify_fatal=bool</td>
+<td class="left">当发现验证错误时立即退出，默认不会退出</td>
+</tr>
+
+<tr>
+<td class="left">verify_dump=bool</td>
+<td class="left">验证出错的时候打印数据</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+控制job数量的参数
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="left" />
+
+<col  class="left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="left">job数目</th>
+<th scope="col" class="left">含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="left">iodepth=int</td>
+<td class="left">对同一文件操作的进程数</td>
+</tr>
+
+<tr>
+<td class="left">numjobs=int</td>
+<td class="left">clone当前job的进程数量</td>
+</tr>
+
+<tr>
+<td class="left">nrfiles=int</td>
+<td class="left">总共产生的文件数目</td>
+</tr>
+
+<tr>
+<td class="left">openfiles=int</td>
+<td class="left">保持打开的文件数目</td>
+</tr>
+
+<tr>
+<td class="left">loops=int</td>
+<td class="left">当前job的迭代次数</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+控制IO数量的参数
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="left" />
+
+<col  class="left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="left">IO数目</th>
+<th scope="col" class="left">含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="left">size=int</td>
+<td class="left">总数据大小</td>
+</tr>
+
+<tr>
+<td class="left">filesize=irange</td>
+<td class="left">单个文件的大小范围</td>
+</tr>
+
+<tr>
+<td class="left">bs=int[,int]</td>
+<td class="left">块大小</td>
+</tr>
+
+<tr>
+<td class="left">bsrange=irange[,irange]</td>
+<td class="left">块范围</td>
+</tr>
+
+<tr>
+<td class="left">ba=int[,int]</td>
+<td class="left">块对齐大小</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<div id="outline-container-sec-4" class="outline-2">
+<h2 id="sec-4"><span class="section-number-2">4</span> 报告格式</h2>
+<div class="outline-text-2" id="text-4">
+<p>
+运行期间的格式如下
+</p>
+<div class="org-src-container">
+
+<pre class="src src-text">Threads: 1: [_r] [24.8% done] [ 13509/  8334 kb/s] [eta 00h:01m:31s]
+</pre>
+</div>
+<p>
+第一组括号表示线程状态，具体如下表。
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="left" />
+
+<col  class="left" />
+</colgroup>
+<tbody>
+<tr>
+<td class="left">P</td>
+<td class="left">Setup but not started.</td>
+</tr>
+
+<tr>
+<td class="left">C</td>
+<td class="left">Thread created.</td>
+</tr>
+
+<tr>
+<td class="left">I</td>
+<td class="left">Initialized, waiting.</td>
+</tr>
+
+<tr>
+<td class="left">R</td>
+<td class="left">Running, doing sequential reads.</td>
+</tr>
+
+<tr>
+<td class="left">r</td>
+<td class="left">Running, doing random reads.</td>
+</tr>
+
+<tr>
+<td class="left">W</td>
+<td class="left">Running, doing sequential writes.</td>
+</tr>
+
+<tr>
+<td class="left">w</td>
+<td class="left">Running, doing random writes.</td>
+</tr>
+
+<tr>
+<td class="left">M</td>
+<td class="left">Running, doing mixed sequential reads/writes.</td>
+</tr>
+
+<tr>
+<td class="left">m</td>
+<td class="left">Running, doing mixed random reads/writes.</td>
+</tr>
+
+<tr>
+<td class="left">F</td>
+<td class="left">Running, currently waiting for fsync(2).</td>
+</tr>
+
+<tr>
+<td class="left">V</td>
+<td class="left">Running, verifying written data.</td>
+</tr>
+
+<tr>
+<td class="left">E</td>
+<td class="left">Exited, not reaped by main thread.</td>
+</tr>
+
+<tr>
+<td class="left">-</td>
+<td class="left">Exited, thread reaped.</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+运行结束之后会打印每个job的状态，主要参数如下。
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="left" />
+
+<col  class="left" />
+</colgroup>
+<tbody>
+<tr>
+<td class="left">io</td>
+<td class="left">总传输量</td>
+</tr>
+
+<tr>
+<td class="left">bw</td>
+<td class="left">带宽</td>
+</tr>
+
+<tr>
+<td class="left">iops</td>
+<td class="left">IO操作数</td>
+</tr>
+
+<tr>
+<td class="left">runt</td>
+<td class="left">运行时间</td>
+</tr>
+
+<tr>
+<td class="left">clat</td>
+<td class="left">完成传输时间，提交之后完成之前</td>
+</tr>
+
+<tr>
+<td class="left">lat</td>
+<td class="left">总传输时间</td>
+</tr>
+
+<tr>
+<td class="left">cpu</td>
+<td class="left">CPU使用统计</td>
+</tr>
+
+<tr>
+<td class="left">IO depth</td>
+<td class="left">IO分布</td>
+</tr>
+
+<tr>
+<td class="left">IO issued</td>
+<td class="left">发送的读写请求数目</td>
+</tr>
+
+<tr>
+<td class="left">aggrb</td>
+<td class="left">综合传输速度</td>
+</tr>
+
+<tr>
+<td class="left">minb</td>
+<td class="left">最小传输速度</td>
+</tr>
+
+<tr>
+<td class="left">maxb</td>
+<td class="left">最大传输速度</td>
+</tr>
+
+<tr>
+<td class="left">mint/maxt</td>
+<td class="left">传输时间</td>
+</tr>
+
+<tr>
+<td class="left">ios</td>
+<td class="left">总IO数目</td>
+</tr>
+
+<tr>
+<td class="left">merge</td>
+<td class="left">IO调度器合并的数目</td>
+</tr>
+
+<tr>
+<td class="left">ticks</td>
+<td class="left">磁盘busy的ticks数目</td>
+</tr>
+
+<tr>
+<td class="left">io_queue</td>
+<td class="left">在磁盘队列等待的总时间</td>
+</tr>
+
+<tr>
+<td class="left">util</td>
+<td class="left">磁盘利用率</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<div id="outline-container-sec-5" class="outline-2">
+<h2 id="sec-5"><span class="section-number-2">5</span> 样本文件</h2>
+<div class="outline-text-2" id="text-5">
+<ul class="org-ul">
+<li><a href="src/fio/fio-sample.ini">fio-sample.ini</a>
+</li>
+</ul>
+<div class="org-src-container">
+
+<pre class="src src-text">[global]
+ioengine=sync
+size=128M
+bs=2M
+rw=rw
+
+[verify-direct-io]
+direct=1
+verify=sha256
+verify_fatal=1
+verify_dump=1
+
+[verify-buffer-io]
+verify=sha256
+verify_fatal=1
+verify_dump=1
+
+[multi-direct-io]
+direct=1
+numjobs=2
+
+[multi-buffer-io]
+numjobs=2
+</pre>
+</div>
+</div>
+</div>
+</div>
+</body>
+</html>

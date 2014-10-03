@@ -1,0 +1,452 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<title>Block Device Events Introduction</title>
+<meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta  name="generator" content="Org-mode" />
+<meta  name="author" content="Micky Ching" />
+<link rel="stylesheet" type="text/css" href="../style/default.css" />
+
+<script type="text/javascript" src="../style/default.js">
+/**
+ *
+ * @source: ../style/default.js
+ *
+ * @licstart  The following is the entire license notice for the
+ *  JavaScript code in ../style/default.js.
+ *
+ * Copyright (C) 2012-2013 Free Software Foundation, Inc.
+ *
+ *
+ * The JavaScript code in this tag is free software: you can
+ * redistribute it and/or modify it under the terms of the GNU
+ * General Public License (GNU GPL) as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option)
+ * any later version.  The code is distributed WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+ *
+ * As additional permission under GNU GPL version 3 section 7, you
+ * may distribute non-source (e.g., minimized or compacted) forms of
+ * that code without the copy of the GNU GPL normally required by
+ * section 4, provided you include this license notice and a URL
+ * through which recipients can access the Corresponding Source.
+ *
+ * @licend  The above is the entire license notice
+ * for the JavaScript code in ../style/default.js.
+ *
+ */
+</script>
+
+<script type="text/javascript">
+
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+
+<!--/*--><![CDATA[/*><!--*/
+org_html_manager.set("TOC_DEPTH", "4");
+org_html_manager.set("LINK_HOME", "");
+org_html_manager.set("LINK_UP", "");
+org_html_manager.set("LOCAL_TOC", "0");
+org_html_manager.set("VIEW_BUTTONS", "0");
+org_html_manager.set("MOUSE_HINT", "underline");
+org_html_manager.set("FIXED_TOC", "0");
+org_html_manager.set("TOC", "0");
+org_html_manager.set("VIEW", "showall");
+org_html_manager.setup();  // activate after the parameters are set
+/*]]>*///-->
+</script>
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+</head>
+<body>
+<div id="content">
+<h1 class="title">Block Device Events Introduction</h1>
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#sec-1">1. 简介</a></li>
+<li><a href="#sec-2">2. 数据结构</a>
+<ul>
+<li><a href="#sec-2-1">2.1. disk_events</a></li>
+</ul>
+</li>
+<li><a href="#sec-3">3. 基本操作</a>
+<ul>
+<li><a href="#sec-3-1">3.1. 生命周期</a></li>
+<li><a href="#sec-3-2">3.2. 间隔设定</a></li>
+<li><a href="#sec-3-3">3.3. 锁定与解锁</a></li>
+<li><a href="#sec-3-4">3.4. 轮询工作</a></li>
+<li><a href="#sec-3-5">3.5. 刷新与清除</a></li>
+</ul>
+</li>
+<li><a href="#sec-4">4. 工作原理</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-1" class="outline-2">
+<h2 id="sec-1"><span class="section-number-2">1</span> 简介</h2>
+<div class="outline-text-2" id="text-1">
+<p>
+在内核空间对磁盘进行检测是在linux-2.6.38的时候才引入，
+主要是增加一个工作队列对所有磁盘进行轮询，如果磁盘状态发生改变就会通知用户。
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-2" class="outline-2">
+<h2 id="sec-2"><span class="section-number-2">2</span> 数据结构</h2>
+<div class="outline-text-2" id="text-2">
+</div><div id="outline-container-sec-2-1" class="outline-3">
+<h3 id="sec-2-1"><span class="section-number-3">2.1</span> disk_events</h3>
+<div class="outline-text-3" id="text-2-1">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">disk_events</span> {
+    <span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">list_head</span>    <span style="color: #000000;">node</span>;
+    <span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">gendisk</span>      *<span style="color: #000000;">disk</span>;
+    <span style="color: #0000ff;">spinlock_t</span>          <span style="color: #000000;">lock</span>;
+
+    <span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">mutex</span>        <span style="color: #000000;">block_mutex</span>;
+    <span style="color: #0000ff;">int</span>                 <span style="color: #000000;">block</span>;
+    <span style="color: #0000ff;">unsigned</span> <span style="color: #0000ff;">int</span>        <span style="color: #000000;">pending</span>;
+    <span style="color: #0000ff;">unsigned</span> <span style="color: #0000ff;">int</span>        <span style="color: #000000;">clearing</span>;
+
+    <span style="color: #0000ff;">long</span>                <span style="color: #000000;">poll_msecs</span>;
+    <span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">delayed_work</span> <span style="color: #000000;">dwork</span>;
+};
+</pre>
+</div>
+<dl class="org-dl">
+<dt> node </dt><dd>  每个磁盘的disk_events会被添加到一个全局的链表中，这个链表的名字就叫disk_events，
+和这个数据结构的类型名相同，定义也在同一个文件。
+node用于将disk_events结构体插入到链表disk_events中。
+
+<p>
+既然链表是一个全局对象，就必须要有同步措施，这里使用disk_events_mutex进行同步。
+</p>
+</dd>
+
+<dt> block </dt><dd>  用于指示锁定深度，只要block大于0就不会启动轮询工作。
+</dd>
+<dt> pending </dt><dd>  已经发出去的事件。
+</dd>
+<dt> clearing </dt><dd>  正在清理的事件。
+</dd>
+<dt> lock </dt><dd>  因为用到了工作队列，就必须要适当的同步措施，用lock保护的对象如下表。
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="left" />
+
+<col  class="left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="left">lock</th>
+<th scope="col" class="left">&#xa0;</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="left">&#xa0;</td>
+<td class="left">clearing</td>
+</tr>
+
+<tr>
+<td class="left">&#xa0;</td>
+<td class="left">pending</td>
+</tr>
+
+<tr>
+<td class="left">&#xa0;</td>
+<td class="left">dwork(queue)</td>
+</tr>
+</tbody>
+</table>
+</dd>
+
+<dt> block_mutex </dt><dd>  用于防止在锁定的时候多次cancel轮询工作，因为cancel的时候要休眠，
+所以不能使用lock同步。
+插入工作的时候不会休眠，所以用的lock来同步。
+</dd>
+</dl>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-3" class="outline-2">
+<h2 id="sec-3"><span class="section-number-2">3</span> 基本操作</h2>
+<div class="outline-text-2" id="text-3">
+</div><div id="outline-container-sec-3-1" class="outline-3">
+<h3 id="sec-3-1"><span class="section-number-3">3.1</span> 生命周期</h3>
+<div class="outline-text-3" id="text-3-1">
+<ul class="org-ul">
+<li>分配磁盘事件
+<ul class="org-ul">
+<li>分配存储，设置block深度为1，也就是说初始状态是不会轮询的
+</li>
+<li>设置poll_msecs为-1
+</li>
+</ul>
+</li>
+
+<li>添加磁盘事件
+<ul class="org-ul">
+<li>创建sysfs文件
+</li>
+<li>添加事件到全局链表
+</li>
+<li>解锁事件，此时开始轮询
+</li>
+</ul>
+</li>
+</ul>
+
+<p>
+分配和添加磁盘事件都是在add_disk()这个重量级函数中调用的，
+都是用于初始化，只不过分配的时间比较早，此时初始化工作还没完成，不能立即开启轮询。
+所以将其分成两步来实现。
+</p>
+
+<ul class="org-ul">
+<li>删除磁盘事件
+<ul class="org-ul">
+<li>锁定事件
+</li>
+<li>从全局链表中删除当前磁盘的事件
+</li>
+<li>删除sysfs文件
+</li>
+</ul>
+</li>
+
+<li>释放磁盘事件
+<ul class="org-ul">
+<li>释放存储空间
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div id="outline-container-sec-3-2" class="outline-3">
+<h3 id="sec-3-2"><span class="section-number-3">3.2</span> 间隔设定</h3>
+<div class="outline-text-3" id="text-3-2">
+<p>
+影响轮询间隔的有两个参数，一个是poll_msecs，这个是在每个磁盘内部拥有的，
+如果这个值小于0，就视为无效，此时使用全局的disk_events_dfl_poll_msecs。
+有一个函数disk_events_poll_jiffies()用于获取轮询间隔。
+</p>
+
+<p>
+在每个磁盘的sysfs文件系统目录下面都有一个叫events_poll_msecs的文件，
+该文件用与显示和设定间隔。
+除了这个文件，还有一个全局间隔设定文件，位于如下路径：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-text">/sys/module/block/parameters/events_dfl_poll_msecs
+</pre>
+</div>
+<p>
+我们一般不会去单独设定每个磁盘的轮询间隔，而是统一设定所有磁盘的轮询间隔。
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-3-3" class="outline-3">
+<h3 id="sec-3-3"><span class="section-number-3">3.3</span> 锁定与解锁</h3>
+<div class="outline-text-3" id="text-3-3">
+<ul class="org-ul">
+<li>锁定磁盘事件
+<ul class="org-ul">
+<li>增加锁定深度，如果原来是开启的就关闭
+</li>
+</ul>
+</li>
+
+<li>解锁磁盘事件
+<ul class="org-ul">
+<li>减少锁定深度，减少到0的时候才真正开启轮询
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-3-4" class="outline-3">
+<h3 id="sec-3-4"><span class="section-number-3">3.4</span> 轮询工作</h3>
+<div class="outline-text-3" id="text-3-4">
+<p>
+轮询工作有两种调用方式，一种是以函数方式执行，一种是以工作队列方式执行。
+</p>
+<ul class="org-ul">
+<li>检查磁盘事件
+<ul class="org-ul">
+<li>调用fops-&gt;check_events()，获得events
+
+<p>
+在block_device_operations中有两个和磁盘检测有关的函数指针，
+其中的media_changed()已经被标识为待废除，将用check_events()替代。
+</p>
+</li>
+<li>将获得的events去掉pending部分，并将新的events加入到pending
+</li>
+<li>如果未锁定，再度调度dwork
+</li>
+<li>如果接收到磁盘事件就填充环境变量，并发出uevent
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-3-5" class="outline-3">
+<h3 id="sec-3-5"><span class="section-number-3">3.5</span> 刷新与清除</h3>
+<div class="outline-text-3" id="text-3-5">
+<ul class="org-ul">
+<li>刷新磁盘事件
+
+<p>
+刷新通过传递一个mask给clearing来实现，
+所以clearing就存储了要清除的事件。
+检查事件的时候要对clearing进行处理。
+</p>
+
+<p>
+如果当前在锁定状态，就仅将要刷新的值加入到clearing而已。
+</p>
+</li>
+
+<li>清除磁盘事件
+<ul class="org-ul">
+<li>由参数提供一个mask，指定要清除的事件。
+</li>
+<li>阻塞事件，确保不会因为并发操作造成混乱
+</li>
+<li>提取clearing，调用检测函数，传递clearing给检测函数
+
+<p>
+提取的clearing是event-&gt;clearing和mask的并集，
+提取之后event-&gt;clearing将被清除，
+注意这里是调用函数而不是启动工作队列，因为这里必须要顺序进行。
+</p>
+</li>
+<li>解锁磁盘事件
+</li>
+<li>返回pending事件
+
+<p>
+pending是event-&gt;pending和mask的交集，
+提取之后event-&gt;pending将清除mask部分。
+</p>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-4" class="outline-2">
+<h2 id="sec-4"><span class="section-number-2">4</span> 工作原理</h2>
+<div class="outline-text-2" id="text-4">
+<p>
+检查磁盘是否更改，并在已经更改的情况下清除无效缓存数据，
+是通过调用check_disk_change()函数执行的。
+这个函数会在打开设备，或者执行mount的时候调用。
+前面提到只要磁盘事件未被锁定，就会启动轮询，但是轮询本身不会清除无效缓存，
+当发现有磁盘事件产生时，它只会将事件记录到pending中，
+直到clear的时候才会清除pending。
+而clear正是在check_disk_change()函数中调用。
+所以轮询是持续的，而清除任务则只会在打开或挂载磁盘时执行。
+</p>
+
+<p>
+如果磁盘被更换，而又只有等到访问磁盘的时候才做处理，就可能出现相当长的滞后。
+这个问题是通过用户空间应用程序配合来解决的，
+因为在第一次轮询发现磁盘变更的时候就会发出uevent，
+此时会调用用户空间的uevent_helper程序，如udev和mdev，它们会在此时对磁盘进行访问，
+从而启动check_disk_change()函数，以便清除pending。
+如果没有uevent_helper的帮助，那么pending就可能长时间不被清除，
+所以必须借助uevent_helper。
+</p>
+</div>
+</div>
+</div>
+</body>
+</html>

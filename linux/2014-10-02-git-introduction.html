@@ -1,0 +1,422 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<title>Git Introduction</title>
+<meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta  name="generator" content="Org-mode" />
+<meta  name="author" content="Micky Ching" />
+<link rel="stylesheet" type="text/css" href="../style/default.css" />
+
+<script type="text/javascript" src="../style/default.js">
+/**
+ *
+ * @source: ../style/default.js
+ *
+ * @licstart  The following is the entire license notice for the
+ *  JavaScript code in ../style/default.js.
+ *
+ * Copyright (C) 2012-2013 Free Software Foundation, Inc.
+ *
+ *
+ * The JavaScript code in this tag is free software: you can
+ * redistribute it and/or modify it under the terms of the GNU
+ * General Public License (GNU GPL) as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option)
+ * any later version.  The code is distributed WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+ *
+ * As additional permission under GNU GPL version 3 section 7, you
+ * may distribute non-source (e.g., minimized or compacted) forms of
+ * that code without the copy of the GNU GPL normally required by
+ * section 4, provided you include this license notice and a URL
+ * through which recipients can access the Corresponding Source.
+ *
+ * @licend  The above is the entire license notice
+ * for the JavaScript code in ../style/default.js.
+ *
+ */
+</script>
+
+<script type="text/javascript">
+
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+
+<!--/*--><![CDATA[/*><!--*/
+org_html_manager.set("TOC_DEPTH", "4");
+org_html_manager.set("LINK_HOME", "");
+org_html_manager.set("LINK_UP", "");
+org_html_manager.set("LOCAL_TOC", "0");
+org_html_manager.set("VIEW_BUTTONS", "0");
+org_html_manager.set("MOUSE_HINT", "underline");
+org_html_manager.set("FIXED_TOC", "0");
+org_html_manager.set("TOC", "0");
+org_html_manager.set("VIEW", "showall");
+org_html_manager.setup();  // activate after the parameters are set
+/*]]>*///-->
+</script>
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+</head>
+<body>
+<div id="content">
+<h1 class="title">Git Introduction</h1>
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#sec-1">1. 基本用法</a>
+<ul>
+<li><a href="#sec-1-1">1.1. 全局配置</a></li>
+<li><a href="#sec-1-2">1.2. 常用操作</a></li>
+<li><a href="#sec-1-3">1.3. 分支管理</a></li>
+<li><a href="#sec-1-4">1.4. 远程管理</a>
+<ul>
+<li><a href="#sec-1-4-1">1.4.1. 远程配置</a></li>
+<li><a href="#sec-1-4-2">1.4.2. 远程操作</a></li>
+</ul>
+</li>
+<li><a href="#sec-1-5">1.5. 清除命令</a></li>
+<li><a href="#sec-1-6">1.6. 利用git提交补丁</a></li>
+</ul>
+</li>
+<li><a href="#sec-2">2. 配置文件</a>
+<ul>
+<li><a href="#sec-2-1">2.1. 全局配置</a></li>
+</ul>
+</li>
+<li><a href="#sec-3">3. 高级用法</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-1" class="outline-2">
+<h2 id="sec-1"><span class="section-number-2">1</span> 基本用法</h2>
+<div class="outline-text-2" id="text-1">
+</div><div id="outline-container-sec-1-1" class="outline-3">
+<h3 id="sec-1-1"><span class="section-number-3">1.1</span> 全局配置</h3>
+<div class="outline-text-3" id="text-1-1">
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#22914;&#26524;&#21482;&#24819;&#38024;&#23545;&#24403;&#21069;&#39033;&#30446;&#37197;&#32622;&#23601;&#19981;&#29992;&#21152;--global&#36873;&#39033;</span>
+git config --global user.name <span style="color: #ff0000;">"Micky Ching"</span>
+git config --global user.email <span style="color: #ff0000;">"mickyching@gmail.com"</span>
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-sec-1-2" class="outline-3">
+<h3 id="sec-1-2"><span class="section-number-3">1.2</span> 常用操作</h3>
+<div class="outline-text-3" id="text-1-2">
+<div class="org-src-container">
+
+<pre class="src src-sh">git init                                <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#21021;&#22987;&#21270;&#39033;&#30446;</span>
+git status                              <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#26597;&#30475;&#39033;&#30446;&#29366;&#24577;</span>
+git branch                              <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#26597;&#30475;&#20998;&#25903;</span>
+git log                                 <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#26597;&#30475;&#26085;&#24535;</span>
+git add &lt;files&gt;                         <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#28155;&#21152;&#25991;&#20214;/&#25991;&#20214;&#22841;</span>
+git commit                              <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#25552;&#20132;</span>
+git commit -m &lt;message&gt;                 <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#30452;&#25509;&#25226;&#20449;&#24687;&#20889;&#20837;&#25552;&#20132;</span>
+git commit --amend                      <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#20197;&#20462;&#25913;&#26041;&#24335;&#25552;&#20132;</span>
+git diff &lt;commit&gt;                       <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#26597;&#30475;&#30456;&#23545;&#20110;&#25351;&#23450;&#25552;&#20132;&#30340;&#26356;&#25913;</span>
+git tag &lt;v0.1&gt;                          <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#28155;&#21152;tag</span>
+git tag                                 <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#21015;&#20030;tag</span>
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-sec-1-3" class="outline-3">
+<h3 id="sec-1-3"><span class="section-number-3">1.3</span> 分支管理</h3>
+<div class="outline-text-3" id="text-1-3">
+<div class="org-src-container">
+
+<pre class="src src-sh">git branch &lt;branchname&gt;                 <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#21019;&#24314;&#20998;&#25903;</span>
+git branch -d &lt;branchname&gt;              <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#21024;&#38500;&#24050;&#21512;&#24182;&#30340;&#20998;&#25903;</span>
+git branch -D &lt;branchname&gt;              <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#21024;&#38500;&#20998;&#25903;</span>
+git branch -dr &lt;remote/branch&gt;          <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#21024;&#38500;&#26412;&#22320;&#19979;&#36733;&#30340;&#36828;&#31243;&#20998;&#25903;</span>
+git checkout &lt;branchname&gt;               <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#20999;&#25442;&#20998;&#25903;</span>
+git reset &lt;commit&gt;                      <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#22797;&#20301;&#21040;&#25351;&#23450;&#25552;&#20132;</span>
+git merge &lt;branchname&gt;                  <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#21512;&#24182;&#25351;&#23450;&#20998;&#25903;</span>
+git rebase &lt;branchname&gt;                 <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#22522;&#20110;&#25351;&#23450;&#20998;&#25903;</span>
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-sec-1-4" class="outline-3">
+<h3 id="sec-1-4"><span class="section-number-3">1.4</span> 远程管理</h3>
+<div class="outline-text-3" id="text-1-4">
+</div><div id="outline-container-sec-1-4-1" class="outline-4">
+<h4 id="sec-1-4-1"><span class="section-number-4">1.4.1</span> 远程配置</h4>
+<div class="outline-text-4" id="text-1-4-1">
+<p>
+创建ssh密钥
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">ssh-keygen -t rsa -C <span style="color: #ff0000;">"mickyching@gmail.com"</span> -f ~/.ssh/micky-gmail
+ssh-add ~/.ssh/micky-gmail                    <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#28155;&#21152;&#23494;&#38053;</span>
+ssh -i ~/.ssh/micky-gmail -T git@github.com   <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#39564;&#35777;&#27979;&#35797;</span>
+</pre>
+</div>
+<p>
+如果不添加密钥，可能会出现如下错误提示：
+</p>
+<blockquote>
+<p>
+Agent admitted failure to sign using the key
+</p>
+</blockquote>
+
+<p>
+如果要配置多个远程仓库帐号，需要编辑配置文件~/.ssh/config指定登录信息。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-text">Host github                             # &#20027;&#26426;&#21517;&#65292;&#21487;&#20219;&#24847;&#21629;&#21517;
+    HostName github.com                 # &#30331;&#24405;&#22320;&#22336;
+    User git
+    Port 22
+    IdentityFile ~/.ssh/micky-gmail     # &#35777;&#20070;&#36335;&#24452;
+</pre>
+</div>
+
+<p>
+一旦配置好ssh就可以下载和上传了。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">git clone git@github:mickyching/org-pages.git
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-sec-1-4-2" class="outline-4">
+<h4 id="sec-1-4-2"><span class="section-number-4">1.4.2</span> 远程操作</h4>
+<div class="outline-text-4" id="text-1-4-2">
+<div class="org-src-container">
+
+<pre class="src src-sh">git remote add &lt;repo-name&gt; &lt;repo-url&gt;   <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#28155;&#21152;&#36828;&#31243;&#20179;&#24211;&#22320;&#22336;</span>
+git remote -v                           <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#26597;&#30475;&#36828;&#31243;&#20179;&#24211;&#22320;&#22336;</span>
+git remote set-url &lt;repo-name&gt; &lt;url&gt;    <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#26356;&#25913;&#20179;&#24211;&#22320;&#22336;</span>
+git pull &lt;repo-name&gt; &lt;branch&gt;           <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#25289;&#21462;&#36828;&#31243;&#20179;&#24211;&#20998;&#25903;&#21040;&#24403;&#21069;&#20998;&#25903;</span>
+git fetch &lt;repo-name&gt;                   <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#19979;&#36733;&#36828;&#31243;&#20179;&#24211;</span>
+git fetch &lt;repo-name&gt; &lt;a&gt;:&lt;b&gt;           <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#23558;&#36828;&#31243;&#20998;&#25903;a&#19979;&#36733;&#20026;&#20998;&#25903;b</span>
+git push &lt;repo-name&gt; &lt;branch&gt;           <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#23558;&#24403;&#21069;&#20998;&#25903;&#21457;&#36865;&#21040;&#36828;&#31243;&#20998;&#25903;</span>
+git push &lt;repo-name&gt; &lt;a&gt;:&lt;b&gt;            <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#23558;&#20998;&#25903;a&#21457;&#36865;&#21040;&#36828;&#31243;&#20998;&#25903;b</span>
+git push &lt;repo-name&gt; :&lt;b&gt;               <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#21024;&#38500;&#36828;&#31243;&#20998;&#25903;</span>
+git push --tags                         <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#25512;&#36865;tag</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-1-5" class="outline-3">
+<h3 id="sec-1-5"><span class="section-number-3">1.5</span> 清除命令</h3>
+<div class="outline-text-3" id="text-1-5">
+<div class="org-src-container">
+
+<pre class="src src-sh">git clean -ndx                          <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#26174;&#31034;&#35201;&#21024;&#38500;&#30340;&#25991;&#20214;&#21015;&#34920;</span>
+git clean -fdx                          <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#21024;&#38500;&#20179;&#24211;&#22806;&#30340;&#25991;&#20214;</span>
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-sec-1-6" class="outline-3">
+<h3 id="sec-1-6"><span class="section-number-3">1.6</span> 利用git提交补丁</h3>
+<div class="outline-text-3" id="text-1-6">
+<div class="org-src-container">
+
+<pre class="src src-sh">git format-patch -1
+git format-patch --cover-letter --thread -2
+git format-patch --cover-letter --thread <span style="color: #ff0000;">\</span>
+    --subject-prefix=<span style="color: #ff0000;">"PATCH v2"</span> -2
+</pre>
+</div>
+<p>
+在给内核提交补丁时，如果是生成一个提交的patch，直接指定提交数量即可。
+如果要生成多个提交的补丁，就需要一个封面概括提交的内容，并且要用thread方式，
+这样可以用一个邮件将所有提交发送出去，而不是每个提交占用一封邮件。
+如果是第二次提交，那么有必要修改头部信息，以便能够显示版本信息。
+</p>
+
+<p>
+生成好补丁以后就需要提交，可以利用msmtp发送邮件，不过需要配置，发送邮件的命令如下。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">git send-email --smtp-server /usr/bin/msmtp <span style="color: #ff0000;">\</span>
+--from mickyching@gmail.com <span style="color: #ff0000;">\</span>
+--to somebody1@email.com <span style="color: #ff0000;">\</span>
+--to somebody2@email.com <span style="color: #ff0000;">\</span>
+--cc somebody3@email.com <span style="color: #ff0000;">\</span>
+--cc somebody4@email.com <span style="color: #ff0000;">\</span>
+1.patch 2.patch ...
+</pre>
+</div>
+
+<p>
+msmtp的配置文件位于~/.msmtprc，大致格式如下。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-text"># set default values for all following accounts.
+defaults
+logfile ~/.msmtp.log
+
+# account setting
+account &lt;yourname&gt;
+protocol smtp
+host &lt;mail-host&gt;                        # eg: mail.xxx.com
+from &lt;youremail&gt;
+user &lt;youremail&gt;
+password &lt;yourpassword&gt;
+port &lt;port-number&gt;
+auth ntlm
+syslog LOG_MAIL
+
+# set a default account
+account default: &lt;yourname&gt;
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-2" class="outline-2">
+<h2 id="sec-2"><span class="section-number-2">2</span> 配置文件</h2>
+<div class="outline-text-2" id="text-2">
+</div><div id="outline-container-sec-2-1" class="outline-3">
+<h3 id="sec-2-1"><span class="section-number-3">2.1</span> 全局配置</h3>
+<div class="outline-text-3" id="text-2-1">
+<p>
+全局配置文件位于<a href="src/scripts/cfg/gitconfig.cfg"><code>~/.gitconfig</code></a>， 如下所示。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">file: ~/.gitconfig</span>
+[user]
+    name = Micky Ching
+    email = mickyching@gmail.com
+[core]
+    autocrlf = input
+    safecrlf = false
+    editor = emacs
+[alias]
+    co = checkout
+    ci = commit
+    st = status
+    br = branch
+    sp = pull; sync
+    llog = log --pretty=format:<span style="color: #ff0000;">'%Cred%h%Creset %s\</span>
+<span style="color: #ff0000;">           %n%-w(0,7)%+d\</span>
+<span style="color: #ff0000;">           %n%-w(0,8)%Cgreenauthor(%ad): %an &lt;%ae&gt;\</span>
+<span style="color: #ff0000;">           %n%-w(80,8)%Cbluecommit(%ad): %cn &lt;%ce&gt;'</span><span style="color: #ff0000;">\</span>
+           --date=short
+    hist = log --pretty=format:<span style="color: #ff0000;">'%Cred%h%Creset %s\</span>
+<span style="color: #ff0000;">           %n%-w(0,7)%+d\</span>
+<span style="color: #ff0000;">           %n%-w(0,8)%Cgreenauthor(%ad): %an &lt;%ae&gt;\</span>
+<span style="color: #ff0000;">           %n%-w(80,8)%Cbluecommit(%ad): %cn &lt;%ce&gt;'</span><span style="color: #ff0000;">\</span>
+           --date=short --graph
+    <span style="color: #000000;">type</span> = cat-file -t
+    dump = cat-file -p
+[merge]
+    tool = emacs
+[diff]
+    tool = emacs
+[difftool]
+    prompt = No
+[color]
+    ui = auto
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-3" class="outline-2">
+<h2 id="sec-3"><span class="section-number-2">3</span> 高级用法</h2>
+<div class="outline-text-2" id="text-3">
+<p>
+在首次提交前，添加了错误文件时，由于没有HEAD，不能使用git reset HEAD撤销，
+此时可以使用如下命令。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">git rm -r --cached &lt;files&gt;              <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#25764;&#38144;add&#28155;&#21152;&#30340;&#25991;&#20214;</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,490 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<title>RHEL Install Guide</title>
+<meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta  name="generator" content="Org-mode" />
+<meta  name="author" content="Micky Ching" />
+<link rel="stylesheet" type="text/css" href="../style/default.css" />
+
+<script type="text/javascript" src="../style/default.js">
+/**
+ *
+ * @source: ../style/default.js
+ *
+ * @licstart  The following is the entire license notice for the
+ *  JavaScript code in ../style/default.js.
+ *
+ * Copyright (C) 2012-2013 Free Software Foundation, Inc.
+ *
+ *
+ * The JavaScript code in this tag is free software: you can
+ * redistribute it and/or modify it under the terms of the GNU
+ * General Public License (GNU GPL) as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option)
+ * any later version.  The code is distributed WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+ *
+ * As additional permission under GNU GPL version 3 section 7, you
+ * may distribute non-source (e.g., minimized or compacted) forms of
+ * that code without the copy of the GNU GPL normally required by
+ * section 4, provided you include this license notice and a URL
+ * through which recipients can access the Corresponding Source.
+ *
+ * @licend  The above is the entire license notice
+ * for the JavaScript code in ../style/default.js.
+ *
+ */
+</script>
+
+<script type="text/javascript">
+
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+
+<!--/*--><![CDATA[/*><!--*/
+org_html_manager.set("TOC_DEPTH", "4");
+org_html_manager.set("LINK_HOME", "");
+org_html_manager.set("LINK_UP", "");
+org_html_manager.set("LOCAL_TOC", "0");
+org_html_manager.set("VIEW_BUTTONS", "0");
+org_html_manager.set("MOUSE_HINT", "underline");
+org_html_manager.set("FIXED_TOC", "0");
+org_html_manager.set("TOC", "0");
+org_html_manager.set("VIEW", "showall");
+org_html_manager.setup();  // activate after the parameters are set
+/*]]>*///-->
+</script>
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+</head>
+<body>
+<div id="content">
+<h1 class="title">RHEL Install Guide</h1>
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#sec-1">1. 安装rhel7</a>
+<ul>
+<li><a href="#sec-1-1">1.1. 制作镜像</a></li>
+<li><a href="#sec-1-2">1.2. 安装步骤</a></li>
+<li><a href="#sec-1-3">1.3. 软件更新</a></li>
+<li><a href="#sec-1-4">1.4. 编译安装内核</a></li>
+</ul>
+</li>
+<li><a href="#sec-2">2. 安装rhel6</a>
+<ul>
+<li><a href="#sec-2-1">2.1. 制作镜像</a></li>
+<li><a href="#sec-2-2">2.2. 安装步骤</a></li>
+<li><a href="#sec-2-3">2.3. 软件更新</a></li>
+<li><a href="#sec-2-4">2.4. 编译安装内核</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-1" class="outline-2">
+<h2 id="sec-1"><span class="section-number-2">1</span> 安装rhel7</h2>
+<div class="outline-text-2" id="text-1">
+<p>
+RHEL的全称为Red Hat Enterprise Linux，
+分三版，Client面向娱乐办公，Workstation面向开发程序，Server没有GUI。
+</p>
+</div>
+
+<div id="outline-container-sec-1-1" class="outline-3">
+<h3 id="sec-1-1"><span class="section-number-3">1.1</span> 制作镜像</h3>
+<div class="outline-text-3" id="text-1-1">
+<p>
+下载<a href="ftp://ftp.wallawalla.edu/pub/isos/rhel/7.0/">rhel7镜像</a> 制作U盘镜像，首先确保U盘未被挂载，用如下命令制作。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">dd <span style="color: #000000;">if</span>=disk.iso <span style="color: #000000;">of</span>=/dev/sdx <span style="color: #000000;">bs</span>=4M
+</pre>
+</div>
+<p>
+与rhel6相反，此时如果用windows下的ulraiso制作反而不能成功。
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-1-2" class="outline-3">
+<h3 id="sec-1-2"><span class="section-number-3">1.2</span> 安装步骤</h3>
+<div class="outline-text-3" id="text-1-2">
+<p>
+启动U盘，选择键盘语言，设置时区、分区、网络等。
+设置密码、用户名等。
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-1-3" class="outline-3">
+<h3 id="sec-1-3"><span class="section-number-3">1.3</span> 软件更新</h3>
+<div class="outline-text-3" id="text-1-3">
+<p>
+rhel利用yum工具包进行软件更新，但是需要注册，
+通过替换yum可以绕过注册。
+</p>
+
+<p>
+删除自带的yum工具包。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">rpm -aq|grep yum|xargs rpm -e --nodeps
+</pre>
+</div>
+
+<p>
+从<a href="http://mirrors.163.com/centos/7/updates/x86_64/Packages/">163 rpm packages</a>下载四个文件：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-text">python-iniparse-0.3.1-2.1.el6.noarch.rpm
+yum-metadata-parser-1.1.2-16.el6.i686.rpm
+yum-3.2.29-40.el6.centos.noarch.rpm
+yum-plugin-fastestmirror-1.1.30-14.el6.noarch.rpm
+</pre>
+</div>
+
+<p>
+按照如下顺序安装：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#23548;&#20837;&#35777;&#20070;</span>
+rpm --import http://mirrors.163.com/centos/RPM-GPG-KEY-CentOS-7
+rpm -ivh python-iniparse-0.3.1-2.1.el6.noarch.rpm
+rpm -ivh yum-metadata-parser-1.1.2-16.el6.i686.rpm
+rpm -ivh yum-3.2.29-40.el6.centos.noarch.rpm <span style="color: #ff0000;">\</span>
+    yum-plugin-fastestmirror-1.1.30-14.el6.noarch.rpm
+</pre>
+</div>
+
+<p>
+编辑文件<a href="src/rhel/rhel7-163.repo">/etc/yum.repo.d/rhel7-163.repo</a>，
+将如下内容写入文件，详细帮助可以查看<a href="http://mirrors.163.com/.help/centos.html">CentOS镜像使用帮助</a>。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-text">[base]
+name=CentOS-7 - Base - 163.com
+baseurl=http://mirrors.163.com/centos/7/os/$basearch/
+gpgcheck=0
+
+[updates]
+name=CentOS-7 - Updates - 163.com
+baseurl=http://mirrors.163.com/centos/7/updates/$basearch/
+gpgcheck=0
+
+[extras]
+name=CentOS-7 - Extras - 163.com
+baseurl=http://mirrors.163.com/centos/7/extras/$basearch/
+gpgcheck=0
+
+[centosplus]
+name=CentOS-7 - Plus - 163.com
+baseurl=http://mirrors.163.com/centos/7/centosplus/$basearch/
+gpgcheck=0
+enabled=0
+
+[contrib]
+name=CentOS-7 - Contrib - 163.com
+baseurl=http://mirrors.163.com/centos/7/contrib/$basearch/
+gpgcheck=0
+enabled=0
+</pre>
+</div>
+
+<p>
+设置好源之后执行如下命令
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">yum clean all
+yum makecache
+</pre>
+</div>
+
+<p>
+常用yum命令如下。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">yum search &lt;pkgname&gt;                    <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#25628;&#32034;&#36719;&#20214;&#21253;</span>
+yum install &lt;pkgname&gt;                   <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#23433;&#35013;&#36719;&#20214;&#21253;</span>
+yum update --skip-broken                <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#26356;&#26032;&#31995;&#32479;</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-1-4" class="outline-3">
+<h3 id="sec-1-4"><span class="section-number-3">1.4</span> 编译安装内核</h3>
+<div class="outline-text-3" id="text-1-4">
+<p>
+有时候为了重新配置内核，添加对特定设备的支持，需要从源代码安装内核，
+按照如下步骤进行。
+</p>
+
+<p>
+安装软件依赖
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">yum install rpm-build redhat-rpm-config asciidoc hmaccalc <span style="color: #ff0000;">\</span>
+    perl-ExtUtils-Embed pesign xmlto
+yum install audit-libs-devel binutils-devel elfutils-devel <span style="color: #ff0000;">\</span>
+    elfutils-libelf-devel
+yum install newt-devel numactl-devel pciutils-devel <span style="color: #ff0000;">\</span>
+    python-devel zlib-devel
+yum install gcc ncurses-devel
+</pre>
+</div>
+
+<p>
+内核的rpm源码包可以从<a href="http://vault.centos.org/">CentOS server</a>下载，找到对应的版本号，
+进入os/Source/SPackages/查找要下载的<a href="http://vault.centos.org/7.0.1406/os/Source/SPackages/kernel-3.10.0-123.el7.src.rpm">rpm包</a> 并下载。
+使用如下命令将内核源代码安装到~/rpmbuild/目录。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">rpm -i kernel-3.10.0-123.el7.src.rpm
+</pre>
+</div>
+
+<p>
+通过如下命令编译安装内核。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #000000;">cd</span> ~/rpmbuild/SPECS
+rpmbuild -bp --target=$(<span style="font-weight: bold;">uname</span> -m) kernel.spec <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#29983;&#25104;&#28304;&#30721;&#26641;</span>
+<span style="color: #000000;">cd</span> ~/rpmbuild/BUILD/&lt;kernel-src&gt;              <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#36827;&#20837;&#28304;&#30721;&#26641;</span>
+make menuconfig
+make
+make modules_install
+make install
+</pre>
+</div>
+
+<p>
+参考文档
+</p>
+<ul class="org-ul">
+<li><a href="http://wiki.centos.org/HowTos/I_need_the_Kernel_Source">I Need the Kernel Source</a>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-2" class="outline-2">
+<h2 id="sec-2"><span class="section-number-2">2</span> 安装rhel6</h2>
+<div class="outline-text-2" id="text-2">
+</div><div id="outline-container-sec-2-1" class="outline-3">
+<h3 id="sec-2-1"><span class="section-number-3">2.1</span> 制作镜像</h3>
+<div class="outline-text-3" id="text-2-1">
+<p>
+使用windows下的ultraiso制作，经测试用dd命令不成功。
+需要注意，如果已经使用过dd命令制作镜像后必须清零。
+不然用blkid检测可能得到如下结果，从而在安装时出现错误。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-text">$ blkid /dev/sdx
+LABEL="RHEL_..." TYPE="iso9660"
+$ blkid /dev/sdx1
+LABEL="RHEL_..." UUID="..." TYPE="vfat"
+</pre>
+</div>
+
+<p>
+清零的命令：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">dd <span style="color: #000000;">if</span>=/dev/zero <span style="color: #000000;">of</span>=/dev/sdx <span style="color: #000000;">bs</span>=4M <span style="color: #000000;">count</span>=1000
+</pre>
+</div>
+
+<p>
+如果不清零，会出现错误：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-text">Unknown Device : The installation source given by device['/dev/sdb1']
+could not be found. Please check your parameters and try again.
+</pre>
+</div>
+
+<p>
+这份报告<a href="https://bugzilla.redhat.com/show_bug.cgi?id=702382">Bug702382</a> 详细说明这个情况的解决。
+</p>
+
+<p>
+仅仅写入ISO镜像是不够的，还需要将安装镜像复制到U盘。
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-2-2" class="outline-3">
+<h3 id="sec-2-2"><span class="section-number-3">2.2</span> 安装步骤</h3>
+<div class="outline-text-3" id="text-2-2">
+<p>
+启动U盘，选择安装，语言选择英语，键盘选择US。
+安装盘类型选择Hard drive，选择/dev/sdx。
+出现启动画面以后选择Next，设置主机名mpc后进入Next，
+设置时区Asia/ShangHai，进入Next，设置Root密码。
+设置磁盘分区，选择最后一项Create Custom Layout进行手动设置，
+需要注意这里不要将bootloader装到sda上面了，主要为了方便windows恢复，
+因此建议安装到系统所在分区。
+选择安装软件，选择Desktop，进入Next，开始漫长的软件安装过程。
+安装完成重启即可。
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-2-3" class="outline-3">
+<h3 id="sec-2-3"><span class="section-number-3">2.3</span> 软件更新</h3>
+<div class="outline-text-3" id="text-2-3">
+<p>
+替换yum的方法和rhel7处理类似，设置软件源，编辑文件<a href="src/rhel/rhel6-163.repo">/etc/yum.repo.d/rhel6-163.repo</a>，
+将如下内容写入文件，详细帮助可以查看<a href="http://mirrors.163.com/.help/centos.html">CentOS镜像使用帮助</a>。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-text">[base]
+name=CentOS-6 - Base - 163.com
+baseurl=http://mirrors.163.com/centos/6/os/$basearch/
+gpgcheck=0
+
+[updates]
+name=CentOS-6 - Updates - 163.com
+baseurl=http://mirrors.163.com/centos/6/updates/$basearch/
+gpgcheck=0
+
+[extras]
+name=CentOS-6 - Extras - 163.com
+baseurl=http://mirrors.163.com/centos/6/extras/$basearch/
+gpgcheck=0
+
+[centosplus]
+name=CentOS-6 - Plus - 163.com
+baseurl=http://mirrors.163.com/centos/6/centosplus/$basearch/
+gpgcheck=0
+enabled=0
+
+[contrib]
+name=CentOS-6 - Contrib - 163.com
+baseurl=http://mirrors.163.com/centos/6/contrib/$basearch/
+gpgcheck=0
+enabled=0
+</pre>
+</div>
+
+<p>
+yum的使用方法同rhel7。
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-2-4" class="outline-3">
+<h3 id="sec-2-4"><span class="section-number-3">2.4</span> 编译安装内核</h3>
+<div class="outline-text-3" id="text-2-4">
+<p>
+安装软件依赖
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">yum install rpm-build redhat-rpm-config asciidoc <span style="color: #ff0000;">\</span>
+    hmaccalc perl-ExtUtils-Embed xmlto
+yum install audit-libs-devel binutils-devel <span style="color: #ff0000;">\</span>
+    elfutils-devel elfutils-libelf-devel
+yum install newt-devel python-devel zlib-devel
+yum install gcc ncurses-devel
+</pre>
+</div>
+
+<p>
+内核的rpm源码包下载方式和rhel7一样，找到rhel6的内核源码下载<a href="http://vault.centos.org/6.5/updates/Source/SPackages/kernel-2.6.32-431.29.2.el6.src.rpm">地址</a> 即可下载安装。
+编译安装方法和rhel7完全一样。
+</p>
+</div>
+</div>
+</div>
+</div>
+</body>
+</html>

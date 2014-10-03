@@ -1,0 +1,1201 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<title>Linux Kernel Coding-style Introduction</title>
+<meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta  name="generator" content="Org-mode" />
+<meta  name="author" content="Micky Ching" />
+<link rel="stylesheet" type="text/css" href="../style/default.css" />
+
+<script type="text/javascript" src="../style/default.js">
+/**
+ *
+ * @source: ../style/default.js
+ *
+ * @licstart  The following is the entire license notice for the
+ *  JavaScript code in ../style/default.js.
+ *
+ * Copyright (C) 2012-2013 Free Software Foundation, Inc.
+ *
+ *
+ * The JavaScript code in this tag is free software: you can
+ * redistribute it and/or modify it under the terms of the GNU
+ * General Public License (GNU GPL) as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option)
+ * any later version.  The code is distributed WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+ *
+ * As additional permission under GNU GPL version 3 section 7, you
+ * may distribute non-source (e.g., minimized or compacted) forms of
+ * that code without the copy of the GNU GPL normally required by
+ * section 4, provided you include this license notice and a URL
+ * through which recipients can access the Corresponding Source.
+ *
+ * @licend  The above is the entire license notice
+ * for the JavaScript code in ../style/default.js.
+ *
+ */
+</script>
+
+<script type="text/javascript">
+
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+
+<!--/*--><![CDATA[/*><!--*/
+org_html_manager.set("TOC_DEPTH", "3");
+org_html_manager.set("LINK_HOME", "");
+org_html_manager.set("LINK_UP", "");
+org_html_manager.set("LOCAL_TOC", "0");
+org_html_manager.set("VIEW_BUTTONS", "0");
+org_html_manager.set("MOUSE_HINT", "underline");
+org_html_manager.set("FIXED_TOC", "0");
+org_html_manager.set("TOC", "0");
+org_html_manager.set("VIEW", "showall");
+org_html_manager.setup();  // activate after the parameters are set
+/*]]>*///-->
+</script>
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+</head>
+<body>
+<div id="content">
+<h1 class="title">Linux Kernel Coding-style Introduction</h1>
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#sec-1">1. 内核编码规范</a>
+<ul>
+<li><a href="#sec-1-1">1.1. 引言</a>
+<ul>
+<li><a href="#sec-1-1-1">1.1.1. 引言</a></li>
+</ul>
+</li>
+<li><a href="#sec-1-2">1.2. 缩进与空白</a>
+<ul>
+<li><a href="#sec-1-2-1">1.2.1. 使用TAB缩进</a></li>
+<li><a href="#sec-1-2-2">1.2.2. 代码长度不要超过80列</a></li>
+<li><a href="#sec-1-2-3">1.2.3. 代码长度不要超过80列</a></li>
+<li><a href="#sec-1-2-4">1.2.4. 标签的缩进</a></li>
+<li><a href="#sec-1-2-5">1.2.5. 使用TAB进行对齐</a></li>
+<li><a href="#sec-1-2-6">1.2.6. Kconfig文件中的缩进</a></li>
+<li><a href="#sec-1-2-7">1.2.7. 正确使用空格</a></li>
+<li><a href="#sec-1-2-8">1.2.8. 正确使用空格</a></li>
+<li><a href="#sec-1-2-9">1.2.9. 正确使用空格</a></li>
+<li><a href="#sec-1-2-10">1.2.10. 正确使用空格</a></li>
+<li><a href="#sec-1-2-11">1.2.11. 不要在代码中留下行尾空白</a></li>
+</ul>
+</li>
+<li><a href="#sec-1-3">1.3. 名称与注释</a>
+<ul>
+<li><a href="#sec-1-3-1">1.3.1. 取一个好听的名字</a></li>
+<li><a href="#sec-1-3-2">1.3.2. typedef可能产生的问题</a></li>
+<li><a href="#sec-1-3-3">1.3.3. 比较糟糕的typedef</a></li>
+<li><a href="#sec-1-3-4">1.3.4. 使用风格统一的注释</a></li>
+<li><a href="#sec-1-3-5">1.3.5. 使用风格统一的注释</a></li>
+<li><a href="#sec-1-3-6">1.3.6. 不要使用糟糕的注释</a></li>
+<li><a href="#sec-1-3-7">1.3.7. 注释也需要缩进</a></li>
+</ul>
+</li>
+<li><a href="#sec-1-4">1.4. 函数与结构</a>
+<ul>
+<li><a href="#sec-1-4-1">1.4.1. 让函数变得美观</a></li>
+<li><a href="#sec-1-4-2">1.4.2. 让函数变得美观</a></li>
+<li><a href="#sec-1-4-3">1.4.3. 让函数变得小巧而健壮</a></li>
+<li><a href="#sec-1-4-4">1.4.4. 让函数的返回值含义显而易见</a></li>
+<li><a href="#sec-1-4-5">1.4.5. 使用括号让代码正确并美观</a></li>
+<li><a href="#sec-1-4-6">1.4.6. 使用括号让代码正确并美观</a></li>
+<li><a href="#sec-1-4-7">1.4.7. 结构初始化</a></li>
+</ul>
+</li>
+<li><a href="#sec-1-5">1.5. 宏</a>
+<ul>
+<li><a href="#sec-1-5-1">1.5.1. 正确定义宏</a></li>
+<li><a href="#sec-1-5-2">1.5.2. 正确定义宏</a></li>
+<li><a href="#sec-1-5-3">1.5.3. 不要在.c文件中使用#ifdef</a></li>
+<li><a href="#sec-1-5-4">1.5.4. 不要在.c中使用#ifdef</a></li>
+</ul>
+</li>
+<li><a href="#sec-1-6">1.6. 小结</a>
+<ul>
+<li><a href="#sec-1-6-1">1.6.1. 小结</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#sec-2">2. 实用工具</a>
+<ul>
+<li><a href="#sec-2-1">2.1. Lindent</a>
+<ul>
+<li><a href="#sec-2-1-1">2.1.1. Lindent基本用法</a></li>
+</ul>
+</li>
+<li><a href="#sec-2-2">2.2. sed</a>
+<ul>
+<li><a href="#sec-2-2-1">2.2.1. 去除行尾空白</a></li>
+</ul>
+</li>
+<li><a href="#sec-2-3">2.3. checkpatch.pl</a>
+<ul>
+<li><a href="#sec-2-3-1">2.3.1. checkpatch.pl帮助信息</a></li>
+<li><a href="#sec-2-3-2">2.3.2. checkpath.pl日常用法</a></li>
+</ul>
+</li>
+<li><a href="#sec-2-4">2.4. sparse</a>
+<ul>
+<li><a href="#sec-2-4-1">2.4.1. 下载sparse</a></li>
+<li><a href="#sec-2-4-2">2.4.2. 安装sparse</a></li>
+<li><a href="#sec-2-4-3">2.4.3. sparse帮助信息</a></li>
+<li><a href="#sec-2-4-4">2.4.4. sparse日常用法</a></li>
+</ul>
+</li>
+<li><a href="#sec-2-5">2.5. smatch</a>
+<ul>
+<li><a href="#sec-2-5-1">2.5.1. 安装smatch</a></li>
+<li><a href="#sec-2-5-2">2.5.2. smatch帮助信息</a></li>
+<li><a href="#sec-2-5-3">2.5.3. smatch日常用法</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#sec-3">3. 参考文献</a>
+<ul>
+<li><a href="#sec-3-1">3.1. 参考文献</a>
+<ul>
+<li><a href="#sec-3-1-1">3.1.1. 参考文献</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-1" class="outline-2">
+<h2 id="sec-1"><span class="section-number-2">1</span> 内核编码规范</h2>
+<div class="outline-text-2" id="text-1">
+</div><div id="outline-container-sec-1-1" class="outline-3">
+<h3 id="sec-1-1"><span class="section-number-3">1.1</span> 引言</h3>
+<div class="outline-text-3" id="text-1-1">
+</div><div id="outline-container-sec-1-1-1" class="outline-4">
+<h4 id="sec-1-1-1"><span class="section-number-4">1.1.1</span> 引言</h4>
+<div class="outline-text-4" id="text-1-1-1">
+<blockquote>
+<p>
+First off, I'd suggest printing out a copy of the GNU coding standards,
+and NOT read it.  Burn them, it's a great symbolic gesture.
+</p>
+</blockquote>
+</div>
+</div>
+</div>
+<div id="outline-container-sec-1-2" class="outline-3">
+<h3 id="sec-1-2"><span class="section-number-3">1.2</span> 缩进与空白</h3>
+<div class="outline-text-3" id="text-1-2">
+</div><div id="outline-container-sec-1-2-1" class="outline-4">
+<h4 id="sec-1-2-1"><span class="section-number-4">1.2.1</span> 使用TAB缩进</h4>
+<div class="outline-text-4" id="text-1-2-1">
+<ul class="org-ul">
+<li>仅使用TAB缩进
+</li>
+<li>不要使用SPC缩进、也不要使用TAB和SPC混合缩进
+</li>
+<li>只有注释、文档和Kconfig可使用SPC缩进
+<img src="fig/coding-style/indent-tab.png" alt="indent-tab.png" />
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-1-2-2" class="outline-4">
+<h4 id="sec-1-2-2"><span class="section-number-4">1.2.2</span> 代码长度不要超过80列</h4>
+<div class="outline-text-4" id="text-1-2-2">
+<ul class="org-ul">
+<li>TAB显示宽度为8个字符，不要设置为4个甚至2个字符
+</li>
+<li>超过80列的行需要折断
+</li>
+<li>折断产生的新行至少应该保持一个缩进深度
+</li>
+<li>不要折断字符串等打印信息
+<img src="fig/coding-style/break-bad.png" alt="break-bad.png" />
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-1-2-3" class="outline-4">
+<h4 id="sec-1-2-3"><span class="section-number-4">1.2.3</span> 代码长度不要超过80列</h4>
+<div class="outline-text-4" id="text-1-2-3">
+<ul class="org-ul">
+<li>正确做法是不折断打印信息
+<img src="fig/coding-style/break-good.png" alt="break-good.png" />
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-1-2-4" class="outline-4">
+<h4 id="sec-1-2-4"><span class="section-number-4">1.2.4</span> 标签的缩进</h4>
+<div class="outline-text-4" id="text-1-2-4">
+<ul class="org-ul">
+<li>switch语句中的case关键字应对齐到switch关键字
+</li>
+<li>goto语句中用到的标签不应该有缩进
+</li>
+</ul>
+
+<div class="org-src-container">
+
+<pre class="src src-c">        <span style="color: #0000ff; font-weight: bold;">switch</span> (suffix) {
+        <span style="color: #0000ff; font-weight: bold;">case</span> <span style="color: #ff0000;">'g'</span>:
+                mem &lt;&lt;= 30;
+                <span style="color: #0000ff; font-weight: bold;">goto</span> <span style="color: #5f9ea0;">change_status</span>;
+        <span style="color: #0000ff; font-weight: bold;">case</span> <span style="color: #ff0000;">'k'</span>:
+                mem &lt;&lt;= 10;
+                <span style="color: #228b22; font-style: italic;">/* </span><span style="color: #228b22; font-style: italic;">fall through </span><span style="color: #228b22; font-style: italic;">*/</span>
+        <span style="color: #0000ff; font-weight: bold;">default</span>:
+                <span style="color: #0000ff; font-weight: bold;">break</span>;
+        }
+<span style="color: #5f9ea0;">change_status</span>:
+        make_power_off();
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-1-2-5" class="outline-4">
+<h4 id="sec-1-2-5"><span class="section-number-4">1.2.5</span> 使用TAB进行对齐</h4>
+<div class="outline-text-4" id="text-1-2-5">
+<ul class="org-ul">
+<li>对齐的填充符至少应该保持统一，推荐仅采用TAB
+</li>
+<li>不要混合使用TAB和SPC作为填充符对齐
+<img src="fig/coding-style/align-bad.png" alt="align-bad.png" />
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-1-2-6" class="outline-4">
+<h4 id="sec-1-2-6"><span class="section-number-4">1.2.6</span> Kconfig文件中的缩进</h4>
+<div class="outline-text-4" id="text-1-2-6">
+<ul class="org-ul">
+<li>Kconfig使用一个TAB缩进，help文档需要缩进两个空格
+<img src="fig/coding-style/indent-kconfig.png" alt="indent-kconfig.png" />
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-1-2-7" class="outline-4">
+<h4 id="sec-1-2-7"><span class="section-number-4">1.2.7</span> 正确使用空格</h4>
+<div class="outline-text-4" id="text-1-2-7">
+<ul class="org-ul">
+<li>需要在后面添加空格的关键字
+<ul class="org-ul">
+<li>if switch case for do while define
+</li>
+</ul>
+</li>
+<li>在大多数二元/三元操作符的两侧要使用一个空格
+<ul class="org-ul">
+<li>=  +  -  &lt;  &gt;  *  /  %  |  &amp;  ^  <code>==</code>  &lt;=  &gt;=  !=  ?  :
+</li>
+</ul>
+</li>
+<li>一元操作符后面不要使用空格
+<ul class="org-ul">
+<li>&amp;  *  +  -  ~  !  sizeof  typeof  alignof  \__attribute__  defined
+</li>
+</ul>
+</li>
+<li>自增/自减运算符(++/&#x2013;)不要和操作变量间使用空格
+</li>
+<li>成员操作符(./-&gt;)前后不应有空白
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-1-2-8" class="outline-4">
+<h4 id="sec-1-2-8"><span class="section-number-4">1.2.8</span> 正确使用空格</h4>
+<div class="outline-text-4" id="text-1-2-8">
+<ul class="org-ul">
+<li>不应在小括号内侧靠近括号的地方使用空格
+</li>
+<li>指针中的星号应该靠近函数名、变量名，而不是类型名
+</li>
+</ul>
+
+<div class="org-src-container">
+
+<pre class="src src-c">s = <span style="color: #0000ff; font-weight: bold;">sizeof</span>( <span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">file</span> );      <span style="color: #228b22; font-style: italic;">/* </span><span style="color: #228b22; font-style: italic;">bad </span><span style="color: #228b22; font-style: italic;">*/</span>
+<span style="color: #0000ff;">long</span> *<span style="color: #8b008b; font-weight: bold;">memparse</span>(<span style="color: #0000ff;">char</span> *<span style="color: #000000;">ptr</span>, <span style="color: #0000ff;">char</span> **<span style="color: #000000;">retptr</span>); <span style="color: #228b22; font-style: italic;">/* </span><span style="color: #228b22; font-style: italic;">good </span><span style="color: #228b22; font-style: italic;">*/</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-1-2-9" class="outline-4">
+<h4 id="sec-1-2-9"><span class="section-number-4">1.2.9</span> 正确使用空格</h4>
+<div class="outline-text-4" id="text-1-2-9">
+<ul class="org-ul">
+<li>避免在应该使用空格的地方使用TAB
+<ul class="org-ul">
+<li>如果不显示TAB和SPC的区别在源代码中很可能看不出来
+</li>
+<li>但会影响patch效果，如gerrit能够显示TAB和行尾空白
+</li>
+</ul>
+
+<div class="figure">
+<p><img src="fig/coding-style/spc-miss.png" alt="spc-miss.png" />
+</p>
+</div>
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-1-2-10" class="outline-4">
+<h4 id="sec-1-2-10"><span class="section-number-4">1.2.10</span> 正确使用空格</h4>
+<div class="outline-text-4" id="text-1-2-10">
+<ul class="org-ul">
+<li>误用TAB导致patch效果变差
+<img src="fig/coding-style/spc-miss-git.png" alt="spc-miss-git.png" />
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-1-2-11" class="outline-4">
+<h4 id="sec-1-2-11"><span class="section-number-4">1.2.11</span> 不要在代码中留下行尾空白</h4>
+<div class="outline-text-4" id="text-1-2-11">
+<ul class="org-ul">
+<li>不要在行尾留下空白符
+
+
+<div class="figure">
+<p><img src="fig/coding-style/trailing-spc.png" alt="trailing-spc.png" />
+</p>
+</div>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-1-3" class="outline-3">
+<h3 id="sec-1-3"><span class="section-number-3">1.3</span> 名称与注释</h3>
+<div class="outline-text-3" id="text-1-3">
+</div><div id="outline-container-sec-1-3-1" class="outline-4">
+<h4 id="sec-1-3-1"><span class="section-number-4">1.3.1</span> 取一个好听的名字</h4>
+<div class="outline-text-4" id="text-1-3-1">
+<ul class="org-ul">
+<li>函数名都是小写，用下划线分割单词
+</li>
+<li>不能使用驼峰命名规则
+</li>
+<li>局部变量应当短小精干，如"i"比"loop_counter"好用
+</li>
+<li>局部变量应在最小作用域定义
+</li>
+<li>给含义不是很直白的数字取一个名字
+</li>
+<li>谨慎使用typedef定义some_t结构
+<ul class="org-ul">
+<li>用于隐藏对象，如dma_addr_t，以限定只能调用正确的函数
+</li>
+<li>清楚指定整数类型，如u8/u16&#x2026;
+</li>
+<li>在某些时候是"unsigned int"，而某些时候是"unsigned long"
+</li>
+<li>函数指针
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-1-3-2" class="outline-4">
+<h4 id="sec-1-3-2"><span class="section-number-4">1.3.2</span> typedef可能产生的问题</h4>
+<div class="outline-text-4" id="text-1-3-2">
+<ul class="org-ul">
+<li>隐藏了变量的实际类型，造成阅读困难
+</li>
+<li>可能对函数造成的影响
+<ul class="org-ul">
+<li>在栈上创建了过大的结构
+</li>
+<li>在函数返回时传递了一个过大的结构
+</li>
+</ul>
+</li>
+<li>仅用来定义一个指针类型
+<ul class="org-ul">
+<li>是不是太懒了点？
+</li>
+</ul>
+</li>
+<li>仅用来隐藏struct关键字
+<ul class="org-ul">
+<li>那么一定要取一个好听的名字
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-1-3-3" class="outline-4">
+<h4 id="sec-1-3-3"><span class="section-number-4">1.3.3</span> 比较糟糕的typedef</h4>
+<div class="outline-text-4" id="text-1-3-3">
+<ul class="org-ul">
+<li>对每一个struct都用一个typedef去定义
+</li>
+<li>只用了typedef，而没有给一个struct取一个名字
+</li>
+</ul>
+
+<div class="org-src-container">
+
+<pre class="src src-c"><span style="color: #0000ff; font-weight: bold;">typedef</span> <span style="color: #0000ff; font-weight: bold;">struct</span> {
+        <span style="color: #0000ff;">__u32</span> <span style="color: #000000;">link</span>;
+        <span style="color: #0000ff;">__u32</span> <span style="color: #000000;">status</span>;
+        <span style="color: #0000ff;">__u32</span> <span style="color: #000000;">info</span>;
+        <span style="color: #0000ff;">__u32</span> <span style="color: #000000;">buffer</span>;
+} <span style="color: #0000ff;">uhci_td_t</span>, *<span style="color: #0000ff;">puhci_td_t</span>;
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-1-3-4" class="outline-4">
+<h4 id="sec-1-3-4"><span class="section-number-4">1.3.4</span> 使用风格统一的注释</h4>
+<div class="outline-text-4" id="text-1-3-4">
+<ul class="org-ul">
+<li>不能使用// &#x2026;风格注释，应使用/* &#x2026; */
+</li>
+<li>多行注释的结束符应该单独放在一行
+</li>
+</ul>
+
+<div class="org-src-container">
+
+<pre class="src src-c"><span style="color: #228b22; font-style: italic;">/*</span>
+<span style="color: #228b22; font-style: italic;"> * This is the preferred style for multi-line</span>
+<span style="color: #228b22; font-style: italic;"> * comments in the Linux kernel source code.</span>
+<span style="color: #228b22; font-style: italic;"> * Please use it consistently.</span>
+<span style="color: #228b22; font-style: italic;"> *</span>
+<span style="color: #228b22; font-style: italic;"> * Description:  A column of asterisks on the left side,</span>
+<span style="color: #228b22; font-style: italic;"> * with beginning and ending almost-blank lines.</span>
+<span style="color: #228b22; font-style: italic;"> </span><span style="color: #228b22; font-style: italic;">*/</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-1-3-5" class="outline-4">
+<h4 id="sec-1-3-5"><span class="section-number-4">1.3.5</span> 使用风格统一的注释</h4>
+<div class="outline-text-4" id="text-1-3-5">
+<ul class="org-ul">
+<li>注释分文档注释和非文档注释
+</li>
+<li>文档注释以/**开头，非文档注释以/*开头
+</li>
+<li>参数（成员）用@name标记
+</li>
+<li>如果参数是&#x2026;(varargs)，使用@&#x2026;表示
+<img src="fig/coding-style/comment-example.png" alt="comment-example.png" />
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-1-3-6" class="outline-4">
+<h4 id="sec-1-3-6"><span class="section-number-4">1.3.6</span> 不要使用糟糕的注释</h4>
+<div class="outline-text-4" id="text-1-3-6">
+<ul class="org-ul">
+<li>糟糕的注释
+<ul class="org-ul">
+<li>解释代码如何工作
+</li>
+<li>说明函数的编写者
+</li>
+<li>包含最后更改时间
+</li>
+<li>解释一些不关紧要的事情
+</li>
+</ul>
+</li>
+<li>良好的注释
+<ul class="org-ul">
+<li>告诉你这是什么
+</li>
+<li>告诉你为什么要如此
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-1-3-7" class="outline-4">
+<h4 id="sec-1-3-7"><span class="section-number-4">1.3.7</span> 注释也需要缩进</h4>
+<div class="outline-text-4" id="text-1-3-7">
+<ul class="org-ul">
+<li>如果是函数内部的注释，应当和代码保持同样的缩进
+<img src="fig/coding-style/comment-indent.png" alt="comment-indent.png" />
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-1-4" class="outline-3">
+<h3 id="sec-1-4"><span class="section-number-3">1.4</span> 函数与结构</h3>
+<div class="outline-text-3" id="text-1-4">
+</div><div id="outline-container-sec-1-4-1" class="outline-4">
+<h4 id="sec-1-4-1"><span class="section-number-4">1.4.1</span> 让函数变得美观</h4>
+<div class="outline-text-4" id="text-1-4-1">
+<ul class="org-ul">
+<li>函数的原型应该包含变量名以便阅读
+</li>
+<li>函数应该短小精干，只做一件事并将其做好
+</li>
+<li>函数的大小尽量控制在50行以内（正常显示屏两屏）
+</li>
+<li>一个函数的局部变量应该控制在10个以内
+</li>
+<li>函数定义之间应该留有一行空行
+</li>
+<li>如果函数需要导出，导出宏需要紧跟函数，不要留空行
+</li>
+</ul>
+
+<div class="org-src-container">
+
+<pre class="src src-c"><span style="color: #0000ff;">int</span> <span style="color: #8b008b; font-weight: bold;">system_is_up</span>(<span style="color: #0000ff;">void</span>)
+{
+        <span style="color: #0000ff; font-weight: bold;">return</span> system_state == SYSTEM_RUNNING;
+}
+EXPORT_SYMBOL(system_is_up);
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-1-4-2" class="outline-4">
+<h4 id="sec-1-4-2"><span class="section-number-4">1.4.2</span> 让函数变得美观</h4>
+<div class="outline-text-4" id="text-1-4-2">
+<ul class="org-ul">
+<li>不要将多个语句（赋值）放于一行，保持代码简洁
+</li>
+<li>声明语句之后要加一个空行
+</li>
+</ul>
+
+<div class="org-src-container">
+
+<pre class="src src-c"><span style="color: #0000ff; font-weight: bold;">if</span> (condition) do_this;         <span style="color: #228b22; font-style: italic;">/* </span><span style="color: #228b22; font-style: italic;">bad </span><span style="color: #228b22; font-style: italic;">*/</span>
+        do_everytime;
+
+<span style="color: #0000ff; font-weight: bold;">static</span> <span style="color: #0000ff;">int</span> <span style="color: #8b008b; font-weight: bold;">sdmmc_get_ro</span>(<span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">mmc_host</span> *<span style="color: #000000;">mmc</span>)
+{
+        <span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">rtsx_ipcam</span> *<span style="color: #000000;">cam</span> = mmc_priv(mmc);
+        <span style="color: #0000ff;">int</span> <span style="color: #000000;">ro</span> = 0;
+
+        <span style="color: #0000ff; font-weight: bold;">if</span> (cam-&gt;removed)
+                <span style="color: #0000ff; font-weight: bold;">return</span> -ENOMEDIUM;
+        <span style="color: #0000ff; font-weight: bold;">return</span> ro;
+}
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-1-4-3" class="outline-4">
+<h4 id="sec-1-4-3"><span class="section-number-4">1.4.3</span> 让函数变得小巧而健壮</h4>
+<div class="outline-text-4" id="text-1-4-3">
+<ul class="org-ul">
+<li>不要定义过长的inline函数，三行以内为宜
+</li>
+<li>不要自己发明轮子，使用已经定义良好的函数
+<ul class="org-ul">
+<li>字符串处理函数
+</li>
+<li>字节序相关函数
+</li>
+<li>链表
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-1-4-4" class="outline-4">
+<h4 id="sec-1-4-4"><span class="section-number-4">1.4.4</span> 让函数的返回值含义显而易见</h4>
+<div class="outline-text-4" id="text-1-4-4">
+<ul class="org-ul">
+<li>如果函数是做一件事，成功返回0,失败返回-ECODE
+</li>
+<li>如果函数是谓词（predicate）
+<ul class="org-ul">
+<li>那么成功为true，失败为false
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-1-4-5" class="outline-4">
+<h4 id="sec-1-4-5"><span class="section-number-4">1.4.5</span> 使用括号让代码正确并美观</h4>
+<div class="outline-text-4" id="text-1-4-5">
+<ul class="org-ul">
+<li>对于if-else语句，只要有一个分支包含多行就要使用括号
+</li>
+<li>如果if-else用到大括号，else需要紧跟大括号
+<ul class="org-ul">
+<li>do-while同理
+</li>
+</ul>
+</li>
+</ul>
+
+<div class="org-src-container">
+
+<pre class="src src-c"><span style="color: #228b22; font-style: italic;">/* </span><span style="color: #228b22; font-style: italic;">&#21333;&#34892;&#20998;&#25903; </span><span style="color: #228b22; font-style: italic;">*/</span>
+<span style="color: #0000ff; font-weight: bold;">if</span> (cam-&gt;trans_result == TRANS_NODEV)
+        err = -ENODEV;
+<span style="color: #0000ff; font-weight: bold;">else</span> <span style="color: #0000ff; font-weight: bold;">if</span> (cam-&gt;trans_result == TRANS_FAIL)
+        err = -EIO;
+
+<span style="color: #228b22; font-style: italic;">/* </span><span style="color: #228b22; font-style: italic;">&#22810;&#34892;&#20998;&#25903; </span><span style="color: #228b22; font-style: italic;">*/</span>
+<span style="color: #0000ff; font-weight: bold;">if</span> (cam-&gt;trans_result == TRANS_NODEV) {
+        err = -ENODEV;
+} <span style="color: #0000ff; font-weight: bold;">else</span> <span style="color: #0000ff; font-weight: bold;">if</span> (cam-&gt;trans_result == TRANS_FAIL) {
+        cam_dbg(<span style="color: #ff0000;">"transfer failed\n"</span>);
+        err = -EIO;
+}
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-1-4-6" class="outline-4">
+<h4 id="sec-1-4-6"><span class="section-number-4">1.4.6</span> 使用括号让代码正确并美观</h4>
+<div class="outline-text-4" id="text-1-4-6">
+<ul class="org-ul">
+<li>语句中的大括号从右侧起始
+</li>
+<li>函数中的大括号从下方起始
+</li>
+<li>添加必要的小括号以说明优先级
+</li>
+</ul>
+
+<div class="org-src-container">
+
+<pre class="src src-c"><span style="color: #228b22; font-style: italic;">/*</span>
+<span style="color: #228b22; font-style: italic;"> * &#31227;&#20301;&#36816;&#31639;&#39640;&#20110;&#25353;&#20301;&#25110;&#65292;&#20294;&#26159;&#36825;&#32473;&#38405;&#35835;&#32773;&#24102;&#26469;&#22256;&#38590;</span>
+<span style="color: #228b22; font-style: italic;"> * &#24182;&#19988;&#36825;&#20250;&#24102;&#26469;&#32534;&#35793;&#35686;&#21578;&#65292;&#24314;&#35758;&#21152;&#19978;&#25324;&#21495;</span>
+<span style="color: #228b22; font-style: italic;"> </span><span style="color: #228b22; font-style: italic;">*/</span>
+<span style="color: #0000ff;">u32</span> <span style="color: #000000;">val</span> = HAIMR_READ | (<span style="color: #0000ff;">u32</span>)(addr &amp; 0x3FFF) &lt;&lt; 16;
+<span style="color: #228b22; font-style: italic;">/* </span><span style="color: #228b22; font-style: italic;">&#28155;&#21152;&#25324;&#21495;&#30456;&#24403;&#20110;&#32473;&#20986;&#27880;&#37322;&#65292;&#38405;&#35835;&#26356;&#28165;&#26224; </span><span style="color: #228b22; font-style: italic;">*/</span>
+<span style="color: #0000ff;">u32</span> <span style="color: #000000;">val</span> = HAIMR_READ | ((<span style="color: #0000ff;">u32</span>)(addr &amp; 0x3FFF) &lt;&lt; 16);
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-1-4-7" class="outline-4">
+<h4 id="sec-1-4-7"><span class="section-number-4">1.4.7</span> 结构初始化</h4>
+<div class="outline-text-4" id="text-1-4-7">
+<div class="org-src-container">
+
+<pre class="src src-c"><span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">resource</span> <span style="color: #000000;">res</span>[] = {
+        {
+                .start = RTSX_IPCAM_MEM_START,
+                .end = RTSX_IPCAM_MEM_END,
+                .flags = IORESOURCE_MEM,
+        },
+        {
+                .start = RTSX_IPCAM_IRQ,
+                .end = RTSX_IPCAM_IRQ,
+                .flags = IORESOURCE_IRQ,
+        }
+};
+</pre>
+</div>
+</div>
+</div>
+</div>
+<div id="outline-container-sec-1-5" class="outline-3">
+<h3 id="sec-1-5"><span class="section-number-3">1.5</span> 宏</h3>
+<div class="outline-text-3" id="text-1-5">
+</div><div id="outline-container-sec-1-5-1" class="outline-4">
+<h4 id="sec-1-5-1"><span class="section-number-4">1.5.1</span> 正确定义宏</h4>
+<div class="outline-text-4" id="text-1-5-1">
+<ul class="org-ul">
+<li>单行语句使用括号将宏定义包围
+</li>
+<li>对于用到的参数也应该加上括号，return和goto语句除外
+</li>
+</ul>
+
+<div class="org-src-container">
+
+<pre class="src src-c"><span style="color: #000000;">#define</span> <span style="color: #8b008b; font-weight: bold;">b_1_</span>(<span style="color: #000000;">bit</span>)               (0x01 &lt;&lt; (bit))
+<span style="color: #000000;">#define</span> <span style="color: #8b008b; font-weight: bold;">TRACE_RET</span>(<span style="color: #000000;">chip</span>, <span style="color: #000000;">ret</span>)    (<span style="color: #0000ff; font-weight: bold;">return</span> ret)
+<span style="color: #228b22; font-style: italic;">/* </span><span style="color: #228b22; font-style: italic;">compile warning </span><span style="color: #228b22; font-style: italic;">*/</span>
+<span style="color: #000000;">#define</span> <span style="color: #8b008b; font-weight: bold;">TRACE_RET</span>(<span style="color: #000000;">chip</span>, <span style="color: #000000;">ret</span>)    (<span style="color: #0000ff; font-weight: bold;">return</span> (ret))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-1-5-2" class="outline-4">
+<h4 id="sec-1-5-2"><span class="section-number-4">1.5.2</span> 正确定义宏</h4>
+<div class="outline-text-4" id="text-1-5-2">
+<ul class="org-ul">
+<li>多行语句用do&#x2026;while(0)形式包围
+</li>
+</ul>
+
+<div class="org-src-container">
+
+<pre class="src src-c"><span style="color: #000000;">#define</span> <span style="color: #8b008b; font-weight: bold;">_atomic_spin_lock_irqsave</span>(<span style="color: #000000;">l</span>,<span style="color: #000000;">f</span>) <span style="color: #0000ff; font-weight: bold;">do</span> {     \
+        <span style="color: #0000ff;">arch_spinlock_t</span> *<span style="color: #000000;">s</span> = ATOMIC_HASH(l);    \
+        local_irq_save(f);                      \
+        arch_spin_lock(s);                      \
+} <span style="color: #0000ff; font-weight: bold;">while</span>(0)
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-1-5-3" class="outline-4">
+<h4 id="sec-1-5-3"><span class="section-number-4">1.5.3</span> 不要在.c文件中使用#ifdef</h4>
+<div class="outline-text-4" id="text-1-5-3">
+<ul class="org-ul">
+<li>#ifdef应该属于.h文件
+</li>
+</ul>
+
+<div class="org-src-container">
+
+<pre class="src src-c"><span style="color: #0000ff; font-weight: bold;">static</span> <span style="color: #0000ff;">void</span> <span style="color: #8b008b; font-weight: bold;">hide_some_dev</span>(<span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">some_dev</span> *<span style="color: #000000;">sd</span>)
+{
+<span style="color: #000000;">#ifdef</span> CONFIG_SOME_HIDE
+        <span style="color: #0000ff; font-weight: bold;">if</span> (sd-&gt;id == SOME_DEV_ID)
+                do_some_hide(sd-&gt;hid);
+<span style="color: #000000;">#endif</span>
+}
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-1-5-4" class="outline-4">
+<h4 id="sec-1-5-4"><span class="section-number-4">1.5.4</span> 不要在.c中使用#ifdef</h4>
+<div class="outline-text-4" id="text-1-5-4">
+<div class="org-src-container">
+
+<pre class="src src-c"><span style="color: #228b22; font-style: italic;">/* </span><span style="color: #228b22; font-style: italic;">src.h </span><span style="color: #228b22; font-style: italic;">*/</span>
+<span style="color: #000000;">#ifdef</span> CONFIG_SOME_HIDE
+<span style="color: #0000ff; font-weight: bold;">extern</span> <span style="color: #0000ff;">void</span> <span style="color: #8b008b; font-weight: bold;">do_some_hide</span>(<span style="color: #0000ff;">int</span> <span style="color: #000000;">hid</span>);
+<span style="color: #000000;">#else</span>
+<span style="color: #0000ff; font-weight: bold;">static</span> <span style="color: #0000ff; font-weight: bold;">inline</span> <span style="color: #0000ff;">void</span> <span style="color: #8b008b; font-weight: bold;">do_some_hide</span>(<span style="color: #0000ff;">int</span> <span style="color: #000000;">hid</span>) {}
+<span style="color: #000000;">#endif</span>
+
+<span style="color: #228b22; font-style: italic;">/* </span><span style="color: #228b22; font-style: italic;">src.c </span><span style="color: #228b22; font-style: italic;">*/</span>
+<span style="color: #0000ff; font-weight: bold;">static</span> <span style="color: #0000ff;">void</span> <span style="color: #8b008b; font-weight: bold;">hide_some_dev</span>(<span style="color: #0000ff; font-weight: bold;">struct</span> <span style="color: #0000ff;">some_dev</span> *<span style="color: #000000;">sd</span>)
+{
+        <span style="color: #0000ff; font-weight: bold;">if</span> (sd-&gt;id == SOME_DEV_ID)
+                do_some_hide(sd-&gt;hid);
+}
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-1-6" class="outline-3">
+<h3 id="sec-1-6"><span class="section-number-3">1.6</span> 小结</h3>
+<div class="outline-text-3" id="text-1-6">
+</div><div id="outline-container-sec-1-6-1" class="outline-4">
+<h4 id="sec-1-6-1"><span class="section-number-4">1.6.1</span> 小结</h4>
+<div class="outline-text-4" id="text-1-6-1">
+<ul class="org-ul">
+<li>仔细阅读Documentation/CodingStyle
+</li>
+<li>遵照Documentation/CodingStyle写代码
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-2" class="outline-2">
+<h2 id="sec-2"><span class="section-number-2">2</span> 实用工具</h2>
+<div class="outline-text-2" id="text-2">
+</div><div id="outline-container-sec-2-1" class="outline-3">
+<h3 id="sec-2-1"><span class="section-number-3">2.1</span> Lindent</h3>
+<div class="outline-text-3" id="text-2-1">
+</div><div id="outline-container-sec-2-1-1" class="outline-4">
+<h4 id="sec-2-1-1"><span class="section-number-4">2.1.1</span> Lindent基本用法</h4>
+<div class="outline-text-4" id="text-2-1-1">
+<ul class="org-ul">
+<li>位于scripts/
+</li>
+<li>自动修正代码中的缩进
+</li>
+<li>不要完全信赖该脚本，修正完成之后最好检查一下
+</li>
+</ul>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">./Lindent &lt;filename&gt;
+</pre>
+</div>
+</div>
+</div>
+</div>
+<div id="outline-container-sec-2-2" class="outline-3">
+<h3 id="sec-2-2"><span class="section-number-3">2.2</span> sed</h3>
+<div class="outline-text-3" id="text-2-2">
+</div><div id="outline-container-sec-2-2-1" class="outline-4">
+<h4 id="sec-2-2-1"><span class="section-number-4">2.2.1</span> 去除行尾空白</h4>
+<div class="outline-text-4" id="text-2-2-1">
+<ul class="org-ul">
+<li>使用sed去除行尾空白只要一行命令
+</li>
+</ul>
+
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#21435;&#38500;&#21333;&#20010;&#25991;&#20214;&#30340;&#34892;&#23614;&#31354;&#30333;</span>
+sed --in-place <span style="color: #ff0000;">'s/[[:space:]]\+$//'</span> &lt;filename&gt;
+
+<span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#21435;&#38500;&#25152;&#26377;&#28304;&#20195;&#30721;&#34892;&#23614;&#31354;&#30333;</span>
+<span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#35880;&#24910;&#20351;&#29992;find&#21629;&#20196;</span>
+<span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#36991;&#20813;&#21024;&#38500;&#37325;&#35201;&#25991;&#20214;&#30340;&#34892;&#23614;&#31354;&#30333;&#65292;&#22914;git&#20179;&#24211;&#37324;&#30340;&#32034;&#24341;&#25991;&#20214;</span>
+find -name <span style="color: #ff0000;">"*.[ch]"</span> | xargs -n 1 sed --in-place <span style="color: #ff0000;">\</span>
+<span style="color: #ff0000;">'s/[[:space:]]\+$//'</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-2-3" class="outline-3">
+<h3 id="sec-2-3"><span class="section-number-3">2.3</span> checkpatch.pl</h3>
+<div class="outline-text-3" id="text-2-3">
+</div><div id="outline-container-sec-2-3-1" class="outline-4">
+<h4 id="sec-2-3-1"><span class="section-number-4">2.3.1</span> checkpatch.pl帮助信息</h4>
+<div class="outline-text-4" id="text-2-3-1">
+<ul class="org-ul">
+<li>位于Linux内核树scripts/
+</li>
+</ul>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">./checkpatch.pl -h              <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#26597;&#30475;&#24110;&#21161;&#20449;&#24687;</span>
+</pre>
+</div>
+<div class="org-src-container">
+
+<pre class="src src-text">Usage: checkpatch.pl [OPTION]... [FILE]...
+Version: 0.32
+Options:
+  --no-tree             run without a kernel tree
+  --no-signoff          not check 'Signed-off-by' line
+  --terse               one line per report
+  -f, --file            treat FILE as regular file
+  --fix                 may create horrible results
+  --fix-inplace         may create horrible results
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-2-3-2" class="outline-4">
+<h4 id="sec-2-3-2"><span class="section-number-4">2.3.2</span> checkpath.pl日常用法</h4>
+<div class="outline-text-4" id="text-2-3-2">
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#23545;&#24403;&#21069;&#30446;&#24405;&#19979;&#25152;&#26377;&#28304;&#20195;&#30721;&#26816;&#26597;&#39118;&#26684;</span>
+find -name <span style="color: #ff0000;">"*.[ch]"</span> | xargs -n 1 ./checkpatch.pl --no-tree -f
+<span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#23545;&#24403;&#21069;&#30446;&#24405;&#19979;&#25152;&#26377;&#28304;&#20195;&#30721;&#20462;&#27491;&#39118;&#26684;</span>
+find -name <span style="color: #ff0000;">"*.[ch]"</span> | xargs -n 1 ./checkpatch.pl --no-tree -f <span style="color: #ff0000;">\</span>
+--fix-inplace
+<span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#23545;&#25152;&#26377;&#34917;&#19969;&#26816;&#26597;&#39118;&#26684;</span>
+./checkpatch.pl --no-tree *.patch
+<span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#23545;&#25152;&#26377;&#34917;&#19969;&#20462;&#27491;&#39118;&#26684;</span>
+./checkpatch.pl --no-tree --fix-inplace *.patch
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-2-4" class="outline-3">
+<h3 id="sec-2-4"><span class="section-number-3">2.4</span> sparse</h3>
+<div class="outline-text-3" id="text-2-4">
+</div><div id="outline-container-sec-2-4-1" class="outline-4">
+<h4 id="sec-2-4-1"><span class="section-number-4">2.4.1</span> 下载sparse</h4>
+<div class="outline-text-4" id="text-2-4-1">
+<p>
+sparse是由Linus Torvalds针对Linux Kernel写的静态检查脚本
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">apt-get install sparse          <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#20351;&#29992;&#28304;&#19979;&#36733;&#24182;&#23433;&#35013;</span>
+<span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#20174;&#32593;&#31449;&#25235;&#21462;&#26368;&#26032;&#28304;&#30721;&#21253;</span>
+wget http://codemonkey.org.uk/projects/git-snapshots/<span style="color: #ff0000;">\</span>
+sparse/sparse-latest.tar.xz
+<span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#20351;&#29992;git&#33719;&#21462;&#26368;&#26032;&#28304;&#30721;&#21253;&#65292;&#25512;&#33616;&#20351;&#29992;&#35813;&#26041;&#24335;</span>
+git clone http://git.kernel.org/pub/scm/devel/sparse/<span style="color: #ff0000;">\</span>
+sparse.git
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-2-4-2" class="outline-4">
+<h4 id="sec-2-4-2"><span class="section-number-4">2.4.2</span> 安装sparse</h4>
+<div class="outline-text-4" id="text-2-4-2">
+<div class="org-src-container">
+
+<pre class="src src-sh">make
+make install                    <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#40664;&#35748;&#23433;&#35013;&#21040;$(</span><span style="font-weight: bold;">HOME</span><span style="color: #228b22; font-style: italic;">)/bin</span>
+<span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#35774;&#32622;&#25628;&#32034;&#36335;&#24452;</span>
+<span style="color: #000000;">echo</span> <span style="color: #ff0000;">'export PATH=$PATH:$HOME/bin/'</span> &gt;&gt; ~/.bashrc
+which sparse                    <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#26597;&#30475;sparse&#26159;&#21542;&#25104;&#21151;&#23433;&#35013;</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-2-4-3" class="outline-4">
+<h4 id="sec-2-4-3"><span class="section-number-4">2.4.3</span> sparse帮助信息</h4>
+<div class="outline-text-4" id="text-2-4-3">
+<div class="org-src-container">
+
+<pre class="src src-sh">man sparse
+</pre>
+</div>
+<div class="org-src-container">
+
+<pre class="src src-text">sparse [WARNING OPTIONS]... file.c
+  -Wsparse-all          &#25171;&#24320;&#25152;&#26377;&#36873;&#39033;
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-sec-2-4-4" class="outline-4">
+<h4 id="sec-2-4-4"><span class="section-number-4">2.4.4</span> sparse日常用法</h4>
+<div class="outline-text-4" id="text-2-4-4">
+<div class="org-src-container">
+
+<pre class="src src-sh">make <span style="color: #000000;">C</span>=2                        <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">C=1&#20165;&#26816;&#26597;&#35201;&#32534;&#35793;&#30340;C&#25991;&#20214;</span>
+make <span style="color: #000000;">C</span>=2 <span style="color: #000000;">CF</span>=<span style="color: #ff0000;">"-D__CHECK_ENDIAN__"</span>
+</pre>
+</div>
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#21487;&#20197;&#22312;Makefile&#37324;&#38754;&#35774;&#32622;&#40664;&#35748;&#30340;&#26816;&#26597;&#26631;&#24535;</span>
+CHECKFLAGS := -D__linux__ -Dlinux -D__STDC__ <span style="color: #ff0000;">\</span>
+              -Dunix -D__unix__ <span style="color: #ff0000;">\</span>
+              -Wbitwise -Wno-return-void $(<span style="font-weight: bold;">CF</span>)
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-2-5" class="outline-3">
+<h3 id="sec-2-5"><span class="section-number-3">2.5</span> smatch</h3>
+<div class="outline-text-3" id="text-2-5">
+</div><div id="outline-container-sec-2-5-1" class="outline-4">
+<h4 id="sec-2-5-1"><span class="section-number-4">2.5.1</span> 安装smatch</h4>
+<div class="outline-text-4" id="text-2-5-1">
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#23433;&#35013;&#36719;&#20214;&#20381;&#36182;</span>
+sudo apt-get install libsqlite3-dev
+git clone git://repo.or.cz/smatch.git
+<span style="color: #000000;">cd</span> smatch
+make
+make install                    <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#40664;&#35748;&#23433;&#35013;&#21040;$(</span><span style="font-weight: bold;">HOME</span><span style="color: #228b22; font-style: italic;">)/bin</span>
+<span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#35774;&#32622;&#25628;&#32034;&#36335;&#24452;&#26041;&#27861;&#21644;sparse&#30456;&#21516;</span>
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-sec-2-5-2" class="outline-4">
+<h4 id="sec-2-5-2"><span class="section-number-4">2.5.2</span> smatch帮助信息</h4>
+<div class="outline-text-4" id="text-2-5-2">
+<div class="org-src-container">
+
+<pre class="src src-sh">smatch --help
+</pre>
+</div>
+<div class="org-src-container">
+
+<pre class="src src-text">Usage:  smatch [smatch arguments][sparse arguments] file.c
+  --project=&lt;name&gt; or -p=&lt;name&gt;: project specific tests
+  --spammy:  print superfluous crap.
+  --info:  print info used to fill smatch_data/.
+  --debug:  print lots of debug output.
+  --param-mapper:  use param_mapper output.
+  --no-data:  not use the /smatch_data/ directory.
+  --data=&lt;dir&gt;: overwrite path to default smatch data directory.
+  --full-path:  print the full pathname.
+  --debug-implied:  print debug output about implications.
+  --no-implied:  ignore implications.
+  --assume-loops:  assume loops always go through at least once.
+  --known-conditions:  dont branch for known conditions.
+  --two-passes:  use a two pass system for each function.
+  --file-output:  print to "file.c.smatch_out".
+  --help:  print this helpful message.
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-sec-2-5-3" class="outline-4">
+<h4 id="sec-2-5-3"><span class="section-number-4">2.5.3</span> smatch日常用法</h4>
+<div class="outline-text-4" id="text-2-5-3">
+<ul class="org-ul">
+<li>对于高于2.3.37的内核，需要设置选项
+<ul class="org-ul">
+<li>CONFIG_DYNAMIC_DEBUG=n
+</li>
+</ul>
+</li>
+</ul>
+
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#32534;&#35793;&#25972;&#20010;&#20869;&#26680;</span>
+make <span style="color: #000000;">CHECK</span>=<span style="color: #ff0000;">"smatch -p=kernel"</span> <span style="color: #000000;">C</span>=1 bzImage modules | <span style="color: #ff0000;">\</span>
+tee warns.txt
+<span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#32534;&#35793;&#25351;&#23450;&#27169;&#22359;&#65292;&#22914;mmc</span>
+make <span style="color: #000000;">CHECK</span>=<span style="color: #ff0000;">"smatch -p=kernel"</span> <span style="color: #000000;">C</span>=2 <span style="color: #000000;">M</span>=drivers/mmc | tee warns.txt
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-3" class="outline-2">
+<h2 id="sec-3"><span class="section-number-2">3</span> 参考文献</h2>
+<div class="outline-text-2" id="text-3">
+</div><div id="outline-container-sec-3-1" class="outline-3">
+<h3 id="sec-3-1"><span class="section-number-3">3.1</span> 参考文献</h3>
+<div class="outline-text-3" id="text-3-1">
+</div><div id="outline-container-sec-3-1-1" class="outline-4">
+<h4 id="sec-3-1-1"><span class="section-number-4">3.1.1</span> 参考文献</h4>
+<div class="outline-text-4" id="text-3-1-1">
+<ul class="org-ul">
+<li><a href="https://www.kernel.org/doc/Documentation/CodingStyle">Documentation/CodingStyle</a>
+</li>
+<li><a href="https://www.kernel.org/doc/Documentation/SubmitChecklist">Documentation/SubmitChecklist</a>
+</li>
+<li><a href="https://www.kernel.org/doc/Documentation/SubmittingDrivers">Documentation/SubmitDrivers</a>
+</li>
+<li><a href="https://www.kernel.org/doc/Documentation/SubmittingPatches">Documentation/SubmitPatches</a>
+</li>
+<li><a href="https://www.kernel.org/doc/Documentation/kernel-doc-nano-HOWTO.txt">Documentation/kernel-doc-nano-HOWTO</a>
+</li>
+<li><a href="https://www.kernel.org/doc/Documentation/sparse.txt">Documentation/sparse.txt</a>
+</li>
+<li><a href="http://www.kroah.com/linux/talks/ols_2002_kernel_codingstyle_talk/html/mgp00001.html">Documentation/CodingStyle and beyond&#x2026;</a>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+</div>
+</body>
+</html>
