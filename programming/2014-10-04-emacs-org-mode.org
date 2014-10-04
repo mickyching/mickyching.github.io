@@ -1,0 +1,99 @@
+#+TITLE: Emacs Org Mode
+#+AUTHOR: Micky Ching
+#+OPTIONS: H:4 ^:nil toc:nil
+#+LATEX_CLASS: latex-doc
+
+* 简介
+Org mode 是emacs下写文档的一个主模式，
+这个模式让emacs写文档像写程序一样自然。
+官方的说法是用于记笔记、写TODO、制定项目计划、写文档的神器。
+事实上Org mode让emacs更加强大。
+
+由于Org mode本身过于强大，本文只有能力介绍一小部分特性，
+并在后续逐步完善。
+
+* 插入源代码
+必备参考：
+- [[http://orgmode.org/manual/Working-With-Source-Code.html][Working with source code]]
+
+Org mode让插入源代码如此容易，又如此强大。
+也正是这个功能让我成为一个Org mode的粉丝。
+
+在Org mode下输入 =<?TAB= 就能开启一个引用区，
+问号用具体的环境标识符替代。
+其中可以开启的环境类型如下表：
+| 按键 | 环境                          |
+|------+-------------------------------|
+| s    | BEGIN_SRC ... END_SRC         |
+| e    | BEGIN_EXAMPLE ... END_EXAMPLE |
+| q    | BEGIN_QUOTE ... END_QUOTE     |
+| v    | BEGIN_VERSE ... END_VERSE     |
+| c    | BEGIN_CENTER ... END_CENTER   |
+| l    | BEGIN_LaTeX ... END_LaTeX     |
+| h    | BEGIN_HTML ... END_HTML       |
+| a    | BEGIN_ASCII ... END_ASCII     |
+| H    | HTML                          |
+| L    | LaTeX                         |
+| A    | ASCII                         |
+| i    | INDEX                         |
+| I    | INCLUDE                       |
+对于程序员来说最常用的自然是源代码环境，
+但是源代码和其他环境不同，必须指定源代码类型。
+对于源代码类型的指定需要注意，因为要导出的文档格式不同，
+用到的引擎不同，那么其源码类型名字可能也不一样。
+导出pdf文档一般是用minted环境，而导出html则用的是相对本地化的环境。
+minted环境使用的其实是python的pygmentize语法高亮，
+可以用如下命令查看：
+#+BEGIN_SRC sh
+  pygmentize -L styles            # 支持的高亮风格
+  pygmentize -L lexers            # 支持的语言
+#+END_SRC
+本地化支持的语言还是比较丰富，详见 [[http://orgmode.org/manual/Languages.html][Languages]] ，
+强烈建议按照 [[http://orgmode.org/worg/org-contrib/babel/languages.html][Babel: Languages]] 列举的标识符使用。
+
+源代码环境的格式如下：
+#+BEGIN_SRC org
+  ,#+NAME: <name>
+  ,#+BEGIN_SRC <language> <switches> <header arguments>
+    <body>
+  ,#+END_SRC
+
+  src_<language>{<body>}
+  src_<language>[<header arguments>]{<body>}
+#+END_SRC
+最后两行是以inline方式插入源代码的格式，一般很少用到。
+
+名字是可选的，一般都用不着指定名字。
+
+开关主要可以打开行号显示，默认是不显示行号的，
+=-n= 显示行号，而 =+n= 显示的行号数字会接着上一个代码区显示。
+
+参数比较多，一般常用的就是指定变量，输出路径等。
+请参考 [[http://orgmode.org/manual/Specific-header-arguments.html][Specific header arguments]] 。
+
+在代码区输入 =C-c '= 进入代码环境编辑区，
+org mode会为我们创建一个临时缓冲区，就像编辑本地语言一样，
+能够理解看到高亮，一致的缩进，相应的快捷键也能使用。
+再按一次就能回到org文档。
+和插入源代码类似， =C-c l= 用于插入链接。
+
+源代码环境下可以对源代码求值，这是一个看起来非常强大的功能。
+在源代码区按 =C-c C-c= 就会执行求值运算。
+甚至可以在文档其他地方以不同的参数调用命名源码区进行求值。
+
+如下所示，在python代码区输入求值指令，就会输出默认参数下的运行结果，
+而在调用处输入求值指令就能输出在指定参数下的值。
+#+BEGIN_SRC org
+  ,#+NAME: print_sum
+  ,#+BEGIN_SRC python :var n=100
+    return n * (n + 1) / 2
+  ,#+END_SRC
+
+  ,#+RESULTS: print_sum
+  : 5050
+
+  ,#+CALL: print_sum(n=5)
+
+  ,#+RESULTS:
+  : 15
+#+END_SRC

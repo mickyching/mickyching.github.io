@@ -1,0 +1,352 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<title>Emacs Org Mode</title>
+<meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta  name="generator" content="Org-mode" />
+<meta  name="author" content="Micky Ching" />
+<link rel="stylesheet" type="text/css" href="../style/default.css" />
+
+<script type="text/javascript" src="../style/default.js">
+/**
+ *
+ * @source: ../style/default.js
+ *
+ * @licstart  The following is the entire license notice for the
+ *  JavaScript code in ../style/default.js.
+ *
+ * Copyright (C) 2012-2013 Free Software Foundation, Inc.
+ *
+ *
+ * The JavaScript code in this tag is free software: you can
+ * redistribute it and/or modify it under the terms of the GNU
+ * General Public License (GNU GPL) as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option)
+ * any later version.  The code is distributed WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+ *
+ * As additional permission under GNU GPL version 3 section 7, you
+ * may distribute non-source (e.g., minimized or compacted) forms of
+ * that code without the copy of the GNU GPL normally required by
+ * section 4, provided you include this license notice and a URL
+ * through which recipients can access the Corresponding Source.
+ *
+ * @licend  The above is the entire license notice
+ * for the JavaScript code in ../style/default.js.
+ *
+ */
+</script>
+
+<script type="text/javascript">
+
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+
+<!--/*--><![CDATA[/*><!--*/
+org_html_manager.set("TOC_DEPTH", "4");
+org_html_manager.set("LINK_HOME", "");
+org_html_manager.set("LINK_UP", "");
+org_html_manager.set("LOCAL_TOC", "0");
+org_html_manager.set("VIEW_BUTTONS", "0");
+org_html_manager.set("MOUSE_HINT", "underline");
+org_html_manager.set("FIXED_TOC", "0");
+org_html_manager.set("TOC", "0");
+org_html_manager.set("VIEW", "showall");
+org_html_manager.setup();  // activate after the parameters are set
+/*]]>*///-->
+</script>
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+</head>
+<body>
+<div id="content">
+<h1 class="title">Emacs Org Mode</h1>
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#sec-1">1. 简介</a></li>
+<li><a href="#sec-2">2. 插入源代码</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-1" class="outline-2">
+<h2 id="sec-1"><span class="section-number-2">1</span> 简介</h2>
+<div class="outline-text-2" id="text-1">
+<p>
+Org mode 是emacs下写文档的一个主模式，
+这个模式让emacs写文档像写程序一样自然。
+官方的说法是用于记笔记、写TODO、制定项目计划、写文档的神器。
+事实上Org mode让emacs更加强大。
+</p>
+
+<p>
+由于Org mode本身过于强大，本文只有能力介绍一小部分特性，
+并在后续逐步完善。
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-2" class="outline-2">
+<h2 id="sec-2"><span class="section-number-2">2</span> 插入源代码</h2>
+<div class="outline-text-2" id="text-2">
+<p>
+必备参考：
+</p>
+<ul class="org-ul">
+<li><a href="http://orgmode.org/manual/Working-With-Source-Code.html">Working with source code</a>
+</li>
+</ul>
+
+<p>
+Org mode让插入源代码如此容易，又如此强大。
+也正是这个功能让我成为一个Org mode的粉丝。
+</p>
+
+<p>
+在Org mode下输入 <code>&lt;?TAB</code> 就能开启一个引用区，
+问号用具体的环境标识符替代。
+其中可以开启的环境类型如下表：
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="left" />
+
+<col  class="left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="left">按键</th>
+<th scope="col" class="left">环境</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="left">s</td>
+<td class="left">BEGIN_SRC &#x2026; END_SRC</td>
+</tr>
+
+<tr>
+<td class="left">e</td>
+<td class="left">BEGIN_EXAMPLE &#x2026; END_EXAMPLE</td>
+</tr>
+
+<tr>
+<td class="left">q</td>
+<td class="left">BEGIN_QUOTE &#x2026; END_QUOTE</td>
+</tr>
+
+<tr>
+<td class="left">v</td>
+<td class="left">BEGIN_VERSE &#x2026; END_VERSE</td>
+</tr>
+
+<tr>
+<td class="left">c</td>
+<td class="left">BEGIN_CENTER &#x2026; END_CENTER</td>
+</tr>
+
+<tr>
+<td class="left">l</td>
+<td class="left">BEGIN_LaTeX &#x2026; END_LaTeX</td>
+</tr>
+
+<tr>
+<td class="left">h</td>
+<td class="left">BEGIN_HTML &#x2026; END_HTML</td>
+</tr>
+
+<tr>
+<td class="left">a</td>
+<td class="left">BEGIN_ASCII &#x2026; END_ASCII</td>
+</tr>
+
+<tr>
+<td class="left">H</td>
+<td class="left">HTML</td>
+</tr>
+
+<tr>
+<td class="left">L</td>
+<td class="left">LaTeX</td>
+</tr>
+
+<tr>
+<td class="left">A</td>
+<td class="left">ASCII</td>
+</tr>
+
+<tr>
+<td class="left">i</td>
+<td class="left">INDEX</td>
+</tr>
+
+<tr>
+<td class="left">I</td>
+<td class="left">INCLUDE</td>
+</tr>
+</tbody>
+</table>
+<p>
+对于程序员来说最常用的自然是源代码环境，
+但是源代码和其他环境不同，必须指定源代码类型。
+对于源代码类型的指定需要注意，因为要导出的文档格式不同，
+用到的引擎不同，那么其源码类型名字可能也不一样。
+导出pdf文档一般是用minted环境，而导出html则用的是相对本地化的环境。
+minted环境使用的其实是python的pygmentize语法高亮，
+可以用如下命令查看：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">pygmentize -L styles            <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#25903;&#25345;&#30340;&#39640;&#20142;&#39118;&#26684;</span>
+pygmentize -L lexers            <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#25903;&#25345;&#30340;&#35821;&#35328;</span>
+</pre>
+</div>
+<p>
+本地化支持的语言还是比较丰富，详见 <a href="http://orgmode.org/manual/Languages.html">Languages</a> ，
+强烈建议按照 <a href="http://orgmode.org/worg/org-contrib/babel/languages.html">Babel: Languages</a> 列举的标识符使用。
+</p>
+
+<p>
+源代码环境的格式如下：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-org"><span style="color: #228b22; font-style: italic;">#+NAME: &lt;name&gt;</span>
+<span style="color: #228b22; font-style: italic;">#+BEGIN_SRC &lt;language&gt; &lt;switches&gt; &lt;header arguments&gt;</span>
+  &lt;body&gt;
+<span style="color: #228b22; font-style: italic;">#+END_SRC</span>
+
+src_&lt;language&gt;{&lt;body&gt;}
+src_&lt;language&gt;[&lt;header arguments&gt;]{&lt;body&gt;}
+</pre>
+</div>
+<p>
+最后两行是以inline方式插入源代码的格式，一般很少用到。
+</p>
+
+<p>
+名字是可选的，一般都用不着指定名字。
+</p>
+
+<p>
+开关主要可以打开行号显示，默认是不显示行号的，
+<code>-n</code> 显示行号，而 <code>+n</code> 显示的行号数字会接着上一个代码区显示。
+</p>
+
+<p>
+参数比较多，一般常用的就是指定变量，输出路径等。
+请参考 <a href="http://orgmode.org/manual/Specific-header-arguments.html">Specific header arguments</a> 。
+</p>
+
+<p>
+在代码区输入 =C-c '= 进入代码环境编辑区，
+org mode会为我们创建一个临时缓冲区，就像编辑本地语言一样，
+能够理解看到高亮，一致的缩进，相应的快捷键也能使用。
+再按一次就能回到org文档。
+和插入源代码类似， <code>C-c l</code> 用于插入链接。
+</p>
+
+<p>
+源代码环境下可以对源代码求值，这是一个看起来非常强大的功能。
+在源代码区按 <code>C-c C-c</code> 就会执行求值运算。
+甚至可以在文档其他地方以不同的参数调用命名源码区进行求值。
+</p>
+
+<p>
+如下所示，在python代码区输入求值指令，就会输出默认参数下的运行结果，
+而在调用处输入求值指令就能输出在指定参数下的值。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-org"><span style="color: #228b22; font-style: italic;">#+NAME: print_sum</span>
+<span style="color: #228b22; font-style: italic;">#+BEGIN_SRC python :var n=100</span>
+  <span style="color: #0000ff; font-weight: bold;">return</span> n * (n + 1) / 2
+<span style="color: #228b22; font-style: italic;">#+END_SRC</span>
+
+<span style="color: #228b22; font-style: italic;">#+RESULTS: print_sum</span>
+: 5050
+
+<span style="color: #228b22; font-style: italic;">#+CALL: print_sum(n=5)</span>
+
+<span style="color: #228b22; font-style: italic;">#+RESULTS:</span>
+: 15
+</pre>
+</div>
+</div>
+</div>
+</div>
+</body>
+</html>

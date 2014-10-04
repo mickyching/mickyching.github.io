@@ -5,6 +5,7 @@
 #+LATEX_CLASS: latex-doc
 
 *文章列表*
+- [[file:programming/2014-10-04-emacs-org-mode.html][2014-10-04 emacs org mode]]
 - [[file:linux/2014-10-03-publish-org.html][2014-10-03 publish org]]
 - [[file:programming/2014-10-03-emacs-magit.html][2014-10-03 emacs magit]]
 - [[file:kernel/2014-10-02-linux-kernel-object.html][2014-10-02 linux kernel object]]
