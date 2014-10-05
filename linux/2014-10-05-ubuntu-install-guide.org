@@ -1,0 +1,14 @@
+#+TITLE: Ubuntu Install Guide
+#+AUTHOR: Micky Ching
+#+OPTIONS: H:4 ^:nil toc:nil
+#+LATEX_CLASS: latex-doc
+
+* Ubuntu安装
+** 软件源配置
+*** Ubuntu-14.04(x64)软件源配置
+默认配置在 [[file:src/scripts/cfg/sources.list][/etc/apt/sources.list]] 文件，由于现在默认配置的速度已经非常快，
+故没必要更改。
+
+** bashrc设置
+默认的bashrc文件可从 [[file:src/ubuntu/skel-bashrc.cfg][=/etc/skel/.bashrc=]] 复制过来，我将其修改之后为 [[file:src/scripts/cfg/bashrc.cfg][bashrc]] 。
+另外可以参考这个 [[file:src/ubuntu/eg0-bashrc.cfg][bashrc]] 文件。
