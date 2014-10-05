@@ -97,3 +97,7 @@ org mode会为我们创建一个临时缓冲区，就像编辑本地语言一样
   ,#+RESULTS:
   : 15
 #+END_SRC
+
+* 插入特殊字符
+必备参考：
+- [[http://orgmode.org/worg/org-symbols.html][Symbols in Org-mode]]
