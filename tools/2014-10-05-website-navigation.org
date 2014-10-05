@@ -1,8 +1,8 @@
-#+TITLE: Website Navigation
+#+TITLE: 网站导航
 #+AUTHOR: Micky Ching
 #+OPTIONS: H:4 ^:nil toc:nil
 #+LATEX_CLASS: latex-doc
-
+#+PAGE_LAYOUT: default
 #+ATTR_HTML: :width 100%
 | 分类         | 站点                                          |
 |--------------+-----------------------------------------------|

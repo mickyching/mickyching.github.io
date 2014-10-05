@@ -20,21 +20,24 @@ def cleanup_directory(dirname):
              % (dirname, dirname, dirname, dirname, dirname))
 
 
-def pages_fix_posts(posts, category):
-    dirname = os.path.expanduser(os.path.normpath(posts))
-    if category:
-        dirname = os.path.normpath(dirname + "/" + category)
+def pages_fix_posts(posts, subdir, head_dict):
+    cwd = os.getcwd()
+    posts = os.path.expanduser(posts)
+    os.chdir(os.path.join(posts, subdir))
 
-    files = os.listdir(dirname)
-    for fname in files:
+    default_category = os.path.normpath(subdir)
+    for fname in os.listdir("."):
         if fname[-5:] != ".html":
             continue
-        fname = dirname + "/" + fname
         lines = []
-        if category:
-            lines.append("---\n")
-            lines.append("categories: %s\n" %(category))
-            lines.append("---\n")
+        lines.append("---\n")
+        for line in head_dict[fname]:
+            if "categories:" in line:
+                default_category = 0
+            lines.append(line)
+        if default_category:
+            lines.append("categories: %s\n" %(default_category))
+        lines.append("---\n")
 
         f = open(fname, "r")
         for line in f:
@@ -47,7 +50,25 @@ def pages_fix_posts(posts, category):
         for line in lines:
             f.write(line)
         f.close()
+    os.getcwd()
 
+def pages_get_head():
+    head_dict = {}
+    for fname in os.listdir("."):
+        if fname[-4:] != ".org":
+            continue
+        kname = fname[:-4] + ".html"
+        vlist = []
+        f = open(fname, "r")
+        for line in f:
+            if "#+TITLE:" in line:
+                vlist.append("title: %s\n" %(line.split(":")[1].strip()))
+            if "#+PAGE_CATEGORIES:" in line:
+                vlist.append("categories: %s\n" %(line.split(":")[1].strip()))
+            if "#+PAGE_LAYOUT:" in line:
+                vlist.append("layout: %s\n" %(line.split(":")[1].strip()))
+        head_dict[kname] = vlist
+    return head_dict
 
 def publish_directory(cmd_list, dirname):
     if not dirname:
@@ -58,17 +79,18 @@ def publish_directory(cmd_list, dirname):
     cwd = os.getcwd()
     cmd_line = "emacs -batch -l %s -f " %(org_elisp)
     dirname = os.path.normpath(dirname)
-    category = dirname
 
     pr_lline("-------------------- publish %s/%s --------------------"
              %(cwd, dirname))
     os.chdir(dirname)
     for cmd in cmd_list:
-        send_cmd("mkdir -p %s/fig %s/src" %(dirname, dirname))
+        send_cmd("mkdir -p fig src")
         send_cmd(cmd_line + cmd)
         if cmd == "publish-pages":
-            send_cmd("mv %s/*.html %s/%s/" %(org_posts, org_posts, category))
-            pages_fix_posts(org_posts, category)
+            head_dict = pages_get_head()
+            send_cmd("mkdir -p %s/%s" %(org_posts, dirname))
+            send_cmd("mv %s/*.html %s/%s/" %(org_posts, org_posts, dirname))
+            pages_fix_posts(org_posts, dirname, head_dict)
     os.chdir(cwd)
 
 

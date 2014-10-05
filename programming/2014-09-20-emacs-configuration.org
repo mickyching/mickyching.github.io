@@ -1,4 +1,4 @@
-#+TITLE: emacs configuration
+#+TITLE: Emacs Configuration
 #+AUTHOR: Micky Ching
 #+OPTIONS: H:4 ^:nil toc:nil
 #+LATEX_CLASS: latex-doc
