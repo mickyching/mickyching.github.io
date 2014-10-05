@@ -10,22 +10,25 @@ programming slides linux kernel
 head_lines = """
 #+TITLE: org pages
 #+AUTHOR: Micky Ching
-#+OPTIONS: H:4 ^:nil toc:nil
+#+OPTIONS: H:4 ^:nil toc:t
 #+LATEX_CLASS: latex-doc
 
-*文章列表*
 """
 
 def gen_org_index(dir_list, lines, index_file = "index.org"):
-    html_files = []
+    cat_files = []
     for dname in dir_list.strip().split(" "):
-        [html_files.append((fname, dname)) for fname in os.listdir(dname) if fname[-5:] == ".html"]
-    html_files.sort(reverse = True)
+        files = []
+        [files.append(fname) for fname in os.listdir(dname) if fname[-5:] == ".html"]
+        cat_files.append([dname, files])
 
-    for html in html_files:
-        url = "file:%s/%s" %(html[1], html[0])
-        name = html[0][:10] + " " + " ".join(html[0][11:-5].split("-"))
-        lines.append("- [[%s][%s]]\n" %(url, name))
+    for cat in cat_files:
+        lines.append("* %s (%d)\n" %(cat[0], len(cat[1])))
+        cat[1].sort(reverse = True)
+        for fname in cat[1]:
+            url = "file:%s/%s" %(cat[0], fname)
+            name = fname[:10] + " " + " ".join(fname[11:-5].split("-"))
+            lines.append("- [[%s][%s]]\n" %(url, name))
 
     f = open(index_file, "w")
     [f.write(line) for line in lines]

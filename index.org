@@ -1,19 +1,22 @@
 
 #+TITLE: org pages
 #+AUTHOR: Micky Ching
-#+OPTIONS: H:4 ^:nil toc:nil
+#+OPTIONS: H:4 ^:nil toc:t
 #+LATEX_CLASS: latex-doc
 
-*文章列表*
+* programming (3)
 - [[file:programming/2014-10-04-emacs-org-mode.html][2014-10-04 emacs org mode]]
-- [[file:linux/2014-10-03-publish-org.html][2014-10-03 publish org]]
 - [[file:programming/2014-10-03-emacs-magit.html][2014-10-03 emacs magit]]
-- [[file:kernel/2014-10-02-linux-kernel-object.html][2014-10-02 linux kernel object]]
+- [[file:programming/2014-09-20-emacs-configuration.html][2014-09-20 emacs configuration]]
+* slides (1)
+- [[file:slides/2014-09-20-linux-kernel-coding-style.html][2014-09-20 linux kernel coding style]]
+* linux (4)
+- [[file:linux/2014-10-03-publish-org.html][2014-10-03 publish org]]
 - [[file:linux/2014-10-02-git-introduction.html][2014-10-02 git introduction]]
+- [[file:linux/2014-09-24-fio-introduction.html][2014-09-24 fio introduction]]
+- [[file:linux/2014-09-22-rhel-install-guide.html][2014-09-22 rhel install guide]]
+* kernel (4)
+- [[file:kernel/2014-10-02-linux-kernel-object.html][2014-10-02 linux kernel object]]
 - [[file:kernel/2014-09-27-linux-kernel-list.html][2014-09-27 linux kernel list]]
 - [[file:kernel/2014-09-26-mdev-introduction.html][2014-09-26 mdev introduction]]
 - [[file:kernel/2014-09-25-block-events-introduction.html][2014-09-25 block events introduction]]
-- [[file:linux/2014-09-24-fio-introduction.html][2014-09-24 fio introduction]]
-- [[file:linux/2014-09-22-rhel-install-guide.html][2014-09-22 rhel install guide]]
-- [[file:slides/2014-09-20-linux-kernel-coding-style.html][2014-09-20 linux kernel coding style]]
-- [[file:programming/2014-09-20-emacs-configuration.html][2014-09-20 emacs configuration]]
