@@ -1,0 +1,175 @@
+#+TITLE: 大悲咒
+#+AUTHOR: Micky Ching
+#+OPTIONS: H:4 ^:nil toc:nil
+#+LATEX_CLASS: latex-doc
+
+#+BEGIN_SRC text -n
+ná mó ·hé là dá nā ·duō là yà yē。
+南无·喝啰怛那·哆啰夜耶。
+ná mó ·ā lì yē。
+南无·阿唎耶。
+pó lú jié dì ·shuò bō là yē。
+婆卢羯帝·烁钵啰耶。
+pú tí sà duǒ pó yē。
+菩提萨埵婆耶。
+mó hē sà duǒ pó yē。
+摩诃萨埵婆耶。
+mó hē jiā lú ní jiā yē。
+摩诃迦卢尼迦耶。
+ōng。
+唵。
+sà pó là fá yì。
+萨皤啰罚曳。
+shù dá nā dá xià。
+数怛那怛写。
+ná mó xī jí lì duǒ·yī méng ā lì yē。
+南无悉吉利埵·伊蒙阿唎耶。
+pó lú jí dì·shì fó là léng tuó pó。
+婆卢吉帝·室佛啰楞驮婆。
+ná mó·nā là jǐn chí。
+南无·那啰谨墀。
+xī lì mó hē pó duō shā miē。
+醯唎摩诃皤哆沙咩。
+sà pó ā tuō·dòu shū péng。
+萨婆阿他·豆输朋。
+ā shì yùn。
+阿逝孕。
+sà pó sà duō·ná mó pó sà duō·ná mó pó qié。
+萨婆萨哆·那摩婆萨多·那摩婆伽。
+mó fá tè dòu。
+摩罚特豆。
+dá zhí tuō。
+怛侄他。
+ōng·ā pó lú xī。
+唵·阿婆卢醯。
+lú jiā dì。
+卢迦帝。
+jiā luó dì
+迦罗帝。
+yí xī lì。
+夷醯唎。
+mó hē pú tí sà duǒ
+摩诃菩提萨埵。
+sà pó sà pó。
+萨婆萨婆。
+mó là mó là。
+摩啰摩啰。
+mó xī mó xī·lì tuó yùn。
+摩醯摩醯·唎驮孕。
+jù lú jù lú·jié méng。
+俱卢俱卢·羯蒙。
+dù lú dù lú·fá shé yē dì。
+度卢度卢·罚阇耶帝。
+mó hē fá shé yē dì。
+摩诃罚阇耶帝。
+tuó là tuó là。
+陀啰陀啰。
+dì lì ní。
+地唎尼。
+shì fó là yē。
+室佛啰耶。
+zhē là zhē là。
+遮啰遮啰。
+mó mó·fá mó là。
+么么·罚摩啰。
+mù dì lì。
+穆帝隶。
+yī xī yī xī。
+伊醯伊醯。
+shì nā shì nā。
+室那室那。
+ā là shēn·fó là shě lì。
+阿啰嘇·佛啰舍利。
+fá suō fá shēn。
+罚娑罚嘇。
+fó là shě yē。
+佛啰舍耶。
+hū lú hū lú mó là。
+呼卢呼卢摩啰。
+hū lú hū lú xī lì。
+呼卢呼卢醯利。
+suō là suō là。
+娑啰娑啰。
+xī lì xī lì。
+悉唎悉唎。
+sū lú sū lú。
+苏嚧苏嚧。
+pú tí yè·pú tí yè。
+菩提夜·菩提夜。
+pú tuó yè·pú tuó yè。
+菩驮夜·菩驮夜。
+mí dì lì yè。
+弥帝利夜。
+nā là jǐn chí。
+那啰谨墀。
+dì lì sè ní nā。
+地利瑟尼那。
+pó yè mó nā。
+婆夜摩那。
+sā pó hē。
+娑婆诃。
+xī tuó yè。
+悉陀夜。
+sā pó hē。
+娑婆诃。
+mó hē xī tuó yè。
+摩诃悉陀夜。
+sā pó hē。
+娑婆诃。
+xī tuó yù yì。
+悉陀喻艺。
+shì pó là yē。
+室皤啰耶。
+sā pó hē。
+娑婆诃。
+nā là jǐn chí。
+那啰谨墀。
+sā pó hē。
+娑婆诃。
+mó là nā là。
+摩啰那啰。
+sā pó hē。
+娑婆诃。
+xī là sēng·ā mù qié yē。
+悉啰僧·阿穆佉耶。
+sā pó hē。
+娑婆诃。
+sā pó mó hē·ā xī tuó yè。
+娑婆摩诃·阿悉陀夜。
+sā pó hē。
+娑婆诃。
+zhě jí là·ā xī tuó yè。
+者吉啰·阿悉陀夜。
+sā pó hē。
+娑婆诃。
+bō tuó mó·jié xī tuó yè。
+波陀摩·羯悉陀夜。
+sā pó hē。
+娑婆诃。
+nā là jǐn chí·pó qié là yē。
+那啰谨墀·皤伽啰耶。
+sā pó hē。
+娑婆诃。
+mó pó lì·shèng jié là yè。
+摩婆利·胜羯啰夜。
+sā pó hē。
+娑婆诃。
+ná mó hé là dá nā·duō là yè yē。
+南无喝啰怛那·哆啰夜耶。
+ná mó ā lì yē。
+南无阿利耶。
+pó lú jí dì。
+婆嚧吉帝。
+shuò pó là yè。
+烁皤啰夜。
+sā pó hē。
+娑婆诃。
+ōng·xī diàn dū。
+唵·悉殿都。
+màn duō là
+漫多啰。
+bá tuó yě。
+跋陀耶。
+sā pó hē。
+娑婆诃。
+#+END_SRC

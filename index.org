@@ -24,3 +24,5 @@
 - [[file:kernel/2014-09-27-linux-kernel-list.html][2014-09-27 linux kernel list]]
 - [[file:kernel/2014-09-26-mdev-introduction.html][2014-09-26 mdev introduction]]
 - [[file:kernel/2014-09-25-block-events-introduction.html][2014-09-25 block events introduction]]
+* buddhism (1)
+- [[file:buddhism/2014-10-05-da-bei-zhou.html][2014-10-05 da bei zhou]]
