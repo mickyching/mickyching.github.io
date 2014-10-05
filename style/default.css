@@ -17,13 +17,14 @@ pre {
 }
 
 a:link {
-    color: #0000BB;
+    color: #0000CC;
     text-decoration: none;
 }
-a:visited {
-    color: #C00000;
-    text-decoration: none;
+a:hover, a:active {
+    color: #000088;
+    text-decoration: underline;
 }
+a:visited {color: #000088}
 
 code {
     color: #C00000;
