@@ -4,7 +4,7 @@
 import os
 
 dir_list = """
-programming slides linux kernel
+tools programming slides linux kernel
 """
 
 head_lines = """

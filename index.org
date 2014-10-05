@@ -4,6 +4,8 @@
 #+OPTIONS: H:4 ^:nil toc:t
 #+LATEX_CLASS: latex-doc
 
+* tools (1)
+- [[file:tools/2014-10-05-website-navigation.html][2014-10-05 website navigation]]
 * programming (3)
 - [[file:programming/2014-10-04-emacs-org-mode.html][2014-10-04 emacs org mode]]
 - [[file:programming/2014-10-03-emacs-magit.html][2014-10-03 emacs magit]]
