@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<title>Repo introduction</title>
+<meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta  name="generator" content="Org-mode" />
+<meta  name="author" content="Micky Ching" />
+<link rel="stylesheet" type="text/css" href="../style/default.css" />
+
+<script type="text/javascript" src="../style/default.js">
+/**
+ *
+ * @source: ../style/default.js
+ *
+ * @licstart  The following is the entire license notice for the
+ *  JavaScript code in ../style/default.js.
+ *
+ * Copyright (C) 2012-2013 Free Software Foundation, Inc.
+ *
+ *
+ * The JavaScript code in this tag is free software: you can
+ * redistribute it and/or modify it under the terms of the GNU
+ * General Public License (GNU GPL) as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option)
+ * any later version.  The code is distributed WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+ *
+ * As additional permission under GNU GPL version 3 section 7, you
+ * may distribute non-source (e.g., minimized or compacted) forms of
+ * that code without the copy of the GNU GPL normally required by
+ * section 4, provided you include this license notice and a URL
+ * through which recipients can access the Corresponding Source.
+ *
+ * @licend  The above is the entire license notice
+ * for the JavaScript code in ../style/default.js.
+ *
+ */
+</script>
+
+<script type="text/javascript">
+
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+
+<!--/*--><![CDATA[/*><!--*/
+org_html_manager.set("TOC_DEPTH", "4");
+org_html_manager.set("LINK_HOME", "");
+org_html_manager.set("LINK_UP", "");
+org_html_manager.set("LOCAL_TOC", "0");
+org_html_manager.set("VIEW_BUTTONS", "0");
+org_html_manager.set("MOUSE_HINT", "underline");
+org_html_manager.set("FIXED_TOC", "0");
+org_html_manager.set("TOC", "0");
+org_html_manager.set("VIEW", "showall");
+org_html_manager.setup();  // activate after the parameters are set
+/*]]>*///-->
+</script>
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+</head>
+<body>
+<div id="content">
+<h1 class="title">Repo introduction</h1>
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#sec-1">1. repo基本用法</a>
+<ul>
+<li><a href="#sec-1-1">1.1. 基本命令</a></li>
+<li><a href="#sec-1-2">1.2. 同步仓库</a></li>
+<li><a href="#sec-1-3">1.3. 状态信息</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-1" class="outline-2">
+<h2 id="sec-1"><span class="section-number-2">1</span> repo基本用法</h2>
+<div class="outline-text-2" id="text-1">
+</div><div id="outline-container-sec-1-1" class="outline-3">
+<h3 id="sec-1-1"><span class="section-number-3">1.1</span> 基本命令</h3>
+<div class="outline-text-3" id="text-1-1">
+<div class="org-src-container">
+
+<pre class="src src-sh">repo help                               <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#33719;&#21462;&#24110;&#21161;&#20449;&#24687;</span>
+repo help command                       <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#33719;&#21462;&#25351;&#23450;&#21629;&#20196;&#30340;&#24110;&#21161;&#20449;&#24687;</span>
+repo init -u URL                        <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#19979;&#36733;&#25152;&#26377;&#20179;&#24211;</span>
+repo init -u URL -b &lt;branch&gt;            <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#19979;&#36733;&#25152;&#26377;&#20179;&#24211;&#30340;&#26576;&#20010;&#20998;&#25903;</span>
+repo status                             <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#26597;&#30475;&#23545;&#25152;&#26377;&#39033;&#30446;&#30340;&#26356;&#25913;</span>
+repo sync                               <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#21516;&#27493;&#25152;&#26377;&#20179;&#24211;</span>
+repo sync [project-list]                <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#21516;&#27493;&#25351;&#23450;&#20179;&#24211;</span>
+repo update [project-list]              <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#19978;&#20256;&#25351;&#23450;&#20179;&#24211;</span>
+repo diff [project-list]                <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#26597;&#30475;&#20462;&#25913;</span>
+repo start &lt;branch&gt;                     <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#20026;&#27599;&#20010;&#20179;&#24211;&#21019;&#24314;&#20998;&#25903;</span>
+repo prune &lt;branch&gt;                     <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#21024;&#38500;&#24050;&#32463;merge&#30340;&#20998;&#25903;</span>
+repo abandon &lt;branch&gt;                   <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#21024;&#38500;&#20998;&#25903;&#65292;&#26080;&#35770;&#26159;&#21542;merge</span>
+repo manifest                           <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#29983;&#25104;manifest&#25991;&#20214;</span>
+repo foreach [project-list] -c command  <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#23545;&#27599;&#20010;&#20179;&#24211;&#25191;&#34892;&#25351;&#23450;&#21629;&#20196;</span>
+repo forall -c command                  <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#19981;&#38480;&#20110;git&#21629;&#20196;</span>
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-sec-1-2" class="outline-3">
+<h3 id="sec-1-2"><span class="section-number-3">1.2</span> 同步仓库</h3>
+<div class="outline-text-3" id="text-1-2">
+<p>
+有时候同步仓库会出现错误，为了不用手动重启，可以使用如下脚本
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #000000;">retry</span>=9;
+$<span style="color: #000000;">?</span>=1;
+<span style="color: #0000ff; font-weight: bold;">for</span> ((i = 0; i &lt; $<span style="color: #000000;">retry</span>; i++))
+<span style="color: #0000ff; font-weight: bold;">do</span>
+        <span style="color: #0000ff; font-weight: bold;">if</span> [ $<span style="color: #000000;">?</span> -ne 0 ]; <span style="color: #0000ff; font-weight: bold;">then</span>
+                repo sync;
+        <span style="color: #0000ff; font-weight: bold;">fi</span>
+<span style="color: #0000ff; font-weight: bold;">done</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-1-3" class="outline-3">
+<h3 id="sec-1-3"><span class="section-number-3">1.3</span> 状态信息</h3>
+<div class="outline-text-3" id="text-1-3">
+<p>
+状态信息比较重要的是前两个字符，整理如下表
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="left" />
+
+<col  class="left" />
+
+<col  class="left" />
+
+<col  class="left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="left">第1个字符</th>
+<th scope="col" class="left">暂存区状态</th>
+<th scope="col" class="left">第2个字符</th>
+<th scope="col" class="left">工作区状态</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="left">-</td>
+<td class="left">没有文件被修改</td>
+<td class="left">-</td>
+<td class="left">未更改</td>
+</tr>
+
+<tr>
+<td class="left">A</td>
+<td class="left">有文件添加</td>
+<td class="left">m</td>
+<td class="left">已更改</td>
+</tr>
+
+<tr>
+<td class="left">D</td>
+<td class="left">有文件删除</td>
+<td class="left">d</td>
+<td class="left">已删除</td>
+</tr>
+
+<tr>
+<td class="left">M</td>
+<td class="left">有文件更改</td>
+<td class="left">&#xa0;</td>
+<td class="left">&#xa0;</td>
+</tr>
+
+<tr>
+<td class="left">R</td>
+<td class="left">有文件重命名</td>
+<td class="left">&#xa0;</td>
+<td class="left">&#xa0;</td>
+</tr>
+
+<tr>
+<td class="left">C</td>
+<td class="left">有文件被复制</td>
+<td class="left">&#xa0;</td>
+<td class="left">&#xa0;</td>
+</tr>
+
+<tr>
+<td class="left">T</td>
+<td class="left">有文件模式被修改</td>
+<td class="left">&#xa0;</td>
+<td class="left">&#xa0;</td>
+</tr>
+
+<tr>
+<td class="left">U</td>
+<td class="left">有冲突，Unmerged</td>
+<td class="left">&#xa0;</td>
+<td class="left">&#xa0;</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+</body>
+</html>

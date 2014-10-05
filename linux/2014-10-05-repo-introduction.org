@@ -1,0 +1,49 @@
+#+TITLE: Repo introduction
+#+AUTHOR: Micky Ching
+#+OPTIONS: H:4 ^:nil toc:nil
+#+LATEX_CLASS: latex-doc
+
+* repo基本用法
+** 基本命令
+#+BEGIN_SRC sh
+  repo help                               # 获取帮助信息
+  repo help command                       # 获取指定命令的帮助信息
+  repo init -u URL                        # 下载所有仓库
+  repo init -u URL -b <branch>            # 下载所有仓库的某个分支
+  repo status                             # 查看对所有项目的更改
+  repo sync                               # 同步所有仓库
+  repo sync [project-list]                # 同步指定仓库
+  repo update [project-list]              # 上传指定仓库
+  repo diff [project-list]                # 查看修改
+  repo start <branch>                     # 为每个仓库创建分支
+  repo prune <branch>                     # 删除已经merge的分支
+  repo abandon <branch>                   # 删除分支，无论是否merge
+  repo manifest                           # 生成manifest文件
+  repo foreach [project-list] -c command  # 对每个仓库执行指定命令
+  repo forall -c command                  # 不限于git命令
+#+END_SRC
+** 同步仓库
+有时候同步仓库会出现错误，为了不用手动重启，可以使用如下脚本
+#+BEGIN_SRC sh
+  retry=9;
+  $?=1;
+  for ((i = 0; i < $retry; i++))
+  do
+          if [ $? -ne 0 ]; then
+                  repo sync;
+          fi
+  done
+#+END_SRC
+
+** 状态信息
+状态信息比较重要的是前两个字符，整理如下表
+| 第1个字符 | 暂存区状态       | 第2个字符 | 工作区状态 |
+|-----------+------------------+-----------+------------|
+| -         | 没有文件被修改   | -         | 未更改     |
+| A         | 有文件添加       | m         | 已更改     |
+| D         | 有文件删除       | d         | 已删除     |
+| M         | 有文件更改       |           |            |
+| R         | 有文件重命名     |           |            |
+| C         | 有文件被复制     |           |            |
+| T         | 有文件模式被修改 |           |            |
+| U         | 有冲突，Unmerged |           |            |
