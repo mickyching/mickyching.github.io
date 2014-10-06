@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<title>Publish Org</title>
+<title>Publish Org Mode Document</title>
 <meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta  name="generator" content="Org-mode" />
 <meta  name="author" content="Micky Ching" />
@@ -129,7 +129,7 @@ for the JavaScript code in this tag.
 </head>
 <body>
 <div id="content">
-<h1 class="title">Publish Org</h1>
+<h1 class="title">Publish Org Mode Document</h1>
 <div id="table-of-contents">
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
@@ -137,10 +137,9 @@ for the JavaScript code in this tag.
 <li><a href="#sec-1">1. 简介</a>
 <ul>
 <li><a href="#sec-1-1">1.1. emacs org mode配置</a></li>
-<li><a href="#sec-1-2">1.2. org mode发布脚本</a></li>
-<li><a href="#sec-1-3">1.3. 生成pdf</a></li>
-<li><a href="#sec-1-4">1.4. 生成html</a></li>
-<li><a href="#sec-1-5">1.5. 生成jekyll</a></li>
+<li><a href="#sec-1-2">1.2. 生成pdf</a></li>
+<li><a href="#sec-1-3">1.3. 生成html</a></li>
+<li><a href="#sec-1-4">1.4. 生成jekyll</a></li>
 </ul>
 </li>
 </ul>
@@ -165,6 +164,16 @@ org mode提供了一中可以直接在编辑区导出所需文档的方法，
 
 <p>
 于是我这里采用了一种emacs配置文件加python脚本的方式进行发布。
+所有的脚本在一个仓库中，可以用如下方式下载。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">git clone https://github.com/mickyching/exbin.git
+</pre>
+</div>
+<p>
+用于发布的脚本叫puborg.py，安装之后会自动去掉后缀，
+因此在后面使用中都是称其为puborg。
 </p>
 </div>
 
@@ -192,18 +201,8 @@ org mode提供了一中可以直接在编辑区导出所需文档的方法，
 </div>
 
 <div id="outline-container-sec-1-2" class="outline-3">
-<h3 id="sec-1-2"><span class="section-number-3">1.2</span> org mode发布脚本</h3>
+<h3 id="sec-1-2"><span class="section-number-3">1.2</span> 生成pdf</h3>
 <div class="outline-text-3" id="text-1-2">
-<p>
-发布脚本名字为 <a href="src/scripts/puborg.py"><code>puborg.py</code></a> ，依赖另一个文件 <a href="src/scripts/bin_simops.py"><code>bin_simops.py</code></a> ，
-可以发布多种格式的文档。
-</p>
-</div>
-</div>
-
-<div id="outline-container-sec-1-3" class="outline-3">
-<h3 id="sec-1-3"><span class="section-number-3">1.3</span> 生成pdf</h3>
-<div class="outline-text-3" id="text-1-3">
 <div class="org-src-container">
 
 <pre class="src src-sh">puborg -d dirs...                       <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#29983;&#25104;pdf&#25991;&#26723;</span>
@@ -218,9 +217,9 @@ puborg -s dirs...                       <span style="color: #228b22; font-style:
 </div>
 </div>
 
-<div id="outline-container-sec-1-4" class="outline-3">
-<h3 id="sec-1-4"><span class="section-number-3">1.4</span> 生成html</h3>
-<div class="outline-text-3" id="text-1-4">
+<div id="outline-container-sec-1-3" class="outline-3">
+<h3 id="sec-1-3"><span class="section-number-3">1.3</span> 生成html</h3>
+<div class="outline-text-3" id="text-1-3">
 <div class="org-src-container">
 
 <pre class="src src-sh">puborg -i dirs...                       <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#29983;&#25104;html index</span>
@@ -234,9 +233,9 @@ html index使用的是当前路径，而html使用的是父目录。
 </div>
 </div>
 
-<div id="outline-container-sec-1-5" class="outline-3">
-<h3 id="sec-1-5"><span class="section-number-3">1.5</span> 生成jekyll</h3>
-<div class="outline-text-3" id="text-1-5">
+<div id="outline-container-sec-1-4" class="outline-3">
+<h3 id="sec-1-4"><span class="section-number-3">1.4</span> 生成jekyll</h3>
+<div class="outline-text-3" id="text-1-4">
 <div class="org-src-container">
 
 <pre class="src src-sh">puborg -j dirs...
@@ -244,15 +243,24 @@ html index使用的是当前路径，而html使用的是父目录。
 </div>
 <p>
 gh-pages使用jekyll引擎，故加上jekyll输出。
-我们假定jekyll目录位于 <code>~/.org-pages/</code> ，如果不是可以添加一个符号链接。
-指定的目录作为category，
-插入的图片必须位于fig目录下，引用的源代码必须位于src目录下，
-并且最好位于它们的子目录下。
+假定jekyll目录位于 <code>~/.org-pages/</code> ，如果不是可以添加一个符号链接。
 </p>
 
 <p>
-插入图片和源代码要使用相对路径，
-在发布到jekyll的时候就会用脚本转换为绝对路径。
+指定的目录作为category，可以通过在源代码中作如下声明更改分类和布局格式。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-org"><span style="color: #228b22; font-style: italic;">#+PAGE_CATEGORIES: programming C++</span>
+<span style="color: #228b22; font-style: italic;">#+PAGE_LAYOUT: default</span>
+</pre>
+</div>
+<p>
+插入图片和引用源代码要使用相对路径，
+插入的图片必须位于fig目录下，引用的源代码必须位于src目录下，
+并且最好位于它们的子目录下，这样便于分类。
+因为在jekyll下必须用绝对路径，否则就无法解析链接，
+所以脚本要利用这个约定来进行路径转换。
 所有的附件将被导入到 <code>~/.org-pages/source/</code> 中去。
 </p>
 </div>

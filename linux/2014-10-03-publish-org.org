@@ -1,4 +1,4 @@
-#+TITLE: Publish Org
+#+TITLE: Publish Org Mode Document
 #+AUTHOR: Micky Ching
 #+OPTIONS: H:4 ^:nil toc:nil
 #+LATEX_CLASS: latex-doc
@@ -14,6 +14,12 @@ org mode提供了一中可以直接在编辑区导出所需文档的方法，
 另一方面从org mode的导出方式来看，似乎并不适合用Makefile。
 
 于是我这里采用了一种emacs配置文件加python脚本的方式进行发布。
+所有的脚本在一个仓库中，可以用如下方式下载。
+#+BEGIN_SRC sh
+  git clone https://github.com/mickyching/exbin.git
+#+END_SRC
+用于发布的脚本叫puborg.py，安装之后会自动去掉后缀，
+因此在后面使用中都是称其为puborg。
 
 ** emacs org mode配置
 我的eamcs配置可以通过如下方式获得
@@ -25,10 +31,6 @@ org mode提供了一中可以直接在编辑区导出所需文档的方法，
 虽然希望直接拿一个配置文件就可以编译，但实际上是不行的，
 因为最起码还需要color-theme插件的支持，以生成漂亮的源代码。
 所以至少需要安装插件color-theme和org。
-
-** org mode发布脚本
-发布脚本名字为 [[file:src/scripts/puborg.py][=puborg.py=]] ，依赖另一个文件 [[file:src/scripts/bin_simops.py][=bin_simops.py=]] ，
-可以发布多种格式的文档。
 
 ** 生成pdf
 #+BEGIN_SRC sh
@@ -52,11 +54,16 @@ html index使用的是当前路径，而html使用的是父目录。
   puborg -j dirs...
 #+END_SRC
 gh-pages使用jekyll引擎，故加上jekyll输出。
-我们假定jekyll目录位于 =~/.org-pages/= ，如果不是可以添加一个符号链接。
-指定的目录作为category，
-插入的图片必须位于fig目录下，引用的源代码必须位于src目录下，
-并且最好位于它们的子目录下。
+假定jekyll目录位于 =~/.org-pages/= ，如果不是可以添加一个符号链接。
 
-插入图片和源代码要使用相对路径，
-在发布到jekyll的时候就会用脚本转换为绝对路径。
+指定的目录作为category，可以通过在源代码中作如下声明更改分类和布局格式。
+#+BEGIN_SRC org
+  ,#+PAGE_CATEGORIES: programming C++
+  ,#+PAGE_LAYOUT: default
+#+END_SRC
+插入图片和引用源代码要使用相对路径，
+插入的图片必须位于fig目录下，引用的源代码必须位于src目录下，
+并且最好位于它们的子目录下，这样便于分类。
+因为在jekyll下必须用绝对路径，否则就无法解析链接，
+所以脚本要利用这个约定来进行路径转换。
 所有的附件将被导入到 =~/.org-pages/source/= 中去。
