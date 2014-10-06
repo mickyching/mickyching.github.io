@@ -25,8 +25,8 @@ def pages_fix_posts(posts, subdir, head_dict):
     posts = os.path.expanduser(posts)
     os.chdir(os.path.join(posts, subdir))
 
-    default_category = os.path.normpath(subdir)
     for fname in os.listdir("."):
+        default_category = os.path.normpath(subdir)
         if fname[-5:] != ".html":
             continue
         lines = []

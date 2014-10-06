@@ -1,0 +1,52 @@
+#+TITLE: C++简单练习题
+#+AUTHOR: Micky Ching
+#+OPTIONS: H:4 ^:nil toc:nil
+#+LATEX_CLASS: latex-doc
+#+PAGE_CATEGORIES: programming C++
+
+* 数据结构
+#+BEGIN_QUOTE
+用两个队列实现一个栈。
+#+END_QUOTE
+
+- 思路
+
+  如果是双端队列，那么这个题目就没有什么意思了，并且只需要一个队列即可。
+  实际上C++标准库就是使用的双端队列来实现的，只需要简单做一下包装。
+  如果是单端队列，我们用一个队列qin来接受用户输入，
+  另外一个队列qout接受qin的输入，不管是pop()还是top()我们都先将qin插入到qout去，
+  直到qin只剩最后一个元素，这时候要pop()只要对qin做pop_front()即可，
+  要top()只要对qin做front()即可。
+
+  如果qin为空，那么我们只要将qin和qout交换一下即可。
+
+- 代码
+  #+BEGIN_SRC text
+    sample/test_stack.cpp: class queue_stack
+  #+END_SRC
+
+#+BEGIN_QUOTE
+编写一个排序函数，将文件中的整数进行排序，整数范围为[0, 10000000)，
+文件中有k个数，没有重复值。
+#+END_QUOTE
+
+- 思路
+
+  整数的比较非常简单，因此C库的qsort很容易对其排序，C++的set类模板也能用于排序。
+  这个题目源于编程珠玑，书上提供了一种位排序算法，可以将复杂度降低到 /O(n)/ 。
+  我们申请一个长度为10000000的位图，每读取一个数就将对应的位设置为1。
+  然后再逐个检查位图中的位就可以完成排序。
+
+  做这个题目面临如何生成测试文件的问题，编程珠玑同样给出了一个非常经典的算法。
+  首先生成一个数组，元素的值从[beg, end)，数组名为data。
+  假定要生成k个不重复随机数，那么就从0..k进行迭代，假设当前为i，
+  生成一个[i, end)之间的随机数irand，将data[i]和data[irand]交换。
+  迭代完成之后，数组的前面k个元素就是不重复的随机数。
+
+- 代码
+  #+BEGIN_SRC text
+    sample/test_simple.c: func gen_random_values
+    sample/test_sort.cpp: func qsort_file
+    sample/test_sort.cpp: func set_sort_file
+    sample/test_sort.cpp: func bit_sort_file
+  #+END_SRC

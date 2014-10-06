@@ -1,0 +1,301 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<title>C语言常用库函数</title>
+<meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta  name="generator" content="Org-mode" />
+<meta  name="author" content="Micky Ching" />
+<link rel="stylesheet" type="text/css" href="../style/default.css" />
+
+<script type="text/javascript" src="../style/default.js">
+/**
+ *
+ * @source: ../style/default.js
+ *
+ * @licstart  The following is the entire license notice for the
+ *  JavaScript code in ../style/default.js.
+ *
+ * Copyright (C) 2012-2013 Free Software Foundation, Inc.
+ *
+ *
+ * The JavaScript code in this tag is free software: you can
+ * redistribute it and/or modify it under the terms of the GNU
+ * General Public License (GNU GPL) as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option)
+ * any later version.  The code is distributed WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+ *
+ * As additional permission under GNU GPL version 3 section 7, you
+ * may distribute non-source (e.g., minimized or compacted) forms of
+ * that code without the copy of the GNU GPL normally required by
+ * section 4, provided you include this license notice and a URL
+ * through which recipients can access the Corresponding Source.
+ *
+ * @licend  The above is the entire license notice
+ * for the JavaScript code in ../style/default.js.
+ *
+ */
+</script>
+
+<script type="text/javascript">
+
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+
+<!--/*--><![CDATA[/*><!--*/
+org_html_manager.set("TOC_DEPTH", "4");
+org_html_manager.set("LINK_HOME", "");
+org_html_manager.set("LINK_UP", "");
+org_html_manager.set("LOCAL_TOC", "0");
+org_html_manager.set("VIEW_BUTTONS", "0");
+org_html_manager.set("MOUSE_HINT", "underline");
+org_html_manager.set("FIXED_TOC", "0");
+org_html_manager.set("TOC", "0");
+org_html_manager.set("VIEW", "showall");
+org_html_manager.setup();  // activate after the parameters are set
+/*]]>*///-->
+</script>
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+</head>
+<body>
+<div id="content">
+<h1 class="title">C语言常用库函数</h1>
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#sec-1">1. 字符串处理</a></li>
+<li><a href="#sec-2">2. unistd.h</a>
+<ul>
+<li><a href="#sec-2-1">2.1. 文件操作</a></li>
+<li><a href="#sec-2-2">2.2. 进程操作</a></li>
+<li><a href="#sec-2-3">2.3. 信号</a></li>
+<li><a href="#sec-2-4">2.4. 命令行解析</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-1" class="outline-2">
+<h2 id="sec-1"><span class="section-number-2">1</span> 字符串处理</h2>
+<div class="outline-text-2" id="text-1">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#25214;&#21040;&#23383;&#31526;&#20018;&#20013;&#26368;&#21518;&#19968;&#20010;&#20986;&#29616;character&#22320;&#20301;&#32622;</span>
+<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #8b008b; font-weight: bold;">strrchr</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">str</span>, <span style="color: #0000ff;">int</span> <span style="color: #000000;">character</span>);
+<span style="color: #0000ff;">char</span> *<span style="color: #8b008b; font-weight: bold;">strrchr</span>(<span style="color: #0000ff;">char</span> *<span style="color: #000000;">str</span>, <span style="color: #0000ff;">int</span> <span style="color: #000000;">character</span>);
+<span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#25214;&#21040;&#23383;&#31526;&#20018;&#20013;&#31532;&#19968;&#20010;&#20986;&#29616;character&#22320;&#20301;&#32622;</span>
+<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #8b008b; font-weight: bold;">strchr</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">str</span>, <span style="color: #0000ff;">int</span> <span style="color: #000000;">character</span>);
+<span style="color: #0000ff;">char</span> *<span style="color: #8b008b; font-weight: bold;">strchr</span>(<span style="color: #0000ff;">char</span> *<span style="color: #000000;">str</span>, <span style="color: #0000ff;">int</span> <span style="color: #000000;">character</span>);
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#23383;&#31526;&#20018;&#36716;&#25442;&#20026;&#25968;&#23383;&#65292;endptr&#29992;&#26469;&#35774;&#32622;&#36716;&#25442;&#32467;&#26463;&#20301;&#32622;</span>
+<span style="color: #0000ff;">int</span> <span style="color: #8b008b; font-weight: bold;">atoi</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">str</span>);
+<span style="color: #0000ff;">long</span> <span style="color: #8b008b; font-weight: bold;">atol</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">str</span>);
+<span style="color: #0000ff;">long</span> <span style="color: #8b008b; font-weight: bold;">strtol</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">str</span>, <span style="color: #0000ff;">char</span> **<span style="color: #000000;">endptr</span>, <span style="color: #0000ff;">int</span> <span style="color: #000000;">base</span>);
+<span style="color: #0000ff;">unsigned</span> <span style="color: #0000ff;">long</span> <span style="color: #8b008b; font-weight: bold;">strtoul</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">str</span>, <span style="color: #0000ff;">char</span> **<span style="color: #000000;">endptr</span>, <span style="color: #0000ff;">int</span> <span style="color: #000000;">base</span>);
+<span style="color: #0000ff;">double</span> <span style="color: #8b008b; font-weight: bold;">atof</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span>* <span style="color: #000000;">str</span>);
+<span style="color: #0000ff;">double</span> <span style="color: #8b008b; font-weight: bold;">strtod</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">str</span>, <span style="color: #0000ff;">char</span> **<span style="color: #000000;">endptr</span>);
+</pre>
+</div>
+</div>
+</div>
+
+
+<div id="outline-container-sec-2" class="outline-2">
+<h2 id="sec-2"><span class="section-number-2">2</span> unistd.h</h2>
+<div class="outline-text-2" id="text-2">
+</div><div id="outline-container-sec-2-1" class="outline-3">
+<h3 id="sec-2-1"><span class="section-number-3">2.1</span> 文件操作</h3>
+<div class="outline-text-3" id="text-2-1">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">@mode: R_OK, W_OK, X_OK, F_OK. F_OK&#34920;&#31034;&#23384;&#22312;&#27979;&#35797;</span>
+<span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">@return: 0&#25104;&#21151;&#65292;-1&#22833;&#36133;&#65292;&#22833;&#36133;&#20250;&#35774;&#32622;errno</span>
+<span style="color: #0000ff;">int</span> <span style="color: #8b008b; font-weight: bold;">access</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">path</span>, <span style="color: #0000ff;">int</span> <span style="color: #000000;">amode</span>);
+<span style="color: #0000ff;">int</span> <span style="color: #8b008b; font-weight: bold;">chdir</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *);
+<span style="color: #0000ff;">int</span> <span style="color: #8b008b; font-weight: bold;">chroot</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *);
+<span style="color: #0000ff;">int</span> <span style="color: #8b008b; font-weight: bold;">chown</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *, <span style="color: #0000ff;">uid_t</span>, <span style="color: #0000ff;">gid_t</span>);
+<span style="color: #0000ff;">int</span> <span style="color: #8b008b; font-weight: bold;">close</span>(<span style="color: #0000ff;">int</span>);
+<span style="color: #0000ff;">int</span> <span style="color: #8b008b; font-weight: bold;">dup</span>(<span style="color: #0000ff;">int</span>);
+<span style="color: #0000ff;">int</span> <span style="color: #8b008b; font-weight: bold;">dup2</span>(<span style="color: #0000ff;">int</span>, <span style="color: #0000ff;">int</span>);
+<span style="color: #0000ff;">int</span> <span style="color: #8b008b; font-weight: bold;">fchown</span>(<span style="color: #0000ff;">int</span>, <span style="color: #0000ff;">uid_t</span>, <span style="color: #0000ff;">gid_t</span>);
+<span style="color: #0000ff;">int</span> <span style="color: #8b008b; font-weight: bold;">fchdir</span>(<span style="color: #0000ff;">int</span>);
+<span style="color: #0000ff;">int</span> <span style="color: #8b008b; font-weight: bold;">fdatasync</span>(<span style="color: #0000ff;">int</span>);
+<span style="color: #0000ff;">int</span> <span style="color: #8b008b; font-weight: bold;">fsync</span>(<span style="color: #0000ff;">int</span>);
+<span style="color: #0000ff;">int</span> <span style="color: #8b008b; font-weight: bold;">ftruncate</span>(<span style="color: #0000ff;">int</span>, <span style="color: #0000ff;">off_t</span>);
+<span style="color: #0000ff;">char</span> <span style="color: #8b008b; font-weight: bold;">getcwd</span>(<span style="color: #0000ff;">char</span> *, <span style="color: #0000ff;">size_t</span>);
+<span style="color: #0000ff;">int</span> <span style="color: #8b008b; font-weight: bold;">lchown</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *, <span style="color: #0000ff;">uid_t</span>, <span style="color: #0000ff;">gid_t</span>);
+<span style="color: #0000ff;">int</span> <span style="color: #8b008b; font-weight: bold;">link</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *, <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *);
+<span style="color: #0000ff;">int</span> <span style="color: #8b008b; font-weight: bold;">lockf</span>(<span style="color: #0000ff;">int</span>, <span style="color: #0000ff;">int</span>, <span style="color: #0000ff;">off_t</span>);
+<span style="color: #0000ff;">off_t</span> <span style="color: #8b008b; font-weight: bold;">lseek</span>(<span style="color: #0000ff;">int</span>, <span style="color: #0000ff;">off_t</span>, <span style="color: #0000ff;">int</span>);
+<span style="color: #0000ff;">int</span> <span style="color: #8b008b; font-weight: bold;">pipe</span>(<span style="color: #0000ff;">int</span> [2]);
+<span style="color: #0000ff;">ssize_t</span> <span style="color: #8b008b; font-weight: bold;">read</span>(<span style="color: #0000ff;">int</span>, <span style="color: #0000ff;">void</span> *, <span style="color: #0000ff;">size_t</span>);
+<span style="color: #0000ff;">int</span> <span style="color: #8b008b; font-weight: bold;">readlink</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *, <span style="color: #0000ff;">char</span> *, <span style="color: #0000ff;">size_t</span>);
+<span style="color: #0000ff;">int</span> <span style="color: #8b008b; font-weight: bold;">rmdir</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *);
+<span style="color: #0000ff;">int</span> <span style="color: #8b008b; font-weight: bold;">symlink</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *, <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *);
+<span style="color: #0000ff;">void</span> <span style="color: #8b008b; font-weight: bold;">sync</span>(<span style="color: #0000ff;">void</span>);
+<span style="color: #0000ff;">int</span> <span style="color: #8b008b; font-weight: bold;">unlink</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *);
+<span style="color: #0000ff;">ssize_t</span> <span style="color: #8b008b; font-weight: bold;">write</span>(<span style="color: #0000ff;">int</span>, <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">void</span> *, <span style="color: #0000ff;">size_t</span>);
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-2-2" class="outline-3">
+<h3 id="sec-2-2"><span class="section-number-3">2.2</span> 进程操作</h3>
+<div class="outline-text-3" id="text-2-2">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #0000ff;">int</span> <span style="color: #8b008b; font-weight: bold;">execl</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">file</span>, <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">arg</span>, ...);
+<span style="color: #0000ff;">int</span> <span style="color: #8b008b; font-weight: bold;">execlp</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">file</span>, <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">arg</span>, ...);
+<span style="color: #0000ff;">int</span> <span style="color: #8b008b; font-weight: bold;">execle</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">file</span>, <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">arg</span>, ...,
+           <span style="color: #0000ff;">char</span> * <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #000000;">envp</span>[]);
+<span style="color: #0000ff;">int</span> <span style="color: #8b008b; font-weight: bold;">execv</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">file</span>, <span style="color: #0000ff;">char</span> *<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #000000;">argv</span>[]);
+<span style="color: #0000ff;">int</span> <span style="color: #8b008b; font-weight: bold;">execvp</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">file</span>, <span style="color: #0000ff;">char</span> *<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #000000;">argv</span>[]);
+<span style="color: #0000ff;">int</span> <span style="color: #8b008b; font-weight: bold;">execvpe</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">file</span>, <span style="color: #0000ff;">char</span> *<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #000000;">argv</span>[],
+            <span style="color: #0000ff;">char</span> *<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #000000;">envp</span>[]);
+<span style="color: #0000ff;">int</span> <span style="color: #8b008b; font-weight: bold;">execve</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">file</span>, <span style="color: #0000ff;">char</span> *<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #000000;">argv</span>[],
+           <span style="color: #0000ff;">char</span> *<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #000000;">envp</span>[]);
+</pre>
+</div>
+<p>
+这个系列的函数都是基于execve实现的，用户一般不会去调用它。
+文件名用于指定实际的执行文件。
+execl系列的参数直接传递，最后一个参数必须为NULL，
+execv系列的参数是通过数组传递，数组的最后一个元素也必须是NULL。
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-2-3" class="outline-3">
+<h3 id="sec-2-3"><span class="section-number-3">2.3</span> 信号</h3>
+<div class="outline-text-3" id="text-2-3">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">@seconds: &#22312;seconds&#20043;&#21518;&#21457;&#20986;&#19968;&#20010;SIGALRM&#20449;&#21495;</span>
+<span style="color: #0000ff;">unsigned</span> <span style="color: #0000ff;">int</span> <span style="color: #8b008b; font-weight: bold;">alarm</span>(<span style="color: #0000ff;">unsigned</span> <span style="color: #0000ff;">int</span> <span style="color: #000000;">seconds</span>);
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-2-4" class="outline-3">
+<h3 id="sec-2-4"><span class="section-number-3">2.4</span> 命令行解析</h3>
+<div class="outline-text-3" id="text-2-4">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#24403;&#27809;&#26377;&#26356;&#22810;&#35201;&#35299;&#26512;&#30340;&#21442;&#25968;&#26102;&#36820;&#22238;-1</span>
+<span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#24403;&#21457;&#29616;&#19968;&#20010;&#35299;&#26512;&#36873;&#39033;&#26102;&#65292;&#23601;&#36820;&#22238;&#37027;&#20010;&#23383;&#31526;</span>
+<span style="color: #0000ff;">int</span> <span style="color: #8b008b; font-weight: bold;">getopt</span>(<span style="color: #0000ff;">int</span> <span style="color: #000000;">argc</span>, <span style="color: #0000ff;">char</span> *<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #000000;">argv</span>[], <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">optstring</span>);
+<span style="color: #0000ff; font-weight: bold;">extern</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">optarg</span>;
+<span style="color: #0000ff; font-weight: bold;">extern</span> <span style="color: #0000ff;">int</span> <span style="color: #000000;">optind</span>, <span style="color: #000000;">opterr</span>, <span style="color: #000000;">optopt</span>;
+</pre>
+</div>
+<dl class="org-dl">
+<dt> optind </dt><dd>  下一个要处理的argv的index，可以重新设置为1用来重新解析
+</dd>
+</dl>
+
+<p>
+用法举例：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #0000ff; font-weight: bold;">while</span> ((opt = getopt(argc, argv, <span style="color: #ff0000;">"nt:"</span>)) != -1) {
+    <span style="color: #0000ff; font-weight: bold;">switch</span> (opt) {
+    <span style="color: #0000ff; font-weight: bold;">case</span> <span style="color: #ff0000;">'n'</span>:
+        flags = 1;
+        <span style="color: #0000ff; font-weight: bold;">break</span>;
+    <span style="color: #0000ff; font-weight: bold;">case</span> <span style="color: #ff0000;">'t'</span>:
+        nsecs = atoi(optarg);
+        tfnd = 1;
+        <span style="color: #0000ff; font-weight: bold;">break</span>;
+    <span style="color: #0000ff; font-weight: bold;">default</span>: <span style="color: #228b22; font-style: italic;">/* </span><span style="color: #228b22; font-style: italic;">'?' */</span>
+        fprintf(stderr, <span style="color: #ff0000;">"Usage: %s [-t nsecs] [-n] name\n"</span>,
+                argv[0]);
+        exit(EXIT_FAILURE);
+    }
+}
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</body>
+</html>

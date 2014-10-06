@@ -1,0 +1,65 @@
+#+TITLE: String in C
+#+AUTHOR: Micky Ching
+#+OPTIONS: H:4 ^:nil toc:nil
+#+LATEX_CLASS: latex-doc
+#+PAGE_CATEGORIES: programming C++
+
+C语言的字符串很好理解，本身是一个数组，只不过对字符串的最后一个元素有特别的要求，
+最后一个元素必须是null。
+但是C语言也提供了一系列的库函数来操作字符串，避免自己去实现相关的操作。
+* 库函数
+C语言的库函数放在一个叫cstring的头文件中，其实它是对string.h的封装，
+因为C++有命名空间的概念，所以ctring就是加了一层命名空间。
+对于写C程序的人来说，只需要包含string.h即可。
+
+#+BEGIN_SRC cpp
+  // 精确复制num个字节
+  void *memcpy(void *destination, const void *source, size_t num);
+  // memmove更强大的地方在于两个内存段可以有交叉，
+  // memcpy则不能保证在有交叉的情况还能正确工作。
+  void *memmove(void *destination, const void *source, size_t num);
+  // 目标数组要能够装得下新的字符串，也就是需要预先保证有足够的空间
+  char *strcpy(char *destination, const char *source);
+  // 最多复制num个字符，具体长度有源字符串的长度决定
+  char *strncpy(char *destination, const char *source, size_t num);
+  // 调用者首先要保证目标有足够的空间，其次还需要保证没有交叉
+  char *strcat(char *destination, const char *source);
+  char *strncat(char *destination, const char *source, size_t num);
+  // 简单的逐字节比较
+  int memcmp(const void *ptr1, const void *ptr2, size_t num);
+  // 字符串比较
+  int strcmp(const char *str1, const char *str2);
+  // 也是字符串比较，但行为依赖于LC_COLLATE
+  int strcoll(const char *str1, const char *str2);
+  // 只比较前num个字符
+  int strncmp(const char *str1, const char *str2, size_t num);
+  // 根据LC_COLLATE将源字符串转换为目标字符串
+  size_t strxfrm(char *destination, const char *source, size_t num);
+  // 用于搜索value的第一次出现位置，如果没有找到返回NULL
+  const void *memchr(const void *ptr, int value, size_t num);
+        void *memchr(void *ptr, int value, size_t num);
+  // 用来搜索指定字符的第一次出现位置
+  const char *strchr(const char *str, int character);
+        char *strchr(char *str, int character);
+  // 查找最后一次出现，如果没有找到返回NULL，注意可以用来查找null
+  const char *strrchr(const char *str, int character);
+        char *strrchr(char *str, int character);
+  // 用来搜索str2中任意一个字符的出现，返回值是前面没有在str2中出现的字符个数
+  // 因为搜索包含null字符，所以即便没有出现，也会返回str1的长度
+  size_t strcspn(const char *str1, const char *str2);
+  // 和strcspn的区别有两点，第一是查找从str1开头有多少个字符属于str2，
+  // 第二是不包括对null字符的搜索。
+  size_t strspn(const char *str1, const char *str2);
+  // 也是搜索str2中任意字符的出现，只不过换成了找到的指针，
+  // 如果没有找到就返回NULL
+  const char *strpbrk(const char *str1, const char *str2);
+        char *strpbrk(char *str1, const char *str2);
+  // 用来查找整个str2在str1第一次出现，如果没有找到就返回NULL
+  const char *strstr(const char *str1, const char *str2);
+        char *strstr(char *str1, const char *str2);
+  // 将str分割，分割字符由delimiters决定，其中出现的任意字符都作为分割符
+  char *strtok(char *str, const char *delimiters);
+  void *memset(void *ptr, int value, size_t num);
+  char *strerror(int errnum);         // 将错误码转换为字符串
+  size_t strlen(const char *str);     // 计算字符串长度
+#+END_SRC

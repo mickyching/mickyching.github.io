@@ -1,0 +1,218 @@
+#+TITLE: String in C++
+#+AUTHOR: Micky Ching
+#+OPTIONS: H:4 ^:nil toc:nil
+#+LATEX_CLASS: latex-doc
+#+PAGE_CATEGORIES: programming C++
+
+* string的定义
+首先我们需要知道在C++中string是以一个库的形式提供的，
+由于C++引入了命名空间的概念，所以string实际处于命名空间std中。
+为了避免累赘，这里忽略命名空间的概念，直接引用string。
+
+要使用string，必须要要包含头文件<string>。接下来可以看一下string类的定义：
+#+BEGIN_SRC cpp
+  typedef basic_string<char> string;
+#+END_SRC
+从这里可以看到，实际上string类是模板类basic_string的一个实例，
+用char字符来实例化，如果熟悉basic_string可以利用它来实现其他类型的string，
+也就是除了字符串以外还能轻松实现其他类型的串。
+
+既然提到basic_string不妨看一下它长什么样子：
+#+BEGIN_SRC cpp
+  template < class charT,
+             class traits = char_traits<charT>,
+             class Alloc = allocator<charT>
+             > class basic_string;
+#+END_SRC
+- charT :: 设计者对这个模板参数提出了一个要求，必须是非数组的POD类型。
+
+  因为我们要实现一个串，所以不让串的元素本身是串，这是比较容易理解的。
+  另一方面要求是POD类型，称之为Plain Old Type，就是源于C的那些数据类型。
+
+- traits :: 定义一组特征。
+- Alloc :: 提供分配内存的方法。
+
+一般情况不会去修改traits和Alloc，因为默认的就实现的很好了，如果我们想使用其他类型的串，
+就可以简单添加typedef实现。
+例如标准库里面已经提供了如下类型：
+#+BEGIN_SRC cpp
+  typedef basic_string<wchar_t> wstring;
+  typedef basic_string<char16_t> u16string;
+  typedef basic_string<char32_t> u32string;
+#+END_SRC
+
+* 数据成员
+我们可以认为数据成员已经被完全封装，虽然有一个npos可以访问，
+但它是一个全局静态常量，其含义是size_type能表示的最大值。
+#+BEGIN_SRC cpp
+  static const size_type npos = -1;
+#+END_SRC
+
+* 函数成员
+#+BEGIN_SRC cpp
+  string();
+  string(const string &str);
+  // 从给定str的下标pos开始复制最多len个字符。
+  string(const string &str, size_t pos, size_t len = npos);
+  string(const char *s);
+  // 从字符串复制最多n个字符。
+  string(const char *s, size_t n);
+  string(size_t n, char c);
+  // 从迭代器复制。
+  template <class InputIterator>
+  string(InputIterator first, InputIterator last);
+#+END_SRC
+
+析构函数对使用者来说其实没有什么需要注意的，
+只需要在动态申请是能记得释放就可以了。
+
+#+BEGIN_SRC cpp
+  string &operator=(const string &str);
+  string &operator=(const char *s);
+  string &operator=(char c);
+#+END_SRC
+
+迭代器方法和其他容器类几乎一样，如果熟悉vector就知道有哪些：
+begin()，end()，rbegin()，rend()，cbegin()，cend()，crbegin()，crend()。
+其中r的含义是reverse，而c的含义是const。
+
+#+BEGIN_SRC cpp
+  size_t size() const;                    // 就是总共多少个字符
+  size_t length() const;                  // 字符串长度，同size()
+  size_t max_size() const;                // 系统可以分配的最大长度
+  void resize(size_t n);
+  void resize(size_t n, char c);          // 增加的部分用c填充
+  size_t capacity() const;                // 当前分配到的内存长度
+  void clear();                           // 将字符串擦除，长度变为0
+  bool empty() const;                     // 用于检查是否为空字符串
+  void reserve(size_t n = 0);             // 设置预留长度
+  void shrink_to_fit();                   // 清除预留长度
+#+END_SRC
+- resize() ::
+  如果往小的调整，实际上不会释放内存，只会减少字符串长度，
+  如果要扩大，增加字符串长度，如果超出capacity则会重新分配内存。
+
+- reserve() ::
+  在请求减少容量的时候并不一定会真的减少容量，这取决于编译器的实现。
+  shrink_to_fit()同样如此。
+
+下标操作有[index]和at(index)两种方法，后者会检查是否越界，而前者不会检查。
+back()和front()用于返回最后一个和第一个字符。
+
+#+BEGIN_SRC cpp
+  string &operator+=(const string &str);
+  string &operator+=(const char *s);
+  string &operator+=(char c);
+
+  string &append(const string &str);
+  string &append(const string &str, size_t subpos, size_t sublen);
+  string &append(const char *s);
+  string &append(const char *s, size_t n);
+  string &append(size_t n, char c);
+  template <class InputIterator>
+  string &append(InputIterator first, InputIterator last);
+
+  void push_back(char c);
+
+  string &assign(const string &str);
+  string &assign(const string &str, size_t subpos, size_t sublen);
+  string &assign(const char *s);
+  string &assign(const char *s, size_t n);
+  string &assign(size_t n, char c);
+  template <class InputIterator>
+  string &assign(InputIterator first, InputIterator last);
+
+  string &insert(size_t pos, const string &str);
+  string &insert(size_t pos, const string &str,
+                 size_t subpos, size_t sublen);
+  string &insert(size_t pos, const char *s);
+  string &insert(size_t pos, const char *s, size_t n);
+  string &insert(size_t pos, size_t n, char c);
+  void insert(iterator p, size_t n, char c);
+  iterator insert(iterator p, char c);
+  template <class InputIterator>
+  void insert(iterator p, InputIterator first, InputIterator last);
+
+  string &erase(size_t pos = 0, size_t len = npos);
+  iterator erase(iterator p);
+  iterator erase(iterator first, iterator last);
+
+  string &replace(size_t pos,  size_t len,  const string &str);
+  string &replace(iterator i1, iterator i2, const string &str);
+  string &replace(size_t pos,  size_t len,  const string &str,
+                   size_t subpos, size_t sublen);
+  string &replace(size_t pos,  size_t len,  const char *s);
+  string &replace(iterator i1, iterator i2, const char *s);
+  string &replace(size_t pos,  size_t len,  const char *s, size_t n);
+  string &replace(iterator i1, iterator i2, const char *s, size_t n);
+  string &replace(size_t pos,  size_t len,  size_t n, char c);
+  string &replace(iterator i1, iterator i2, size_t n, char c);
+  template <class InputIterator>
+  string &replace(iterator i1, iterator i2,
+                  InputIterator first, InputIterator last);
+
+  void swap(string &str);
+  void pop_back();
+#+END_SRC
+复合加法，也就是+=实际上是在尾部添加，和append()一样，push_back()也是向尾部添加。
+
+#+BEGIN_SRC cpp
+  const char *c_str() const;              // 获取C字符串
+  const char *data() const;
+  allocator_type get_allocator() const;
+  size_t copy(char *s, size_t len, size_t pos = 0) const;
+
+  size_t find(const string &str, size_t pos = 0) const;
+  size_t find(const char *s, size_t pos = 0) const;
+  size_t find(const char *s, size_t pos, size_t n) const;
+  size_t find(char c, size_t pos = 0) const;
+
+  size_t find_first_of(const string &str, size_t pos = 0) const;
+  size_t find_first_of(const char *s, size_t pos = 0) const;
+  size_t find_first_of(const char *s, size_t pos, size_t n) const;
+  size_t find_first_of(char c, size_t pos = 0) const;
+
+  string substr(size_t pos = 0, size_t len = npos) const;
+
+  int compare(const string &str) const;
+  int compare(size_t pos, size_t len, const string &str) const;
+  int compare(size_t pos, size_t len, const string &str,
+               size_t subpos, size_t sublen) const;
+  int compare(const char *s) const;
+  int compare(size_t pos, size_t len, const char *s) const;
+  int compare(size_t pos, size_t len, const char *s,
+              size_t n) const;
+#+END_SRC
+- find() ::
+  如果没找到，返回npos。
+  =rfind()= 和find()形式相同，默认参数是npos。
+
+  find_first_of()系列包括find_last_of()、find_first_not_of()、
+  find_last_not_of()。
+  原型完全一致，find_first_of()用于查找指定串中的任意一个字符的首次出现，
+  find_first_not_of()查找指定串以外任意一个字符的首次出现。
+
+* 库函数
+库函数用于操作string但是它不属于成员函数。
+#+BEGIN_SRC cpp
+  string operator+(const string &lhs, const string &rhs);
+  string operator+(const string &lhs, const char   *rhs);
+  string operator+(const char   *lhs, const string &rhs);
+  string operator+(const string &lhs, char          rhs);
+  string operator+(char          lhs, const string &rhs);
+
+  bool operator==(const string &lhs, const string &rhs);
+  bool operator==(const char   *lhs, const string &rhs);
+  bool operator==(const string &lhs, const char   *rhs);
+
+  void swap(string &x, string &y);
+
+  istream &operator>>(istream &is, string &str);
+  ostream &operator<<(ostream &os, const string &str);
+
+  istream &getline(istream &is, string &str, char delim);
+  istream &getline(istream &is, string &str);
+#+END_SRC
+
+比较操作符==、!=、<、<=、>、>=具有完全相同的函数原型和用法，
+因此只需要参考==即可。

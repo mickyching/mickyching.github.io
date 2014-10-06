@@ -1,0 +1,47 @@
+#+TITLE: C语言学习笔记
+#+AUTHOR: Micky Ching
+#+OPTIONS: H:4 ^:nil toc:nil
+#+LATEX_CLASS: latex-doc
+#+CATEGORIES: programming C++
+* 编程要点
+- 参数个数为0时要使用void
+
+  C语言不同于C++，如果默认不提供形参，编译器将其视为可变参数。
+  因此为了防止编译警告，要明确制定为void。
+
+* 编译要点
+** 动态库
+#+BEGIN_SRC sh
+  ldd main                                # 查看动态链接库信息
+#+END_SRC
+** 添加库的搜索路径
+*方式1* 编辑 =/etc/ld.so.conf= ，配置完成之后需要执行ldconfig命令。
+#+BEGIN_SRC text
+  /usr/X11R6/lib
+  /usr/lib
+  /usr/lib/sane
+  /usr/lib/mysql
+  /opt/lib
+#+END_SRC
+
+*方式2* 直接执行命令：
+#+BEGIN_SRC sh
+  ldconfig -n /opt/lib
+#+END_SRC
+
+*方式3* 指定环境变量，不同平台名称不同：
+#+BEGIN_SRC text
+  Linux/Solaris: LD_LIBRARY_PATH,
+  SGI: LD_LIBRARYN32_PATH,
+  AIX: LIBPATH,
+  Mac OS X: DYLD_LIBRARY_PATH,
+  HP-UX: SHLIB_PATH
+#+END_SRC
+编辑 =~/.bashrc=
+#+BEGIN_SRC text
+  if [ -d /opt/lib ]
+  then
+     LD_LIBRARY_PATH=/opt/lib:$LD_LIBRARY_PATH
+  fi
+  export LD_LIBRARY_PATH
+#+END_SRC

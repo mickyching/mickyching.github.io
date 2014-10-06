@@ -1,0 +1,113 @@
+#+TITLE: C语言常用库函数
+#+AUTHOR: Micky Ching
+#+OPTIONS: H:4 ^:nil toc:nil
+#+LATEX_CLASS: latex-doc
+#+PAGE_CATEGORIES: programming C++
+
+* 字符串处理
+#+BEGIN_SRC cpp
+  // 找到字符串中最后一个出现character地位置
+  const char *strrchr(const char *str, int character);
+  char *strrchr(char *str, int character);
+  // 找到字符串中第一个出现character地位置
+  const char *strchr(const char *str, int character);
+  char *strchr(char *str, int character);
+#+END_SRC
+
+#+BEGIN_SRC cpp
+  // 字符串转换为数字，endptr用来设置转换结束位置
+  int atoi(const char *str);
+  long atol(const char *str);
+  long strtol(const char *str, char **endptr, int base);
+  unsigned long strtoul(const char *str, char **endptr, int base);
+  double atof(const char* str);
+  double strtod(const char *str, char **endptr);
+#+END_SRC
+
+
+* unistd.h
+** 文件操作
+#+BEGIN_SRC cpp
+  // @mode: R_OK, W_OK, X_OK, F_OK. F_OK表示存在测试
+  // @return: 0成功，-1失败，失败会设置errno
+  int access(const char *path, int amode);
+  int chdir(const char *);
+  int chroot(const char *);
+  int chown(const char *, uid_t, gid_t);
+  int close(int);
+  int dup(int);
+  int dup2(int, int);
+  int fchown(int, uid_t, gid_t);
+  int fchdir(int);
+  int fdatasync(int);
+  int fsync(int);
+  int ftruncate(int, off_t);
+  char getcwd(char *, size_t);
+  int lchown(const char *, uid_t, gid_t);
+  int link(const char *, const char *);
+  int lockf(int, int, off_t);
+  off_t lseek(int, off_t, int);
+  int pipe(int [2]);
+  ssize_t read(int, void *, size_t);
+  int readlink(const char *, char *, size_t);
+  int rmdir(const char *);
+  int symlink(const char *, const char *);
+  void sync(void);
+  int unlink(const char *);
+  ssize_t write(int, const void *, size_t);
+#+END_SRC
+
+** 进程操作
+#+BEGIN_SRC cpp
+  int execl(const char *file, const char *arg, ...);
+  int execlp(const char *file, const char *arg, ...);
+  int execle(const char *file, const char *arg, ...,
+             char * const envp[]);
+  int execv(const char *file, char *const argv[]);
+  int execvp(const char *file, char *const argv[]);
+  int execvpe(const char *file, char *const argv[],
+              char *const envp[]);
+  int execve(const char *file, char *const argv[],
+             char *const envp[]);
+#+END_SRC
+这个系列的函数都是基于execve实现的，用户一般不会去调用它。
+文件名用于指定实际的执行文件。
+execl系列的参数直接传递，最后一个参数必须为NULL，
+execv系列的参数是通过数组传递，数组的最后一个元素也必须是NULL。
+
+** 信号
+#+BEGIN_SRC cpp
+  // @seconds: 在seconds之后发出一个SIGALRM信号
+  unsigned int alarm(unsigned int seconds);
+#+END_SRC
+
+** 命令行解析
+#+BEGIN_SRC cpp
+
+  // 当没有更多要解析的参数时返回-1
+  // 当发现一个解析选项时，就返回那个字符
+  int getopt(int argc, char *const argv[], const char *optstring);
+  extern char *optarg;
+  extern int optind, opterr, optopt;
+#+END_SRC
+- optind ::
+  下一个要处理的argv的index，可以重新设置为1用来重新解析
+
+用法举例：
+#+BEGIN_SRC cpp
+  while ((opt = getopt(argc, argv, "nt:")) != -1) {
+      switch (opt) {
+      case 'n':
+          flags = 1;
+          break;
+      case 't':
+          nsecs = atoi(optarg);
+          tfnd = 1;
+          break;
+      default: /* '?' */
+          fprintf(stderr, "Usage: %s [-t nsecs] [-n] name\n",
+                  argv[0]);
+          exit(EXIT_FAILURE);
+      }
+  }
+#+END_SRC

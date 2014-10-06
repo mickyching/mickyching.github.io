@@ -1,0 +1,432 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<title>String in C++</title>
+<meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta  name="generator" content="Org-mode" />
+<meta  name="author" content="Micky Ching" />
+<link rel="stylesheet" type="text/css" href="../style/default.css" />
+
+<script type="text/javascript" src="../style/default.js">
+/**
+ *
+ * @source: ../style/default.js
+ *
+ * @licstart  The following is the entire license notice for the
+ *  JavaScript code in ../style/default.js.
+ *
+ * Copyright (C) 2012-2013 Free Software Foundation, Inc.
+ *
+ *
+ * The JavaScript code in this tag is free software: you can
+ * redistribute it and/or modify it under the terms of the GNU
+ * General Public License (GNU GPL) as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option)
+ * any later version.  The code is distributed WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+ *
+ * As additional permission under GNU GPL version 3 section 7, you
+ * may distribute non-source (e.g., minimized or compacted) forms of
+ * that code without the copy of the GNU GPL normally required by
+ * section 4, provided you include this license notice and a URL
+ * through which recipients can access the Corresponding Source.
+ *
+ * @licend  The above is the entire license notice
+ * for the JavaScript code in ../style/default.js.
+ *
+ */
+</script>
+
+<script type="text/javascript">
+
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+
+<!--/*--><![CDATA[/*><!--*/
+org_html_manager.set("TOC_DEPTH", "4");
+org_html_manager.set("LINK_HOME", "");
+org_html_manager.set("LINK_UP", "");
+org_html_manager.set("LOCAL_TOC", "0");
+org_html_manager.set("VIEW_BUTTONS", "0");
+org_html_manager.set("MOUSE_HINT", "underline");
+org_html_manager.set("FIXED_TOC", "0");
+org_html_manager.set("TOC", "0");
+org_html_manager.set("VIEW", "showall");
+org_html_manager.setup();  // activate after the parameters are set
+/*]]>*///-->
+</script>
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+</head>
+<body>
+<div id="content">
+<h1 class="title">String in C++</h1>
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#sec-1">1. string的定义</a></li>
+<li><a href="#sec-2">2. 数据成员</a></li>
+<li><a href="#sec-3">3. 函数成员</a></li>
+<li><a href="#sec-4">4. 库函数</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-1" class="outline-2">
+<h2 id="sec-1"><span class="section-number-2">1</span> string的定义</h2>
+<div class="outline-text-2" id="text-1">
+<p>
+首先我们需要知道在C++中string是以一个库的形式提供的，
+由于C++引入了命名空间的概念，所以string实际处于命名空间std中。
+为了避免累赘，这里忽略命名空间的概念，直接引用string。
+</p>
+
+<p>
+要使用string，必须要要包含头文件&lt;string&gt;。接下来可以看一下string类的定义：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #0000ff; font-weight: bold;">typedef</span> <span style="color: #0000ff;">basic_string</span>&lt;<span style="color: #0000ff;">char</span>&gt; <span style="color: #0000ff;">string</span>;
+</pre>
+</div>
+<p>
+从这里可以看到，实际上string类是模板类basic_string的一个实例，
+用char字符来实例化，如果熟悉basic_string可以利用它来实现其他类型的string，
+也就是除了字符串以外还能轻松实现其他类型的串。
+</p>
+
+<p>
+既然提到basic_string不妨看一下它长什么样子：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #0000ff; font-weight: bold;">template</span> &lt; <span style="color: #0000ff; font-weight: bold;">class</span> <span style="color: #0000ff;">charT</span>,
+           <span style="color: #0000ff; font-weight: bold;">class</span> <span style="color: #0000ff;">traits</span> = <span style="color: #0000ff;">char_traits</span>&lt;<span style="color: #0000ff;">charT</span>&gt;,
+           <span style="color: #0000ff; font-weight: bold;">class</span> <span style="color: #0000ff;">Alloc</span> = <span style="color: #0000ff;">allocator</span>&lt;<span style="color: #0000ff;">charT</span>&gt;
+           &gt; <span style="color: #0000ff; font-weight: bold;">class</span> <span style="color: #0000ff;">basic_string</span>;
+</pre>
+</div>
+<dl class="org-dl">
+<dt> charT </dt><dd>设计者对这个模板参数提出了一个要求，必须是非数组的POD类型。
+
+<p>
+因为我们要实现一个串，所以不让串的元素本身是串，这是比较容易理解的。
+另一方面要求是POD类型，称之为Plain Old Type，就是源于C的那些数据类型。
+</p>
+</dd>
+
+<dt> traits </dt><dd>定义一组特征。
+</dd>
+<dt> Alloc </dt><dd>提供分配内存的方法。
+</dd>
+</dl>
+
+<p>
+一般情况不会去修改traits和Alloc，因为默认的就实现的很好了，如果我们想使用其他类型的串，
+就可以简单添加typedef实现。
+例如标准库里面已经提供了如下类型：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #0000ff; font-weight: bold;">typedef</span> <span style="color: #0000ff;">basic_string</span>&lt;<span style="color: #0000ff;">wchar_t</span>&gt; <span style="color: #0000ff;">wstring</span>;
+<span style="color: #0000ff; font-weight: bold;">typedef</span> <span style="color: #0000ff;">basic_string</span>&lt;<span style="color: #0000ff;">char16_t</span>&gt; <span style="color: #0000ff;">u16string</span>;
+<span style="color: #0000ff; font-weight: bold;">typedef</span> <span style="color: #0000ff;">basic_string</span>&lt;<span style="color: #0000ff;">char32_t</span>&gt; <span style="color: #0000ff;">u32string</span>;
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-2" class="outline-2">
+<h2 id="sec-2"><span class="section-number-2">2</span> 数据成员</h2>
+<div class="outline-text-2" id="text-2">
+<p>
+我们可以认为数据成员已经被完全封装，虽然有一个npos可以访问，
+但它是一个全局静态常量，其含义是size_type能表示的最大值。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #0000ff; font-weight: bold;">static</span> <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">size_type</span> <span style="color: #000000;">npos</span> = -1;
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-3" class="outline-2">
+<h2 id="sec-3"><span class="section-number-2">3</span> 函数成员</h2>
+<div class="outline-text-2" id="text-3">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #8b008b; font-weight: bold;">string</span>();
+<span style="color: #8b008b; font-weight: bold;">string</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">string</span> &amp;<span style="color: #000000;">str</span>);
+<span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#20174;&#32473;&#23450;str&#30340;&#19979;&#26631;pos&#24320;&#22987;&#22797;&#21046;&#26368;&#22810;len&#20010;&#23383;&#31526;&#12290;</span>
+<span style="color: #8b008b; font-weight: bold;">string</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">string</span> &amp;<span style="color: #000000;">str</span>, <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">pos</span>, <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">len</span> = npos);
+<span style="color: #8b008b; font-weight: bold;">string</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">s</span>);
+<span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#20174;&#23383;&#31526;&#20018;&#22797;&#21046;&#26368;&#22810;n&#20010;&#23383;&#31526;&#12290;</span>
+<span style="color: #8b008b; font-weight: bold;">string</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">s</span>, <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">n</span>);
+<span style="color: #8b008b; font-weight: bold;">string</span>(<span style="color: #0000ff;">size_t</span> <span style="color: #000000;">n</span>, <span style="color: #0000ff;">char</span> <span style="color: #000000;">c</span>);
+<span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#20174;&#36845;&#20195;&#22120;&#22797;&#21046;&#12290;</span>
+<span style="color: #0000ff; font-weight: bold;">template</span> &lt;<span style="color: #0000ff; font-weight: bold;">class</span> <span style="color: #0000ff;">InputIterator</span>&gt;
+<span style="color: #8b008b; font-weight: bold;">string</span>(<span style="color: #0000ff;">InputIterator</span> <span style="color: #000000;">first</span>, <span style="color: #0000ff;">InputIterator</span> <span style="color: #000000;">last</span>);
+</pre>
+</div>
+
+<p>
+析构函数对使用者来说其实没有什么需要注意的，
+只需要在动态申请是能记得释放就可以了。
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #0000ff;">string</span> &amp;<span style="color: #0000ff; font-weight: bold;">operator</span><span style="color: #8b008b; font-weight: bold;">=</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">string</span> &amp;<span style="color: #000000;">str</span>);
+<span style="color: #0000ff;">string</span> &amp;<span style="color: #0000ff; font-weight: bold;">operator</span><span style="color: #8b008b; font-weight: bold;">=</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">s</span>);
+<span style="color: #0000ff;">string</span> &amp;<span style="color: #0000ff; font-weight: bold;">operator</span><span style="color: #8b008b; font-weight: bold;">=</span>(<span style="color: #0000ff;">char</span> <span style="color: #000000;">c</span>);
+</pre>
+</div>
+
+<p>
+迭代器方法和其他容器类几乎一样，如果熟悉vector就知道有哪些：
+begin()，end()，rbegin()，rend()，cbegin()，cend()，crbegin()，crend()。
+其中r的含义是reverse，而c的含义是const。
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #0000ff;">size_t</span> <span style="color: #8b008b; font-weight: bold;">size</span>() <span style="color: #0000ff; font-weight: bold;">const</span>;                    <span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#23601;&#26159;&#24635;&#20849;&#22810;&#23569;&#20010;&#23383;&#31526;</span>
+<span style="color: #0000ff;">size_t</span> <span style="color: #8b008b; font-weight: bold;">length</span>() <span style="color: #0000ff; font-weight: bold;">const</span>;                  <span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#23383;&#31526;&#20018;&#38271;&#24230;&#65292;&#21516;size()</span>
+<span style="color: #0000ff;">size_t</span> <span style="color: #8b008b; font-weight: bold;">max_size</span>() <span style="color: #0000ff; font-weight: bold;">const</span>;                <span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#31995;&#32479;&#21487;&#20197;&#20998;&#37197;&#30340;&#26368;&#22823;&#38271;&#24230;</span>
+<span style="color: #0000ff;">void</span> <span style="color: #8b008b; font-weight: bold;">resize</span>(<span style="color: #0000ff;">size_t</span> <span style="color: #000000;">n</span>);
+<span style="color: #0000ff;">void</span> <span style="color: #8b008b; font-weight: bold;">resize</span>(<span style="color: #0000ff;">size_t</span> <span style="color: #000000;">n</span>, <span style="color: #0000ff;">char</span> <span style="color: #000000;">c</span>);          <span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#22686;&#21152;&#30340;&#37096;&#20998;&#29992;c&#22635;&#20805;</span>
+<span style="color: #0000ff;">size_t</span> <span style="color: #8b008b; font-weight: bold;">capacity</span>() <span style="color: #0000ff; font-weight: bold;">const</span>;                <span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#24403;&#21069;&#20998;&#37197;&#21040;&#30340;&#20869;&#23384;&#38271;&#24230;</span>
+<span style="color: #0000ff;">void</span> <span style="color: #8b008b; font-weight: bold;">clear</span>();                           <span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#23558;&#23383;&#31526;&#20018;&#25830;&#38500;&#65292;&#38271;&#24230;&#21464;&#20026;0</span>
+<span style="color: #0000ff;">bool</span> <span style="color: #8b008b; font-weight: bold;">empty</span>() <span style="color: #0000ff; font-weight: bold;">const</span>;                     <span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#29992;&#20110;&#26816;&#26597;&#26159;&#21542;&#20026;&#31354;&#23383;&#31526;&#20018;</span>
+<span style="color: #0000ff;">void</span> <span style="color: #8b008b; font-weight: bold;">reserve</span>(<span style="color: #0000ff;">size_t</span> <span style="color: #000000;">n</span> = 0);             <span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#35774;&#32622;&#39044;&#30041;&#38271;&#24230;</span>
+<span style="color: #0000ff;">void</span> <span style="color: #8b008b; font-weight: bold;">shrink_to_fit</span>();                   <span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#28165;&#38500;&#39044;&#30041;&#38271;&#24230;</span>
+</pre>
+</div>
+<dl class="org-dl">
+<dt> resize() </dt><dd>  如果往小的调整，实际上不会释放内存，只会减少字符串长度，
+如果要扩大，增加字符串长度，如果超出capacity则会重新分配内存。
+</dd>
+
+<dt> reserve() </dt><dd>  在请求减少容量的时候并不一定会真的减少容量，这取决于编译器的实现。
+shrink_to_fit()同样如此。
+</dd>
+</dl>
+
+<p>
+下标操作有[index]和at(index)两种方法，后者会检查是否越界，而前者不会检查。
+back()和front()用于返回最后一个和第一个字符。
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #0000ff;">string</span> &amp;<span style="color: #0000ff; font-weight: bold;">operator</span><span style="color: #8b008b; font-weight: bold;">+=</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">string</span> &amp;<span style="color: #000000;">str</span>);
+<span style="color: #0000ff;">string</span> &amp;<span style="color: #0000ff; font-weight: bold;">operator</span><span style="color: #8b008b; font-weight: bold;">+=</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">s</span>);
+<span style="color: #0000ff;">string</span> &amp;<span style="color: #0000ff; font-weight: bold;">operator</span><span style="color: #8b008b; font-weight: bold;">+=</span>(<span style="color: #0000ff;">char</span> <span style="color: #000000;">c</span>);
+
+<span style="color: #0000ff;">string</span> &amp;<span style="color: #8b008b; font-weight: bold;">append</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">string</span> &amp;<span style="color: #000000;">str</span>);
+<span style="color: #0000ff;">string</span> &amp;<span style="color: #8b008b; font-weight: bold;">append</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">string</span> &amp;<span style="color: #000000;">str</span>, <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">subpos</span>, <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">sublen</span>);
+<span style="color: #0000ff;">string</span> &amp;<span style="color: #8b008b; font-weight: bold;">append</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">s</span>);
+<span style="color: #0000ff;">string</span> &amp;<span style="color: #8b008b; font-weight: bold;">append</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">s</span>, <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">n</span>);
+<span style="color: #0000ff;">string</span> &amp;<span style="color: #8b008b; font-weight: bold;">append</span>(<span style="color: #0000ff;">size_t</span> <span style="color: #000000;">n</span>, <span style="color: #0000ff;">char</span> <span style="color: #000000;">c</span>);
+<span style="color: #0000ff; font-weight: bold;">template</span> &lt;<span style="color: #0000ff; font-weight: bold;">class</span> <span style="color: #0000ff;">InputIterator</span>&gt;
+<span style="color: #0000ff;">string</span> &amp;<span style="color: #8b008b; font-weight: bold;">append</span>(<span style="color: #0000ff;">InputIterator</span> <span style="color: #000000;">first</span>, <span style="color: #0000ff;">InputIterator</span> <span style="color: #000000;">last</span>);
+
+<span style="color: #0000ff;">void</span> <span style="color: #8b008b; font-weight: bold;">push_back</span>(<span style="color: #0000ff;">char</span> <span style="color: #000000;">c</span>);
+
+<span style="color: #0000ff;">string</span> &amp;<span style="color: #8b008b; font-weight: bold;">assign</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">string</span> &amp;<span style="color: #000000;">str</span>);
+<span style="color: #0000ff;">string</span> &amp;<span style="color: #8b008b; font-weight: bold;">assign</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">string</span> &amp;<span style="color: #000000;">str</span>, <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">subpos</span>, <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">sublen</span>);
+<span style="color: #0000ff;">string</span> &amp;<span style="color: #8b008b; font-weight: bold;">assign</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">s</span>);
+<span style="color: #0000ff;">string</span> &amp;<span style="color: #8b008b; font-weight: bold;">assign</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">s</span>, <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">n</span>);
+<span style="color: #0000ff;">string</span> &amp;<span style="color: #8b008b; font-weight: bold;">assign</span>(<span style="color: #0000ff;">size_t</span> <span style="color: #000000;">n</span>, <span style="color: #0000ff;">char</span> <span style="color: #000000;">c</span>);
+<span style="color: #0000ff; font-weight: bold;">template</span> &lt;<span style="color: #0000ff; font-weight: bold;">class</span> <span style="color: #0000ff;">InputIterator</span>&gt;
+<span style="color: #0000ff;">string</span> &amp;<span style="color: #8b008b; font-weight: bold;">assign</span>(<span style="color: #0000ff;">InputIterator</span> <span style="color: #000000;">first</span>, <span style="color: #0000ff;">InputIterator</span> <span style="color: #000000;">last</span>);
+
+<span style="color: #0000ff;">string</span> &amp;<span style="color: #8b008b; font-weight: bold;">insert</span>(<span style="color: #0000ff;">size_t</span> <span style="color: #000000;">pos</span>, <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">string</span> &amp;<span style="color: #000000;">str</span>);
+<span style="color: #0000ff;">string</span> &amp;<span style="color: #8b008b; font-weight: bold;">insert</span>(<span style="color: #0000ff;">size_t</span> <span style="color: #000000;">pos</span>, <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">string</span> &amp;<span style="color: #000000;">str</span>,
+               <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">subpos</span>, <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">sublen</span>);
+<span style="color: #0000ff;">string</span> &amp;<span style="color: #8b008b; font-weight: bold;">insert</span>(<span style="color: #0000ff;">size_t</span> <span style="color: #000000;">pos</span>, <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">s</span>);
+<span style="color: #0000ff;">string</span> &amp;<span style="color: #8b008b; font-weight: bold;">insert</span>(<span style="color: #0000ff;">size_t</span> <span style="color: #000000;">pos</span>, <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">s</span>, <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">n</span>);
+<span style="color: #0000ff;">string</span> &amp;<span style="color: #8b008b; font-weight: bold;">insert</span>(<span style="color: #0000ff;">size_t</span> <span style="color: #000000;">pos</span>, <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">n</span>, <span style="color: #0000ff;">char</span> <span style="color: #000000;">c</span>);
+<span style="color: #0000ff;">void</span> <span style="color: #8b008b; font-weight: bold;">insert</span>(<span style="color: #0000ff;">iterator</span> <span style="color: #000000;">p</span>, <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">n</span>, <span style="color: #0000ff;">char</span> <span style="color: #000000;">c</span>);
+<span style="color: #0000ff;">iterator</span> <span style="color: #8b008b; font-weight: bold;">insert</span>(<span style="color: #0000ff;">iterator</span> <span style="color: #000000;">p</span>, <span style="color: #0000ff;">char</span> <span style="color: #000000;">c</span>);
+<span style="color: #0000ff; font-weight: bold;">template</span> &lt;<span style="color: #0000ff; font-weight: bold;">class</span> <span style="color: #0000ff;">InputIterator</span>&gt;
+<span style="color: #0000ff;">void</span> <span style="color: #8b008b; font-weight: bold;">insert</span>(<span style="color: #0000ff;">iterator</span> <span style="color: #000000;">p</span>, <span style="color: #0000ff;">InputIterator</span> <span style="color: #000000;">first</span>, <span style="color: #0000ff;">InputIterator</span> <span style="color: #000000;">last</span>);
+
+<span style="color: #0000ff;">string</span> &amp;<span style="color: #8b008b; font-weight: bold;">erase</span>(<span style="color: #0000ff;">size_t</span> <span style="color: #000000;">pos</span> = 0, <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">len</span> = npos);
+<span style="color: #0000ff;">iterator</span> <span style="color: #8b008b; font-weight: bold;">erase</span>(<span style="color: #0000ff;">iterator</span> <span style="color: #000000;">p</span>);
+<span style="color: #0000ff;">iterator</span> <span style="color: #8b008b; font-weight: bold;">erase</span>(<span style="color: #0000ff;">iterator</span> <span style="color: #000000;">first</span>, <span style="color: #0000ff;">iterator</span> <span style="color: #000000;">last</span>);
+
+<span style="color: #0000ff;">string</span> &amp;<span style="color: #8b008b; font-weight: bold;">replace</span>(<span style="color: #0000ff;">size_t</span> <span style="color: #000000;">pos</span>,  <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">len</span>,  <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">string</span> &amp;<span style="color: #000000;">str</span>);
+<span style="color: #0000ff;">string</span> &amp;<span style="color: #8b008b; font-weight: bold;">replace</span>(<span style="color: #0000ff;">iterator</span> <span style="color: #000000;">i1</span>, <span style="color: #0000ff;">iterator</span> <span style="color: #000000;">i2</span>, <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">string</span> &amp;<span style="color: #000000;">str</span>);
+<span style="color: #0000ff;">string</span> &amp;<span style="color: #8b008b; font-weight: bold;">replace</span>(<span style="color: #0000ff;">size_t</span> <span style="color: #000000;">pos</span>,  <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">len</span>,  <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">string</span> &amp;<span style="color: #000000;">str</span>,
+                 <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">subpos</span>, <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">sublen</span>);
+<span style="color: #0000ff;">string</span> &amp;<span style="color: #8b008b; font-weight: bold;">replace</span>(<span style="color: #0000ff;">size_t</span> <span style="color: #000000;">pos</span>,  <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">len</span>,  <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">s</span>);
+<span style="color: #0000ff;">string</span> &amp;<span style="color: #8b008b; font-weight: bold;">replace</span>(<span style="color: #0000ff;">iterator</span> <span style="color: #000000;">i1</span>, <span style="color: #0000ff;">iterator</span> <span style="color: #000000;">i2</span>, <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">s</span>);
+<span style="color: #0000ff;">string</span> &amp;<span style="color: #8b008b; font-weight: bold;">replace</span>(<span style="color: #0000ff;">size_t</span> <span style="color: #000000;">pos</span>,  <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">len</span>,  <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">s</span>, <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">n</span>);
+<span style="color: #0000ff;">string</span> &amp;<span style="color: #8b008b; font-weight: bold;">replace</span>(<span style="color: #0000ff;">iterator</span> <span style="color: #000000;">i1</span>, <span style="color: #0000ff;">iterator</span> <span style="color: #000000;">i2</span>, <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">s</span>, <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">n</span>);
+<span style="color: #0000ff;">string</span> &amp;<span style="color: #8b008b; font-weight: bold;">replace</span>(<span style="color: #0000ff;">size_t</span> <span style="color: #000000;">pos</span>,  <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">len</span>,  <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">n</span>, <span style="color: #0000ff;">char</span> <span style="color: #000000;">c</span>);
+<span style="color: #0000ff;">string</span> &amp;<span style="color: #8b008b; font-weight: bold;">replace</span>(<span style="color: #0000ff;">iterator</span> <span style="color: #000000;">i1</span>, <span style="color: #0000ff;">iterator</span> <span style="color: #000000;">i2</span>, <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">n</span>, <span style="color: #0000ff;">char</span> <span style="color: #000000;">c</span>);
+<span style="color: #0000ff; font-weight: bold;">template</span> &lt;<span style="color: #0000ff; font-weight: bold;">class</span> <span style="color: #0000ff;">InputIterator</span>&gt;
+<span style="color: #0000ff;">string</span> &amp;<span style="color: #8b008b; font-weight: bold;">replace</span>(<span style="color: #0000ff;">iterator</span> <span style="color: #000000;">i1</span>, <span style="color: #0000ff;">iterator</span> <span style="color: #000000;">i2</span>,
+                <span style="color: #0000ff;">InputIterator</span> <span style="color: #000000;">first</span>, <span style="color: #0000ff;">InputIterator</span> <span style="color: #000000;">last</span>);
+
+<span style="color: #0000ff;">void</span> <span style="color: #8b008b; font-weight: bold;">swap</span>(<span style="color: #0000ff;">string</span> &amp;<span style="color: #000000;">str</span>);
+<span style="color: #0000ff;">void</span> <span style="color: #8b008b; font-weight: bold;">pop_back</span>();
+</pre>
+</div>
+<p>
+复合加法，也就是+=实际上是在尾部添加，和append()一样，push_back()也是向尾部添加。
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #8b008b; font-weight: bold;">c_str</span>() <span style="color: #0000ff; font-weight: bold;">const</span>;              <span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#33719;&#21462;C&#23383;&#31526;&#20018;</span>
+<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #8b008b; font-weight: bold;">data</span>() <span style="color: #0000ff; font-weight: bold;">const</span>;
+<span style="color: #0000ff;">allocator_type</span> <span style="color: #8b008b; font-weight: bold;">get_allocator</span>() <span style="color: #0000ff; font-weight: bold;">const</span>;
+<span style="color: #0000ff;">size_t</span> <span style="color: #8b008b; font-weight: bold;">copy</span>(<span style="color: #0000ff;">char</span> *<span style="color: #000000;">s</span>, <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">len</span>, <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">pos</span> = 0) <span style="color: #0000ff; font-weight: bold;">const</span>;
+
+<span style="color: #0000ff;">size_t</span> <span style="color: #8b008b; font-weight: bold;">find</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">string</span> &amp;<span style="color: #000000;">str</span>, <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">pos</span> = 0) <span style="color: #0000ff; font-weight: bold;">const</span>;
+<span style="color: #0000ff;">size_t</span> <span style="color: #8b008b; font-weight: bold;">find</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">s</span>, <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">pos</span> = 0) <span style="color: #0000ff; font-weight: bold;">const</span>;
+<span style="color: #0000ff;">size_t</span> <span style="color: #8b008b; font-weight: bold;">find</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">s</span>, <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">pos</span>, <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">n</span>) <span style="color: #0000ff; font-weight: bold;">const</span>;
+<span style="color: #0000ff;">size_t</span> <span style="color: #8b008b; font-weight: bold;">find</span>(<span style="color: #0000ff;">char</span> <span style="color: #000000;">c</span>, <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">pos</span> = 0) <span style="color: #0000ff; font-weight: bold;">const</span>;
+
+<span style="color: #0000ff;">size_t</span> <span style="color: #8b008b; font-weight: bold;">find_first_of</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">string</span> &amp;<span style="color: #000000;">str</span>, <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">pos</span> = 0) <span style="color: #0000ff; font-weight: bold;">const</span>;
+<span style="color: #0000ff;">size_t</span> <span style="color: #8b008b; font-weight: bold;">find_first_of</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">s</span>, <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">pos</span> = 0) <span style="color: #0000ff; font-weight: bold;">const</span>;
+<span style="color: #0000ff;">size_t</span> <span style="color: #8b008b; font-weight: bold;">find_first_of</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">s</span>, <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">pos</span>, <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">n</span>) <span style="color: #0000ff; font-weight: bold;">const</span>;
+<span style="color: #0000ff;">size_t</span> <span style="color: #8b008b; font-weight: bold;">find_first_of</span>(<span style="color: #0000ff;">char</span> <span style="color: #000000;">c</span>, <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">pos</span> = 0) <span style="color: #0000ff; font-weight: bold;">const</span>;
+
+<span style="color: #0000ff;">string</span> <span style="color: #8b008b; font-weight: bold;">substr</span>(<span style="color: #0000ff;">size_t</span> <span style="color: #000000;">pos</span> = 0, <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">len</span> = npos) <span style="color: #0000ff; font-weight: bold;">const</span>;
+
+<span style="color: #0000ff;">int</span> <span style="color: #8b008b; font-weight: bold;">compare</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">string</span> &amp;<span style="color: #000000;">str</span>) <span style="color: #0000ff; font-weight: bold;">const</span>;
+<span style="color: #0000ff;">int</span> <span style="color: #8b008b; font-weight: bold;">compare</span>(<span style="color: #0000ff;">size_t</span> <span style="color: #000000;">pos</span>, <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">len</span>, <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">string</span> &amp;<span style="color: #000000;">str</span>) <span style="color: #0000ff; font-weight: bold;">const</span>;
+<span style="color: #0000ff;">int</span> <span style="color: #8b008b; font-weight: bold;">compare</span>(<span style="color: #0000ff;">size_t</span> <span style="color: #000000;">pos</span>, <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">len</span>, <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">string</span> &amp;<span style="color: #000000;">str</span>,
+             <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">subpos</span>, <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">sublen</span>) <span style="color: #0000ff; font-weight: bold;">const</span>;
+<span style="color: #0000ff;">int</span> <span style="color: #8b008b; font-weight: bold;">compare</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">s</span>) <span style="color: #0000ff; font-weight: bold;">const</span>;
+<span style="color: #0000ff;">int</span> <span style="color: #8b008b; font-weight: bold;">compare</span>(<span style="color: #0000ff;">size_t</span> <span style="color: #000000;">pos</span>, <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">len</span>, <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">s</span>) <span style="color: #0000ff; font-weight: bold;">const</span>;
+<span style="color: #0000ff;">int</span> <span style="color: #8b008b; font-weight: bold;">compare</span>(<span style="color: #0000ff;">size_t</span> <span style="color: #000000;">pos</span>, <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">len</span>, <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">s</span>,
+            <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">n</span>) <span style="color: #0000ff; font-weight: bold;">const</span>;
+</pre>
+</div>
+<dl class="org-dl">
+<dt> find() </dt><dd>  如果没找到，返回npos。
+<code>rfind()</code> 和find()形式相同，默认参数是npos。
+
+<p>
+find_first_of()系列包括find_last_of()、find_first_not_of()、
+find_last_not_of()。
+原型完全一致，find_first_of()用于查找指定串中的任意一个字符的首次出现，
+find_first_not_of()查找指定串以外任意一个字符的首次出现。
+</p>
+</dd>
+</dl>
+</div>
+</div>
+
+<div id="outline-container-sec-4" class="outline-2">
+<h2 id="sec-4"><span class="section-number-2">4</span> 库函数</h2>
+<div class="outline-text-2" id="text-4">
+<p>
+库函数用于操作string但是它不属于成员函数。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #0000ff;">string</span> <span style="color: #0000ff; font-weight: bold;">operator</span><span style="color: #8b008b; font-weight: bold;">+</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">string</span> &amp;<span style="color: #000000;">lhs</span>, <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">string</span> &amp;<span style="color: #000000;">rhs</span>);
+<span style="color: #0000ff;">string</span> <span style="color: #0000ff; font-weight: bold;">operator</span><span style="color: #8b008b; font-weight: bold;">+</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">string</span> &amp;<span style="color: #000000;">lhs</span>, <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span>   *<span style="color: #000000;">rhs</span>);
+<span style="color: #0000ff;">string</span> <span style="color: #0000ff; font-weight: bold;">operator</span><span style="color: #8b008b; font-weight: bold;">+</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span>   *<span style="color: #000000;">lhs</span>, <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">string</span> &amp;<span style="color: #000000;">rhs</span>);
+<span style="color: #0000ff;">string</span> <span style="color: #0000ff; font-weight: bold;">operator</span><span style="color: #8b008b; font-weight: bold;">+</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">string</span> &amp;<span style="color: #000000;">lhs</span>, <span style="color: #0000ff;">char</span>          <span style="color: #000000;">rhs</span>);
+<span style="color: #0000ff;">string</span> <span style="color: #0000ff; font-weight: bold;">operator</span><span style="color: #8b008b; font-weight: bold;">+</span>(<span style="color: #0000ff;">char</span>          <span style="color: #000000;">lhs</span>, <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">string</span> &amp;<span style="color: #000000;">rhs</span>);
+
+<span style="color: #0000ff;">bool</span> <span style="color: #0000ff; font-weight: bold;">operator</span><span style="color: #8b008b; font-weight: bold;">==</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">string</span> &amp;<span style="color: #000000;">lhs</span>, <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">string</span> &amp;<span style="color: #000000;">rhs</span>);
+<span style="color: #0000ff;">bool</span> <span style="color: #0000ff; font-weight: bold;">operator</span><span style="color: #8b008b; font-weight: bold;">==</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span>   *<span style="color: #000000;">lhs</span>, <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">string</span> &amp;<span style="color: #000000;">rhs</span>);
+<span style="color: #0000ff;">bool</span> <span style="color: #0000ff; font-weight: bold;">operator</span><span style="color: #8b008b; font-weight: bold;">==</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">string</span> &amp;<span style="color: #000000;">lhs</span>, <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span>   *<span style="color: #000000;">rhs</span>);
+
+<span style="color: #0000ff;">void</span> <span style="color: #8b008b; font-weight: bold;">swap</span>(<span style="color: #0000ff;">string</span> &amp;<span style="color: #000000;">x</span>, <span style="color: #0000ff;">string</span> &amp;<span style="color: #000000;">y</span>);
+
+<span style="color: #0000ff;">istream</span> &amp;<span style="color: #0000ff; font-weight: bold;">operator</span><span style="color: #8b008b; font-weight: bold;">&gt;&gt;</span>(<span style="color: #0000ff;">istream</span> &amp;<span style="color: #000000;">is</span>, <span style="color: #0000ff;">string</span> &amp;<span style="color: #000000;">str</span>);
+<span style="color: #0000ff;">ostream</span> &amp;<span style="color: #0000ff; font-weight: bold;">operator</span><span style="color: #8b008b; font-weight: bold;">&lt;&lt;</span>(<span style="color: #0000ff;">ostream</span> &amp;<span style="color: #000000;">os</span>, <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">string</span> &amp;<span style="color: #000000;">str</span>);
+
+<span style="color: #0000ff;">istream</span> &amp;<span style="color: #8b008b; font-weight: bold;">getline</span>(<span style="color: #0000ff;">istream</span> &amp;<span style="color: #000000;">is</span>, <span style="color: #0000ff;">string</span> &amp;<span style="color: #000000;">str</span>, <span style="color: #0000ff;">char</span> <span style="color: #000000;">delim</span>);
+<span style="color: #0000ff;">istream</span> &amp;<span style="color: #8b008b; font-weight: bold;">getline</span>(<span style="color: #0000ff;">istream</span> &amp;<span style="color: #000000;">is</span>, <span style="color: #0000ff;">string</span> &amp;<span style="color: #000000;">str</span>);
+</pre>
+</div>
+
+<p>
+比较操作符==、!=、&lt;、&lt;=、&gt;、&gt;=具有完全相同的函数原型和用法，
+因此只需要参考==即可。
+</p>
+</div>
+</div>
+</div>
+</body>
+</html>

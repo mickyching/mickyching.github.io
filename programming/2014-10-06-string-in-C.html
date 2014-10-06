@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<title>String in C</title>
+<meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta  name="generator" content="Org-mode" />
+<meta  name="author" content="Micky Ching" />
+<link rel="stylesheet" type="text/css" href="../style/default.css" />
+
+<script type="text/javascript" src="../style/default.js">
+/**
+ *
+ * @source: ../style/default.js
+ *
+ * @licstart  The following is the entire license notice for the
+ *  JavaScript code in ../style/default.js.
+ *
+ * Copyright (C) 2012-2013 Free Software Foundation, Inc.
+ *
+ *
+ * The JavaScript code in this tag is free software: you can
+ * redistribute it and/or modify it under the terms of the GNU
+ * General Public License (GNU GPL) as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option)
+ * any later version.  The code is distributed WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+ *
+ * As additional permission under GNU GPL version 3 section 7, you
+ * may distribute non-source (e.g., minimized or compacted) forms of
+ * that code without the copy of the GNU GPL normally required by
+ * section 4, provided you include this license notice and a URL
+ * through which recipients can access the Corresponding Source.
+ *
+ * @licend  The above is the entire license notice
+ * for the JavaScript code in ../style/default.js.
+ *
+ */
+</script>
+
+<script type="text/javascript">
+
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+
+<!--/*--><![CDATA[/*><!--*/
+org_html_manager.set("TOC_DEPTH", "4");
+org_html_manager.set("LINK_HOME", "");
+org_html_manager.set("LINK_UP", "");
+org_html_manager.set("LOCAL_TOC", "0");
+org_html_manager.set("VIEW_BUTTONS", "0");
+org_html_manager.set("MOUSE_HINT", "underline");
+org_html_manager.set("FIXED_TOC", "0");
+org_html_manager.set("TOC", "0");
+org_html_manager.set("VIEW", "showall");
+org_html_manager.setup();  // activate after the parameters are set
+/*]]>*///-->
+</script>
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+</head>
+<body>
+<div id="content">
+<h1 class="title">String in C</h1>
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#sec-1">1. 库函数</a></li>
+</ul>
+</div>
+</div>
+<p>
+C语言的字符串很好理解，本身是一个数组，只不过对字符串的最后一个元素有特别的要求，
+最后一个元素必须是null。
+但是C语言也提供了一系列的库函数来操作字符串，避免自己去实现相关的操作。
+</p>
+<div id="outline-container-sec-1" class="outline-2">
+<h2 id="sec-1"><span class="section-number-2">1</span> 库函数</h2>
+<div class="outline-text-2" id="text-1">
+<p>
+C语言的库函数放在一个叫cstring的头文件中，其实它是对string.h的封装，
+因为C++有命名空间的概念，所以ctring就是加了一层命名空间。
+对于写C程序的人来说，只需要包含string.h即可。
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#31934;&#30830;&#22797;&#21046;num&#20010;&#23383;&#33410;</span>
+<span style="color: #0000ff;">void</span> *<span style="color: #8b008b; font-weight: bold;">memcpy</span>(<span style="color: #0000ff;">void</span> *<span style="color: #000000;">destination</span>, <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">void</span> *<span style="color: #000000;">source</span>, <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">num</span>);
+<span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">memmove&#26356;&#24378;&#22823;&#30340;&#22320;&#26041;&#22312;&#20110;&#20004;&#20010;&#20869;&#23384;&#27573;&#21487;&#20197;&#26377;&#20132;&#21449;&#65292;</span>
+<span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">memcpy&#21017;&#19981;&#33021;&#20445;&#35777;&#22312;&#26377;&#20132;&#21449;&#30340;&#24773;&#20917;&#36824;&#33021;&#27491;&#30830;&#24037;&#20316;&#12290;</span>
+<span style="color: #0000ff;">void</span> *<span style="color: #8b008b; font-weight: bold;">memmove</span>(<span style="color: #0000ff;">void</span> *<span style="color: #000000;">destination</span>, <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">void</span> *<span style="color: #000000;">source</span>, <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">num</span>);
+<span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#30446;&#26631;&#25968;&#32452;&#35201;&#33021;&#22815;&#35013;&#24471;&#19979;&#26032;&#30340;&#23383;&#31526;&#20018;&#65292;&#20063;&#23601;&#26159;&#38656;&#35201;&#39044;&#20808;&#20445;&#35777;&#26377;&#36275;&#22815;&#30340;&#31354;&#38388;</span>
+<span style="color: #0000ff;">char</span> *<span style="color: #8b008b; font-weight: bold;">strcpy</span>(<span style="color: #0000ff;">char</span> *<span style="color: #000000;">destination</span>, <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">source</span>);
+<span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#26368;&#22810;&#22797;&#21046;num&#20010;&#23383;&#31526;&#65292;&#20855;&#20307;&#38271;&#24230;&#26377;&#28304;&#23383;&#31526;&#20018;&#30340;&#38271;&#24230;&#20915;&#23450;</span>
+<span style="color: #0000ff;">char</span> *<span style="color: #8b008b; font-weight: bold;">strncpy</span>(<span style="color: #0000ff;">char</span> *<span style="color: #000000;">destination</span>, <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">source</span>, <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">num</span>);
+<span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#35843;&#29992;&#32773;&#39318;&#20808;&#35201;&#20445;&#35777;&#30446;&#26631;&#26377;&#36275;&#22815;&#30340;&#31354;&#38388;&#65292;&#20854;&#27425;&#36824;&#38656;&#35201;&#20445;&#35777;&#27809;&#26377;&#20132;&#21449;</span>
+<span style="color: #0000ff;">char</span> *<span style="color: #8b008b; font-weight: bold;">strcat</span>(<span style="color: #0000ff;">char</span> *<span style="color: #000000;">destination</span>, <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">source</span>);
+<span style="color: #0000ff;">char</span> *<span style="color: #8b008b; font-weight: bold;">strncat</span>(<span style="color: #0000ff;">char</span> *<span style="color: #000000;">destination</span>, <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">source</span>, <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">num</span>);
+<span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#31616;&#21333;&#30340;&#36880;&#23383;&#33410;&#27604;&#36739;</span>
+<span style="color: #0000ff;">int</span> <span style="color: #8b008b; font-weight: bold;">memcmp</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">void</span> *<span style="color: #000000;">ptr1</span>, <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">void</span> *<span style="color: #000000;">ptr2</span>, <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">num</span>);
+<span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#23383;&#31526;&#20018;&#27604;&#36739;</span>
+<span style="color: #0000ff;">int</span> <span style="color: #8b008b; font-weight: bold;">strcmp</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">str1</span>, <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">str2</span>);
+<span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#20063;&#26159;&#23383;&#31526;&#20018;&#27604;&#36739;&#65292;&#20294;&#34892;&#20026;&#20381;&#36182;&#20110;LC_COLLATE</span>
+<span style="color: #0000ff;">int</span> <span style="color: #8b008b; font-weight: bold;">strcoll</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">str1</span>, <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">str2</span>);
+<span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#21482;&#27604;&#36739;&#21069;num&#20010;&#23383;&#31526;</span>
+<span style="color: #0000ff;">int</span> <span style="color: #8b008b; font-weight: bold;">strncmp</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">str1</span>, <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">str2</span>, <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">num</span>);
+<span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#26681;&#25454;LC_COLLATE&#23558;&#28304;&#23383;&#31526;&#20018;&#36716;&#25442;&#20026;&#30446;&#26631;&#23383;&#31526;&#20018;</span>
+<span style="color: #0000ff;">size_t</span> <span style="color: #8b008b; font-weight: bold;">strxfrm</span>(<span style="color: #0000ff;">char</span> *<span style="color: #000000;">destination</span>, <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">source</span>, <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">num</span>);
+<span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#29992;&#20110;&#25628;&#32034;value&#30340;&#31532;&#19968;&#27425;&#20986;&#29616;&#20301;&#32622;&#65292;&#22914;&#26524;&#27809;&#26377;&#25214;&#21040;&#36820;&#22238;NULL</span>
+<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">void</span> *<span style="color: #8b008b; font-weight: bold;">memchr</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">void</span> *<span style="color: #000000;">ptr</span>, <span style="color: #0000ff;">int</span> <span style="color: #000000;">value</span>, <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">num</span>);
+      <span style="color: #0000ff;">void</span> *<span style="color: #8b008b; font-weight: bold;">memchr</span>(<span style="color: #0000ff;">void</span> *<span style="color: #000000;">ptr</span>, <span style="color: #0000ff;">int</span> <span style="color: #000000;">value</span>, <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">num</span>);
+<span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#29992;&#26469;&#25628;&#32034;&#25351;&#23450;&#23383;&#31526;&#30340;&#31532;&#19968;&#27425;&#20986;&#29616;&#20301;&#32622;</span>
+<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #8b008b; font-weight: bold;">strchr</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">str</span>, <span style="color: #0000ff;">int</span> <span style="color: #000000;">character</span>);
+      <span style="color: #0000ff;">char</span> *<span style="color: #8b008b; font-weight: bold;">strchr</span>(<span style="color: #0000ff;">char</span> *<span style="color: #000000;">str</span>, <span style="color: #0000ff;">int</span> <span style="color: #000000;">character</span>);
+<span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#26597;&#25214;&#26368;&#21518;&#19968;&#27425;&#20986;&#29616;&#65292;&#22914;&#26524;&#27809;&#26377;&#25214;&#21040;&#36820;&#22238;NULL&#65292;&#27880;&#24847;&#21487;&#20197;&#29992;&#26469;&#26597;&#25214;null</span>
+<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #8b008b; font-weight: bold;">strrchr</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">str</span>, <span style="color: #0000ff;">int</span> <span style="color: #000000;">character</span>);
+      <span style="color: #0000ff;">char</span> *<span style="color: #8b008b; font-weight: bold;">strrchr</span>(<span style="color: #0000ff;">char</span> *<span style="color: #000000;">str</span>, <span style="color: #0000ff;">int</span> <span style="color: #000000;">character</span>);
+<span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#29992;&#26469;&#25628;&#32034;str2&#20013;&#20219;&#24847;&#19968;&#20010;&#23383;&#31526;&#30340;&#20986;&#29616;&#65292;&#36820;&#22238;&#20540;&#26159;&#21069;&#38754;&#27809;&#26377;&#22312;str2&#20013;&#20986;&#29616;&#30340;&#23383;&#31526;&#20010;&#25968;</span>
+<span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#22240;&#20026;&#25628;&#32034;&#21253;&#21547;null&#23383;&#31526;&#65292;&#25152;&#20197;&#21363;&#20415;&#27809;&#26377;&#20986;&#29616;&#65292;&#20063;&#20250;&#36820;&#22238;str1&#30340;&#38271;&#24230;</span>
+<span style="color: #0000ff;">size_t</span> <span style="color: #8b008b; font-weight: bold;">strcspn</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">str1</span>, <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">str2</span>);
+<span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#21644;strcspn&#30340;&#21306;&#21035;&#26377;&#20004;&#28857;&#65292;&#31532;&#19968;&#26159;&#26597;&#25214;&#20174;str1&#24320;&#22836;&#26377;&#22810;&#23569;&#20010;&#23383;&#31526;&#23646;&#20110;str2&#65292;</span>
+<span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#31532;&#20108;&#26159;&#19981;&#21253;&#25324;&#23545;null&#23383;&#31526;&#30340;&#25628;&#32034;&#12290;</span>
+<span style="color: #0000ff;">size_t</span> <span style="color: #8b008b; font-weight: bold;">strspn</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">str1</span>, <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">str2</span>);
+<span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#20063;&#26159;&#25628;&#32034;str2&#20013;&#20219;&#24847;&#23383;&#31526;&#30340;&#20986;&#29616;&#65292;&#21482;&#19981;&#36807;&#25442;&#25104;&#20102;&#25214;&#21040;&#30340;&#25351;&#38024;&#65292;</span>
+<span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#22914;&#26524;&#27809;&#26377;&#25214;&#21040;&#23601;&#36820;&#22238;NULL</span>
+<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #8b008b; font-weight: bold;">strpbrk</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">str1</span>, <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">str2</span>);
+      <span style="color: #0000ff;">char</span> *<span style="color: #8b008b; font-weight: bold;">strpbrk</span>(<span style="color: #0000ff;">char</span> *<span style="color: #000000;">str1</span>, <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">str2</span>);
+<span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#29992;&#26469;&#26597;&#25214;&#25972;&#20010;str2&#22312;str1&#31532;&#19968;&#27425;&#20986;&#29616;&#65292;&#22914;&#26524;&#27809;&#26377;&#25214;&#21040;&#23601;&#36820;&#22238;NULL</span>
+<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #8b008b; font-weight: bold;">strstr</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">str1</span>, <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">str2</span>);
+      <span style="color: #0000ff;">char</span> *<span style="color: #8b008b; font-weight: bold;">strstr</span>(<span style="color: #0000ff;">char</span> *<span style="color: #000000;">str1</span>, <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">str2</span>);
+<span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#23558;str&#20998;&#21106;&#65292;&#20998;&#21106;&#23383;&#31526;&#30001;delimiters&#20915;&#23450;&#65292;&#20854;&#20013;&#20986;&#29616;&#30340;&#20219;&#24847;&#23383;&#31526;&#37117;&#20316;&#20026;&#20998;&#21106;&#31526;</span>
+<span style="color: #0000ff;">char</span> *<span style="color: #8b008b; font-weight: bold;">strtok</span>(<span style="color: #0000ff;">char</span> *<span style="color: #000000;">str</span>, <span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">delimiters</span>);
+<span style="color: #0000ff;">void</span> *<span style="color: #8b008b; font-weight: bold;">memset</span>(<span style="color: #0000ff;">void</span> *<span style="color: #000000;">ptr</span>, <span style="color: #0000ff;">int</span> <span style="color: #000000;">value</span>, <span style="color: #0000ff;">size_t</span> <span style="color: #000000;">num</span>);
+<span style="color: #0000ff;">char</span> *<span style="color: #8b008b; font-weight: bold;">strerror</span>(<span style="color: #0000ff;">int</span> <span style="color: #000000;">errnum</span>);         <span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#23558;&#38169;&#35823;&#30721;&#36716;&#25442;&#20026;&#23383;&#31526;&#20018;</span>
+<span style="color: #0000ff;">size_t</span> <span style="color: #8b008b; font-weight: bold;">strlen</span>(<span style="color: #0000ff; font-weight: bold;">const</span> <span style="color: #0000ff;">char</span> *<span style="color: #000000;">str</span>);     <span style="color: #228b22; font-style: italic;">// </span><span style="color: #228b22; font-style: italic;">&#35745;&#31639;&#23383;&#31526;&#20018;&#38271;&#24230;</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+</body>
+</html>
