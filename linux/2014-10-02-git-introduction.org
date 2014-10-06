@@ -124,10 +124,26 @@ msmtp的配置文件位于~/.msmtprc，大致格式如下。
   account default: <yourname>
 #+END_SRC
 
+** 子模块
+添加子模块。
+#+BEGIN_SRC sh
+  git submodule add [-b <branch>] [--name <name>]
+  [--] <repository> [<path>]
+#+END_SRC
+
+如果一个仓库已经包含了submodule，下载完这个仓库之后执行如下命令，
+即可更新子模块。
+#+BEGIN_SRC sh
+  git submodule update --init
+#+END_SRC
+也可以使用如下命令在克隆仓库的时候一步到位克隆子模块。
+#+BEGIN_SRC sh
+  git clone --recursive <repo-url>
+#+END_SRC
+
 * 配置文件
 ** 全局配置
-全局配置文件位于[[file:src/scripts/cfg/gitconfig.cfg][=~/.gitconfig=]]， 如下所示。
-#+INCLUDE: src/scripts/cfg/gitconfig.cfg src sh
+全局配置文件位于[[https://github.com/mickyching/exbin/blob/master/cfg/gitconfig.cfg][ ~/.gitconfig]] 。
 
 * 高级用法
 在首次提交前，添加了错误文件时，由于没有HEAD，不能使用git reset HEAD撤销，
