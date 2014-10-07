@@ -11,6 +11,101 @@ Org mode 是emacs下写文档的一个主模式，
 
 由于Org mode本身过于强大，本文只有能力介绍一小部分特性，
 并在后续逐步完善。
+* 文档操作
+** 基本文档操作
+以星号开头加空格作为章节标识符。
+TAB键用来展开子树，S-TAB用来展开所有章节。
+可以在文档开头写下如下标记来指定打开时的状态：
+#+BEGIN_SRC org
+  ,#+STARTUP: content
+#+END_SRC
+可选参数包括：overview、content、showall。
+** 章节操作
+| 按键           | 功能                             |
+|----------------+----------------------------------|
+| C-c C-[n/p]    | next/previous heading            |
+| C-c C-[f/b]    | next/previous same level         |
+| C-c C-u        | upper level heading              |
+| M-RET          | insert new same level heading    |
+| M-S-RET        | insert new same level TODO       |
+| M-LEFT/RIGHT   | promote/demote heading one level |
+| M-S-LEFT/RIGHT | promote/demote subtree one level |
+| M-S-UP/DOWN    | move subtree up/down             |
+| C-c *          | 将本行设置为标题/正文            |
+| C-c C-j        | 切换到大纲浏览状态               |
+
+** 列表操作
+无序的列表用-/+开头，有序的列表以1.或1)开头。
+描述列表用::分割项目和描述。
+
+| 按键           | 功能                         |
+|----------------+------------------------------|
+| TAB            | 可以折叠列表                 |
+| M-RET          | 可以插入一个item             |
+| M-S-RET        | insert a item with checkbox  |
+| M-S-UP/DOWN    | move item up/down            |
+| M-LEFT/RIGHT   | de/increase item indent      |
+| M-S-LEFT/RIGHT | de/increase [sub]item indent |
+| C-c C-c        | toggle state of checkbox     |
+| C-c -          | cycle list level             |
+
+** 脚注操作
+| 按键      | 功能                     |
+|-----------+--------------------------|
+| C-c C-x f | 跳转到定义或首次引用位置 |
+| C-c C-c   | 在定义和引用间跳转       |
+
+** 链接操作
+#+BEGIN_SRC org
+  [[link][description]] 或者 [[link]]
+#+END_SRC
+支持的链接形式有：
+#+BEGIN_SRC text
+http://www.astro.uva.nl/~dominik        on the web
+file:/home/dominik/images/jupiter.jpg   file, absolute path
+/home/dominik/images/jupiter.jpg        same as above
+file:papers/last.pdf                    file, relative path
+file:~/code/main.c::255                 Find line 255
+file:~/xx.org::My Target                Find <<My Target>>
+file:~/xx.org::#my-custom-id            Find entry with custom id
+docview:papers/last.pdf::NNN            open file at page NNN
+id:B7423F4D-2E8A-471B-8810-C40F074      Link to heading by ID
+news:comp.emacs                         Usenet link
+mailto:adent@galaxy.net                 Mail link
+vm:folder                               VM folder link
+vm:folder#id                            VM message link
+wl:folder#id                            WANDERLUST message link
+mhe:folder#id                           MH-E message link
+rmail:folder#id                         RMAIL message link
+gnus:group#id                           Gnus article link
+bbdb:R.*Stallman                        BBDB link (with regexp)
+irc:/irc.com/#emacs/bob                 IRC link
+info:org:External%20links               Info node link
+#+END_SRC
+| 按键    | 功能      |
+|---------+-----------|
+| C-c C-l | 编辑链接  |
+| C-c C-o | open link |
+
+* 插入表格
+插图和表格一般可以设置名字：
+#+BEGIN_SRC org
+  ,#+CAPTION: table or figure caption
+  ,#+NAME:   tbl:basic-data
+#+END_SRC
+| 按键      | 功能                           |
+|-----------+--------------------------------|
+| C-c \vert | 创建/转换表格                  |
+| C-c C-c   | 整理表格                       |
+| TAB/S-TAB | 移动到下一格/上一格            |
+| M-S-LEFT  | 删除当前列                     |
+| M-S-RIGHT | 在左侧插入一列                 |
+| M-UP/DOWN | 当前行上/下移                  |
+| M-S-UP    | 删除当前行                     |
+| M-S-DOWN  | 在当前行上方插入一行           |
+| C-c -     | 在下方插入一行                 |
+| C-c RET   | 在下方插入分割线，并跳到下一行 |
+| C-c ^     | 排序                           |
 
 * 插入源代码
 必备参考：
@@ -58,6 +153,8 @@ minted环境使用的其实是python的pygmentize语法高亮，
     <body>
   ,#+END_SRC
 
+  ,#+INCLUDE: <file> src <language>
+
   src_<language>{<body>}
   src_<language>[<header arguments>]{<body>}
 #+END_SRC
@@ -98,6 +195,65 @@ org mode会为我们创建一个临时缓冲区，就像编辑本地语言一样
   : 15
 #+END_SRC
 
+** 其它环境
+EXAMPLE排版风格类似SRC，但是因为没有使用minted，
+所以没有额外修饰。
+QUOTE会自动短行，但是不会在每一行按照原样换行。
+VERSE会按照原样换行，行首的空白会视为缩进，
+行中的多个空白会被合并，长行会自动换行。
+CENTER类似QUOTE。使用如下命令能达到和SRC一样的效果：
+* 事务管理
+** TODO操作
+| 按键         | 功能                                  |
+|--------------+---------------------------------------|
+| C-c C-t      | 旋转TODO状态                          |
+| S-LEFT/RIGHT | select preceding/following TODO state |
+| C-c / t      | view TODO item in sparse tree         |
+| C-c a t      | show all global TODO list             |
+| M-S-RET      | insert a new TODO entry               |
+| C-c ,        | 设置优先级                            |
+| S-UP/DOWN    | 增加/减少优先级                       |
+| C-c C-c      | Toggle checkbox status                |
+** TAG操作
+添加TAG：
+#+BEGIN_SRC org
+  ,#+TAGS: @work(w)  @home(h)
+  ,#+TAGS: { @read : @read_book  @read_ebook }
+#+END_SRC
+| 按键    | 功能        |
+|---------+-------------|
+| C-c C-q | 插入新的TAG |
+| C-c C-c | 插入新的TAG |
+** 属性
+| 按键      | 功能     |
+|-----------+----------|
+| C-c C-x p | 设置属性 |
+| C-c C-c d | 删除属性 |
+** 时间
+| 按键    | 功能                   |
+|---------+------------------------|
+| C-c .   | 插入时间戳             |
+| C-c !   | 插入inactive timestamp |
+| S-lrud  | 在日历表移动           |
+| C-c C-d | add deadline           |
+| C-c C-s | add scheduled          |
 * 插入特殊字符
 必备参考：
 - [[http://orgmode.org/worg/org-symbols.html][Symbols in Org-mode]]
+
+** LaTeX特殊字符
+- LaTeX特殊字符 :: \vert \star _ \ $ # % & \ {} ~
+
+#+CAPTION: Latex字号表
+| 字号名字     |  10pt |  11pt |  12pt |
+|--------------+-------+-------+-------|
+| tiny         |     5 |     6 |     6 |
+| scriptsize   |     7 |     8 |     8 |
+| footnotesize |     8 |     9 |    10 |
+| small        |     9 |    10 | 10.95 |
+| normalsize   |    10 | 10.95 |    12 |
+| large        |    12 |    12 |  14.4 |
+| Large        |  14.4 |  14.4 | 17.28 |
+| LARGE        | 17.28 | 17.28 | 20.74 |
+| huge         | 20.74 | 20.74 | 24.88 |
+| Huge         | 24.88 | 24.88 | 24.88 |
