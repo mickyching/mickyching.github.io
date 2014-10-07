@@ -67,3 +67,37 @@ gh-pages使用jekyll引擎，故加上jekyll输出。
 因为在jekyll下必须用绝对路径，否则就无法解析链接，
 所以脚本要利用这个约定来进行路径转换。
 所有的附件将被导入到 =~/.org-pages/source/= 中去。
+
+* jekyll用法
+除了直接发布到gh-pages，也可以在本地用jekyll开启服务。
+这样在发布前能够预览。
+** 安装
+#+BEGIN_SRC sh
+  sudo apt-get install ruby-dev nodejs build-essential
+  gem install jekyll
+  jekyll new my-site
+  cd my-site
+  jekyll serve
+#+END_SRC
+对于ubuntu-12.04需要先卸载ruby1.8，安装ruby1.9.1 ruby1.9.1-dev。
+
+fedora的依赖软件可能是如下几个
+#+BEGIN_SRC sh
+  sudo yum install -y gcc ruby-devel nodejs libxml2 \
+  libxml2-devel libxslt libxslt-devel
+#+END_SRC
+
+启动jekyll的时候可能出现如下错误
+#+BEGIN_VERSE
+  jekyll 2.4.0 | Error:  Address already in use - bind(2)
+#+END_VERSE
+这有可能是端口被占用，这时最好能够修改一下端口，
+可以通过_config.yml指定port来修改。
+** 配置
+主要配置文件为_config.yml，这里可以设置联系方式以及一些参数的默认值。
+设置默认值的好处是不用在每篇文档开头去设定。
+
+文档位于_posts目录，对于文档的命名有特殊要求，前缀必须是日期。
+
+jekyll配置参考
+- [[http://jekyllrb.com/docs/configuration/][jekyll configure]]

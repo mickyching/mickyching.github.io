@@ -142,6 +142,12 @@ for the JavaScript code in this tag.
 <li><a href="#sec-1-4">1.4. 生成jekyll</a></li>
 </ul>
 </li>
+<li><a href="#sec-2">2. jekyll用法</a>
+<ul>
+<li><a href="#sec-2-1">2.1. 安装</a></li>
+<li><a href="#sec-2-2">2.2. 配置</a></li>
+</ul>
+</li>
 </ul>
 </div>
 </div>
@@ -263,6 +269,75 @@ gh-pages使用jekyll引擎，故加上jekyll输出。
 所以脚本要利用这个约定来进行路径转换。
 所有的附件将被导入到 <code>~/.org-pages/source/</code> 中去。
 </p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-2" class="outline-2">
+<h2 id="sec-2"><span class="section-number-2">2</span> jekyll用法</h2>
+<div class="outline-text-2" id="text-2">
+<p>
+除了直接发布到gh-pages，也可以在本地用jekyll开启服务。
+这样在发布前能够预览。
+</p>
+</div>
+<div id="outline-container-sec-2-1" class="outline-3">
+<h3 id="sec-2-1"><span class="section-number-3">2.1</span> 安装</h3>
+<div class="outline-text-3" id="text-2-1">
+<div class="org-src-container">
+
+<pre class="src src-sh">sudo apt-get install ruby-dev nodejs build-essential
+gem install jekyll
+jekyll new my-site
+<span style="color: #000000;">cd</span> my-site
+jekyll serve
+</pre>
+</div>
+<p>
+对于ubuntu-12.04需要先卸载ruby1.8，安装ruby1.9.1 ruby1.9.1-dev。
+</p>
+
+<p>
+fedora的依赖软件可能是如下几个
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">sudo yum install -y gcc ruby-devel nodejs libxml2 <span style="color: #ff0000;">\</span>
+libxml2-devel libxslt libxslt-devel
+</pre>
+</div>
+
+<p>
+启动jekyll的时候可能出现如下错误
+</p>
+<p class="verse">
+jekyll 2.4.0 | Error:  Address already in use - bind(2)<br  />
+</p>
+<p>
+这有可能是端口被占用，这时最好能够修改一下端口，
+可以通过_config.yml指定port来修改。
+</p>
+</div>
+</div>
+<div id="outline-container-sec-2-2" class="outline-3">
+<h3 id="sec-2-2"><span class="section-number-3">2.2</span> 配置</h3>
+<div class="outline-text-3" id="text-2-2">
+<p>
+主要配置文件为_config.yml，这里可以设置联系方式以及一些参数的默认值。
+设置默认值的好处是不用在每篇文档开头去设定。
+</p>
+
+<p>
+文档位于_posts目录，对于文档的命名有特殊要求，前缀必须是日期。
+</p>
+
+<p>
+jekyll配置参考
+</p>
+<ul class="org-ul">
+<li><a href="http://jekyllrb.com/docs/configuration/">jekyll configure</a>
+</li>
+</ul>
 </div>
 </div>
 </div>
