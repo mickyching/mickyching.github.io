@@ -6,11 +6,13 @@
 
 * tools (1)
 - [[file:tools/2014-10-05-website-navigation.html][2014-10-05 website navigation]]
-* programming (7)
+* programming (9)
+- [[file:programming/2014-10-07-emacs-usage.html][2014-10-07 emacs usage]]
 - [[file:programming/2014-10-06-useful-func-in-C.html][2014-10-06 useful func in C]]
 - [[file:programming/2014-10-06-string-in-C.html][2014-10-06 string in C]]
 - [[file:programming/2014-10-06-string-in-C++.html][2014-10-06 string in C++]]
 - [[file:programming/2014-10-06-clanguage-notes.html][2014-10-06 clanguage notes]]
+- [[file:programming/2014-10-06-C++-simple-exercises.html][2014-10-06 C++ simple exercises]]
 - [[file:programming/2014-10-04-emacs-org-mode.html][2014-10-04 emacs org mode]]
 - [[file:programming/2014-10-03-emacs-magit.html][2014-10-03 emacs magit]]
 - [[file:programming/2014-09-20-emacs-configuration.html][2014-09-20 emacs configuration]]
