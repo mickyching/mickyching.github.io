@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<title>Python Modules</title>
+<meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta  name="generator" content="Org-mode" />
+<meta  name="author" content="Micky Ching" />
+<link rel="stylesheet" type="text/css" href="../style/default.css" />
+
+<script type="text/javascript" src="../style/default.js">
+/**
+ *
+ * @source: ../style/default.js
+ *
+ * @licstart  The following is the entire license notice for the
+ *  JavaScript code in ../style/default.js.
+ *
+ * Copyright (C) 2012-2013 Free Software Foundation, Inc.
+ *
+ *
+ * The JavaScript code in this tag is free software: you can
+ * redistribute it and/or modify it under the terms of the GNU
+ * General Public License (GNU GPL) as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option)
+ * any later version.  The code is distributed WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+ *
+ * As additional permission under GNU GPL version 3 section 7, you
+ * may distribute non-source (e.g., minimized or compacted) forms of
+ * that code without the copy of the GNU GPL normally required by
+ * section 4, provided you include this license notice and a URL
+ * through which recipients can access the Corresponding Source.
+ *
+ * @licend  The above is the entire license notice
+ * for the JavaScript code in ../style/default.js.
+ *
+ */
+</script>
+
+<script type="text/javascript">
+
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+
+<!--/*--><![CDATA[/*><!--*/
+org_html_manager.set("TOC_DEPTH", "4");
+org_html_manager.set("LINK_HOME", "");
+org_html_manager.set("LINK_UP", "");
+org_html_manager.set("LOCAL_TOC", "0");
+org_html_manager.set("VIEW_BUTTONS", "0");
+org_html_manager.set("MOUSE_HINT", "underline");
+org_html_manager.set("FIXED_TOC", "0");
+org_html_manager.set("TOC", "0");
+org_html_manager.set("VIEW", "showall");
+org_html_manager.setup();  // activate after the parameters are set
+/*]]>*///-->
+</script>
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+</head>
+<body>
+<div id="content">
+<h1 class="title">Python Modules</h1>
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#sec-1">1. os module</a>
+<ul>
+<li><a href="#sec-1-1">1.1. os.path</a></li>
+</ul>
+</li>
+<li><a href="#sec-2">2. filecmp</a></li>
+<li><a href="#sec-3">3. random</a></li>
+<li><a href="#sec-4">4. string</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-1" class="outline-2">
+<h2 id="sec-1"><span class="section-number-2">1</span> os module</h2>
+<div class="outline-text-2" id="text-1">
+<div class="org-src-container">
+
+<pre class="src src-python">os.uname()
+os.mkdir(path[, mode])
+</pre>
+</div>
+</div>
+
+<div id="outline-container-sec-1-1" class="outline-3">
+<h3 id="sec-1-1"><span class="section-number-3">1.1</span> os.path</h3>
+<div class="outline-text-3" id="text-1-1">
+<div class="org-src-container">
+
+<pre class="src src-python">os.path.abspath(path)
+os.path.basename(path)
+os.path.commonprefix(<span style="color: #000000;">list</span>)
+os.path.dirname(path)
+os.path.exists(path)
+os.path.lexists(path)                   <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#27298;&#26597;&#31526;&#21495;&#38142;&#25509;</span>
+os.path.getatime(path)
+os.path.getmtime(path)
+os.path.getctime(path)
+os.path.getsize(path)
+os.path.isabs(path)
+os.path.isfile(path)
+os.path.isdir(path)                     <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#21442;&#25968;&#25351;&#23450;&#30446;&#24405;&#21487;&#20197;&#19981;&#23384;&#22312;</span>
+os.path.islink(path)
+os.path.ismount(path)
+os.path.join(path1[, path2[, ...]])
+os.path.normcase(path)
+os.path.normpath(path)
+os.path.realpath(path)
+os.path.relpath(path[, start])
+os.path.samefile(path1, path2)
+os.path.sameopenfile(fp1, fp2)
+os.path.samestat(stat1, stat2)
+os.path.split(path)                     <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">dirname() basename()</span>
+os.path.splitdrive(path)
+os.path.splitext(path)
+os.path.splitunc(path)
+os.path.walk(path, visit, arg)
+os.path.supports_unicode_filenames
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-2" class="outline-2">
+<h2 id="sec-2"><span class="section-number-2">2</span> filecmp</h2>
+<div class="outline-text-2" id="text-2">
+<div class="org-src-container">
+
+<pre class="src src-python">filecmp.<span style="color: #000000;">cmp</span>(f1, f2[, shallow])
+filecmp.cmpfiles(dir1, dir2, common[, shallow])
+<span style="color: #0000ff; font-weight: bold;">class</span> <span style="color: #0000ff;">filecmp</span>.dircmp(a, b[, ignore[, hide]])
+    report()                            <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#36755;&#20986;&#21040;sys.stdout</span>
+    report_partial_closure()
+    report_full_closure()
+    <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#23646;&#24615;&#65306;</span>
+    left right left_list right_list common left_only right_only
+    common_dirs common_files common_funny same_files diff_files
+    funny_files subdirs
+</pre>
+</div>
+<dl class="org-dl">
+<dt> cmpfiles() </dt><dd><ul class="org-ul">
+<li>@common：两个目录都包含的文件名，可以是路径。
+</li>
+<li>return：三个列表：match，mismatch，errors，
+</li>
+</ul>
+</dd>
+<dt> dircmp() </dt><dd>  比较手法是采用filecmp.cmp()中的shallow方式。
+<ul class="org-ul">
+<li>@ignore：用来指定要忽略的文件，如ignore = ['RCS', 'CVS', 'tags']。
+</li>
+<li>@hide：要隐藏的名字，如hide = [os.curdir, os.pardir]。
+</li>
+</ul>
+</dd>
+</dl>
+</div>
+</div>
+
+<div id="outline-container-sec-3" class="outline-2">
+<h2 id="sec-3"><span class="section-number-2">3</span> random</h2>
+<div class="outline-text-2" id="text-3">
+<div class="org-src-container">
+
+<pre class="src src-python">random.seed([x])               <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#33509;&#26410;&#25351;&#23450;&#65292;&#23558;&#20351;&#29992;&#31995;&#32479;&#26102;&#38388;</span>
+random.getstate()
+random.setstate(state
+random.jumpahead(n)
+random.getrandbits(k)
+random.randrange(stop)
+random.randrange(start, stop[, step])
+random.randint(a, b)
+random.choice(seq)
+random.shuffle(x[, random])
+random.sample(population, k)
+random.random()                 <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">[0.0, 1.0)</span>
+random.uniform(a, b)            <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">[a, b]</span>
+</pre>
+</div>
+<dl class="org-dl">
+<dt> sample() </dt><dd>  从population中选取一个长度为ｋ没有重复的序列。
+</dd>
+</dl>
+</div>
+</div>
+
+<div id="outline-container-sec-4" class="outline-2">
+<h2 id="sec-4"><span class="section-number-2">4</span> string</h2>
+<div class="outline-text-2" id="text-4">
+<p>
+string模块提供了很多字符串常量，如下所示。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-python">ascii_letters ascii_lowercase ascii_uppercase
+digits hexdigits octdigits punctuation whitespace
+printable letters lowercase uppercase
+</pre>
+</div>
+
+<p>
+将字符串转换为数字可以不必使用string提供的方法，而直接使用转换函数。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-python"><span style="color: #000000;">float</span>()
+<span style="color: #000000;">int</span>()
+<span style="color: #000000;">long</span>()
+</pre>
+</div>
+</div>
+</div>
+</div>
+</body>
+</html>

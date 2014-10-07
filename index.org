@@ -6,7 +6,9 @@
 
 * tools (1)
 - [[file:tools/2014-10-05-website-navigation.html][2014-10-05 website navigation]]
-* programming (9)
+* programming (11)
+- [[file:programming/2014-10-07-python-notes.html][2014-10-07 python notes]]
+- [[file:programming/2014-10-07-python-modules.html][2014-10-07 python modules]]
 - [[file:programming/2014-10-07-emacs-usage.html][2014-10-07 emacs usage]]
 - [[file:programming/2014-10-06-useful-func-in-C.html][2014-10-06 useful func in C]]
 - [[file:programming/2014-10-06-string-in-C.html][2014-10-06 string in C]]

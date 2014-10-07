@@ -1,0 +1,98 @@
+#+TITLE: Python Modules
+#+AUTHOR: Micky Ching
+#+OPTIONS: H:4 ^:nil toc:nil
+#+LATEX_CLASS: latex-doc
+
+* os module
+#+BEGIN_SRC python
+  os.uname()
+  os.mkdir(path[, mode])
+#+END_SRC
+
+** os.path
+#+BEGIN_SRC python
+  os.path.abspath(path)
+  os.path.basename(path)
+  os.path.commonprefix(list)
+  os.path.dirname(path)
+  os.path.exists(path)
+  os.path.lexists(path)                   # 檢查符号链接
+  os.path.getatime(path)
+  os.path.getmtime(path)
+  os.path.getctime(path)
+  os.path.getsize(path)
+  os.path.isabs(path)
+  os.path.isfile(path)
+  os.path.isdir(path)                     # 参数指定目录可以不存在
+  os.path.islink(path)
+  os.path.ismount(path)
+  os.path.join(path1[, path2[, ...]])
+  os.path.normcase(path)
+  os.path.normpath(path)
+  os.path.realpath(path)
+  os.path.relpath(path[, start])
+  os.path.samefile(path1, path2)
+  os.path.sameopenfile(fp1, fp2)
+  os.path.samestat(stat1, stat2)
+  os.path.split(path)                     # dirname() basename()
+  os.path.splitdrive(path)
+  os.path.splitext(path)
+  os.path.splitunc(path)
+  os.path.walk(path, visit, arg)
+  os.path.supports_unicode_filenames
+#+END_SRC
+
+* filecmp
+#+BEGIN_SRC python
+  filecmp.cmp(f1, f2[, shallow])
+  filecmp.cmpfiles(dir1, dir2, common[, shallow])
+  class filecmp.dircmp(a, b[, ignore[, hide]])
+      report()                            # 输出到sys.stdout
+      report_partial_closure()
+      report_full_closure()
+      # 属性：
+      left right left_list right_list common left_only right_only
+      common_dirs common_files common_funny same_files diff_files
+      funny_files subdirs
+#+END_SRC
+- cmpfiles() ::
+  - @common：两个目录都包含的文件名，可以是路径。
+  - return：三个列表：match，mismatch，errors，
+- dircmp() ::
+  比较手法是采用filecmp.cmp()中的shallow方式。
+  - @ignore：用来指定要忽略的文件，如ignore = ['RCS', 'CVS', 'tags']。
+  - @hide：要隐藏的名字，如hide = [os.curdir, os.pardir]。
+
+* random
+#+BEGIN_SRC python
+  random.seed([x])               # 若未指定，将使用系统时间
+  random.getstate()
+  random.setstate(state
+  random.jumpahead(n)
+  random.getrandbits(k)
+  random.randrange(stop)
+  random.randrange(start, stop[, step])
+  random.randint(a, b)
+  random.choice(seq)
+  random.shuffle(x[, random])
+  random.sample(population, k)
+  random.random()                 # [0.0, 1.0)
+  random.uniform(a, b)            # [a, b]
+#+END_SRC
+- sample() ::
+  从population中选取一个长度为ｋ没有重复的序列。
+
+* string
+string模块提供了很多字符串常量，如下所示。
+#+BEGIN_SRC python
+  ascii_letters ascii_lowercase ascii_uppercase
+  digits hexdigits octdigits punctuation whitespace
+  printable letters lowercase uppercase
+#+END_SRC
+
+将字符串转换为数字可以不必使用string提供的方法，而直接使用转换函数。
+#+BEGIN_SRC python
+  float()
+  int()
+  long()
+#+END_SRC
