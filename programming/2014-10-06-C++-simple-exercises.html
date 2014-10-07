@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<title>C++简单练习题</title>
+<meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta  name="generator" content="Org-mode" />
+<meta  name="author" content="Micky Ching" />
+<link rel="stylesheet" type="text/css" href="../style/default.css" />
+
+<script type="text/javascript" src="../style/default.js">
+/**
+ *
+ * @source: ../style/default.js
+ *
+ * @licstart  The following is the entire license notice for the
+ *  JavaScript code in ../style/default.js.
+ *
+ * Copyright (C) 2012-2013 Free Software Foundation, Inc.
+ *
+ *
+ * The JavaScript code in this tag is free software: you can
+ * redistribute it and/or modify it under the terms of the GNU
+ * General Public License (GNU GPL) as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option)
+ * any later version.  The code is distributed WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+ *
+ * As additional permission under GNU GPL version 3 section 7, you
+ * may distribute non-source (e.g., minimized or compacted) forms of
+ * that code without the copy of the GNU GPL normally required by
+ * section 4, provided you include this license notice and a URL
+ * through which recipients can access the Corresponding Source.
+ *
+ * @licend  The above is the entire license notice
+ * for the JavaScript code in ../style/default.js.
+ *
+ */
+</script>
+
+<script type="text/javascript">
+
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+
+<!--/*--><![CDATA[/*><!--*/
+org_html_manager.set("TOC_DEPTH", "4");
+org_html_manager.set("LINK_HOME", "");
+org_html_manager.set("LINK_UP", "");
+org_html_manager.set("LOCAL_TOC", "0");
+org_html_manager.set("VIEW_BUTTONS", "0");
+org_html_manager.set("MOUSE_HINT", "underline");
+org_html_manager.set("FIXED_TOC", "0");
+org_html_manager.set("TOC", "0");
+org_html_manager.set("VIEW", "showall");
+org_html_manager.setup();  // activate after the parameters are set
+/*]]>*///-->
+</script>
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+</head>
+<body>
+<div id="content">
+<h1 class="title">C++简单练习题</h1>
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#sec-1">1. 数据结构</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-1" class="outline-2">
+<h2 id="sec-1"><span class="section-number-2">1</span> 数据结构</h2>
+<div class="outline-text-2" id="text-1">
+<blockquote>
+<p>
+用两个队列实现一个栈。
+</p>
+</blockquote>
+
+<ul class="org-ul">
+<li>思路
+
+<p>
+如果是双端队列，那么这个题目就没有什么意思了，并且只需要一个队列即可。
+实际上C++标准库就是使用的双端队列来实现的，只需要简单做一下包装。
+如果是单端队列，我们用一个队列qin来接受用户输入，
+另外一个队列qout接受qin的输入，不管是pop()还是top()我们都先将qin插入到qout去，
+直到qin只剩最后一个元素，这时候要pop()只要对qin做pop_front()即可，
+要top()只要对qin做front()即可。
+</p>
+
+<p>
+如果qin为空，那么我们只要将qin和qout交换一下即可。
+</p>
+</li>
+
+<li>代码
+<div class="org-src-container">
+
+<pre class="src src-text">sample/test_stack.cpp: class queue_stack
+</pre>
+</div>
+</li>
+</ul>
+
+<blockquote>
+<p>
+编写一个排序函数，将文件中的整数进行排序，整数范围为[0, 10000000)，
+文件中有k个数，没有重复值。
+</p>
+</blockquote>
+
+<ul class="org-ul">
+<li>思路
+
+<p>
+整数的比较非常简单，因此C库的qsort很容易对其排序，C++的set类模板也能用于排序。
+这个题目源于编程珠玑，书上提供了一种位排序算法，可以将复杂度降低到 <i>O(n)</i> 。
+我们申请一个长度为10000000的位图，每读取一个数就将对应的位设置为1。
+然后再逐个检查位图中的位就可以完成排序。
+</p>
+
+<p>
+做这个题目面临如何生成测试文件的问题，编程珠玑同样给出了一个非常经典的算法。
+首先生成一个数组，元素的值从[beg, end)，数组名为data。
+假定要生成k个不重复随机数，那么就从0..k进行迭代，假设当前为i，
+生成一个[i, end)之间的随机数irand，将data[i]和data[irand]交换。
+迭代完成之后，数组的前面k个元素就是不重复的随机数。
+</p>
+</li>
+
+<li>代码
+<div class="org-src-container">
+
+<pre class="src src-text">sample/test_simple.c: func gen_random_values
+sample/test_sort.cpp: func qsort_file
+sample/test_sort.cpp: func set_sort_file
+sample/test_sort.cpp: func bit_sort_file
+</pre>
+</div>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</body>
+</html>
