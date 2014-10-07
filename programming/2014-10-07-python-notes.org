@@ -1,0 +1,11 @@
+#+TITLE: Python Notes
+#+AUTHOR: Micky Ching
+#+OPTIONS: H:4 ^:nil toc:nil
+#+LATEX_CLASS: latex-doc
+
+* 基础知识
+** 输入输出
+使用print会自动添加换行，而sys.stdout.write()则不会自动换行，
+但是该函数不会自动刷新缓冲区，可使用sys.stdout.flush()用来刷新缓冲区。
+当然print还有第二个参数end，可以用来巧妙的指定结束符。
+甚至可以用print('\r' * n, end = '')来向前移动n个字符。
