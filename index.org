@@ -20,7 +20,8 @@
 - [[file:programming/2014-09-20-emacs-configuration.html][2014-09-20 emacs configuration]]
 * slides (1)
 - [[file:slides/2014-09-20-linux-kernel-coding-style.html][2014-09-20 linux kernel coding style]]
-* linux (6)
+* linux (7)
+- [[file:linux/2014-10-08-ubuntu-tips.html][2014-10-08 ubuntu tips]]
 - [[file:linux/2014-10-05-ubuntu-install-guide.html][2014-10-05 ubuntu install guide]]
 - [[file:linux/2014-10-05-repo-introduction.html][2014-10-05 repo introduction]]
 - [[file:linux/2014-10-03-publish-org.html][2014-10-03 publish org]]

@@ -1,0 +1,19 @@
+#+TITLE: Ubuntu实用技巧
+#+AUTHOR: Micky Ching
+#+OPTIONS: H:4 ^:nil toc:nil
+#+LATEX_CLASS: latex-doc
+
+- 使用C-t可以在nautilus中打开多个标签
+
+- 更改分区的卷标
+  #+BEGIN_SRC sh
+    sudo e2label <devname> <label>          # 更改Linux分区卷标
+    sudo ntfslabel <devname> <label>        # 更改NTFS分区卷标
+  #+END_SRC
+
+- 分区时指定卷标
+
+  不论使用什么工具分区，都是用-L选项指定label。
+  #+BEGIN_SRC sh
+    micky@MPC:~$ sudo mkfs.ext3 -L micky /dev/sdb1
+  #+END_SRC
