@@ -4,7 +4,8 @@
 #+OPTIONS: H:4 ^:nil toc:t
 #+LATEX_CLASS: latex-doc
 
-* tools (1)
+* tools (2)
+- [[file:tools/2014-10-08-a-leaf-of-voice.html][2014-10-08 a leaf of voice]]
 - [[file:tools/2014-10-05-website-navigation.html][2014-10-05 website navigation]]
 * programming (11)
 - [[file:programming/2014-10-07-python-notes.html][2014-10-07 python notes]]
