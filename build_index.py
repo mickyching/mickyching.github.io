@@ -4,7 +4,7 @@
 import os
 
 dir_list = """
-tools programming slides linux kernel buddhism
+tools programming slides linux kernel network buddhism
 """
 
 head_lines = """

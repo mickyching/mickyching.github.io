@@ -1,0 +1,122 @@
+#+TITLE: wpa_supplicant用法
+#+AUTHOR: Micky Ching
+#+OPTIONS: H:4 ^:nil toc:nil
+#+LATEX_CLASS: latex-doc
+
+wpa_supplicant用于支持WEP、WPA和WPA2(IEEE 802.11i/RSN(Robust Secure Network))
+的辅助工具，可以用于桌面系统、笔记本和嵌入式设备。
+
+* 配置文件
+
+配置文件结构。
+#+BEGIN_SRC text
+  ctrl_interface=/var/run/wpa_supplicant
+  ctrl_interface_group=wheel
+  update_config=1
+
+  network={
+      ssid="xxxx"
+      scan_ssid=1
+      psk=37bca5cf24a345f514d319211822f568bba28f8f0b74c894e7644
+      proto=RSN
+      key_mgmt=WPA-PSK
+      pairwise=CCMP
+      auth_alg=OPEN
+  }
+#+END_SRC
+- ctrl_interface ::
+  套接字，最好不要修改，这样在执行wpa_cli的时候就不用指定路径了。
+- ctrl_interface_group ::
+  指定所归属的组，这样在该组的用户就能够执行wpa_cli。
+- update_config ::
+  如果设置为1，那么通过wpa_cli所做的修改就能够保存到配置文件中。
+
+剩下的是network选项，每个network对应一个连接，优先级按照出现顺序排列。
+- ssid ::
+  接入点名称。
+- scan_ssid=1 ::
+  如果无线接入点是隐藏的，就必须要设置这个参数。
+- psk ::
+  加密后的密码，由wpa_passphrase自动生成。
+- proto=RSN ::
+  协议。
+  - WPA = WPA/IEEE 802.11i/D3.0。
+  - RSN = WPA2/IEEE 802.11i。
+  - 默认为WPA RSN，也就是全部支持。
+- key_mgmt=WPA-PSK ::
+  认证密钥管理协议。
+  - WPA-PSK = WPA pre-shared key (this requires 'psk' field)。
+  - WPA-EAP = WPA using EAP authentication。
+  - IEEE8021X = IEEE 802.1X using EAP authentication and (optionally)
+    dynamically generated WEP keys。
+  - NONE = WPA is not used; plaintext or static WEP could be used。
+  - WPA-PSK-SHA256 = Like WPA-PSK but using stronger SHA256-based algorithms。
+  - WPA-EAP-SHA256 = Like WPA-EAP but using stronger SHA256-based algorithms。
+  - 默认值为WPA-PSK WPA-EAP。
+- pairwise=CCMP ::
+  加密方式。
+  - CCMP = AES in Counter mode with CBC-MAC。
+  - TKIP = Temporal Key Integrity Protocol。
+  - NONE = Use only Group Keys。
+  - 默认值为CCMP TKIP。但是有些路由器无法自动识别，因此要二选一。
+
+可以利用wpa_passphrase生成network配置信息。
+#+BEGIN_SRC sh
+  wpa_passphrase <name> <password>
+#+END_SRC
+因此可以用如下的命令直接将network配置添加到wpa_supplication.conf中。
+#+BEGIN_SRC sh
+  wpa_passphrase <name> <password> | \
+      sudo tee -a /etc/wpa_supplicant/wpa_supplicant.conf
+#+END_SRC
+** 参考资料
+- [[http://w1.fi/gitweb/gitweb.cgi?p%3Dhostap.git%3Ba%3Dblob_plain%3Bf%3Dwpa_supplicant/wpa_supplicant.conf][Example wpa_supplicant configuration file]]
+
+* 使用wpa_supplicant
+** 服务端
+首先要启动wpa_supplicant。
+#+BEGIN_SRC sh
+  wpa_supplicant -Dwext -iwlan0 \
+                 -c/etc/wpa_supplicant/wpa_supplicant.conf -B
+#+END_SRC
+- =-D= 指定驱动，可以指定多个，常见的为wext、nl80211、hostap等
+- =-i= 指定接口，wlan0、wlan1
+- =-c= 指定配置文件
+- =-B= 后台执行
+- =-d= 打印调试信息，可以写成 =-dd= 以打印更丰富的信息
+- =-f= 将消息输出到文件
+
+如果出现如下问题，可能是驱动未安装好。
+#+BEGIN_QUOTE
+socket(PF_INET,SOCK_DGRAM): Address family not supported by protocol
+Failed to initialize driver interface
+#+END_QUOTE
+
+** 客户端
+#+BEGIN_SRC sh
+  wpa_cli -p/var/run/wpa_supplicant -iwlan0
+#+END_SRC
+参数-p指定套接字，-i指定接口。
+如果套接字是"/var/run/wpa_supplicant"，是不用显式指定的。
+
+通过这个命令开启一个交互式会话，在该会话中常用的命令如下。
+#+BEGIN_SRC sh
+  scan                                    # 扫描
+  scan_results                            # 查看扫描结果
+  add_net                                 # 添加网络，会显示一个编号
+  set_net <n> <var> <val>                 # 设置网络的具体参数
+  enable_net <n>                          # 连接到指定网络
+  select_net <n>                          # 选中网络
+  save_config                             # 保存配置
+#+END_SRC
+
+比较方便的做法是将要执行的命令写到一个脚本中，并加上可执行权限，
+通过如下方式来执行。
+#+BEGIN_SRC sh
+  wpa_cli -a <script>
+#+END_SRC
+
+* 参考资料
+- [[https://wiki.archlinux.org/index.php/WPA_supplicant][WPA supplicant ArchWiki]]
+- [[http://w1.fi/wpa_supplicant/][Linux WPA/WPA2/IEEE 802.1X Supplicant]]
+- [[http://linux.die.net/man/8/wpa_supplicant][wpa_supplicant(8) - Linux man page]]

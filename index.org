@@ -34,5 +34,7 @@
 - [[file:kernel/2014-09-27-linux-kernel-list.html][2014-09-27 linux kernel list]]
 - [[file:kernel/2014-09-26-mdev-introduction.html][2014-09-26 mdev introduction]]
 - [[file:kernel/2014-09-25-block-events-introduction.html][2014-09-25 block events introduction]]
+* network (1)
+- [[file:network/2014-10-09-wpa-supplicant-usage.html][2014-10-09 wpa supplicant usage]]
 * buddhism (1)
 - [[file:buddhism/2014-10-05-da-bei-zhou.html][2014-10-05 da bei zhou]]

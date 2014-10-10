@@ -1,0 +1,369 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<title>wpa_supplicant用法</title>
+<meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta  name="generator" content="Org-mode" />
+<meta  name="author" content="Micky Ching" />
+<link rel="stylesheet" type="text/css" href="../style/default.css" />
+
+<script type="text/javascript" src="../style/default.js">
+/**
+ *
+ * @source: ../style/default.js
+ *
+ * @licstart  The following is the entire license notice for the
+ *  JavaScript code in ../style/default.js.
+ *
+ * Copyright (C) 2012-2013 Free Software Foundation, Inc.
+ *
+ *
+ * The JavaScript code in this tag is free software: you can
+ * redistribute it and/or modify it under the terms of the GNU
+ * General Public License (GNU GPL) as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option)
+ * any later version.  The code is distributed WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+ *
+ * As additional permission under GNU GPL version 3 section 7, you
+ * may distribute non-source (e.g., minimized or compacted) forms of
+ * that code without the copy of the GNU GPL normally required by
+ * section 4, provided you include this license notice and a URL
+ * through which recipients can access the Corresponding Source.
+ *
+ * @licend  The above is the entire license notice
+ * for the JavaScript code in ../style/default.js.
+ *
+ */
+</script>
+
+<script type="text/javascript">
+
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+
+<!--/*--><![CDATA[/*><!--*/
+org_html_manager.set("TOC_DEPTH", "4");
+org_html_manager.set("LINK_HOME", "");
+org_html_manager.set("LINK_UP", "");
+org_html_manager.set("LOCAL_TOC", "0");
+org_html_manager.set("VIEW_BUTTONS", "0");
+org_html_manager.set("MOUSE_HINT", "underline");
+org_html_manager.set("FIXED_TOC", "0");
+org_html_manager.set("TOC", "0");
+org_html_manager.set("VIEW", "showall");
+org_html_manager.setup();  // activate after the parameters are set
+/*]]>*///-->
+</script>
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+</head>
+<body>
+<div id="content">
+<h1 class="title">wpa_supplicant用法</h1>
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#sec-1">1. 配置文件</a>
+<ul>
+<li><a href="#sec-1-1">1.1. 参考资料</a></li>
+</ul>
+</li>
+<li><a href="#sec-2">2. 使用wpa_supplicant</a>
+<ul>
+<li><a href="#sec-2-1">2.1. 服务端</a></li>
+<li><a href="#sec-2-2">2.2. 客户端</a></li>
+</ul>
+</li>
+<li><a href="#sec-3">3. 参考资料</a></li>
+</ul>
+</div>
+</div>
+<p>
+wpa_supplicant用于支持WEP、WPA和WPA2(IEEE 802.11i/RSN(Robust Secure Network))
+的辅助工具，可以用于桌面系统、笔记本和嵌入式设备。
+</p>
+
+<div id="outline-container-sec-1" class="outline-2">
+<h2 id="sec-1"><span class="section-number-2">1</span> 配置文件</h2>
+<div class="outline-text-2" id="text-1">
+<p>
+配置文件结构。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-text">ctrl_interface=/var/run/wpa_supplicant
+ctrl_interface_group=wheel
+update_config=1
+
+network={
+    ssid="xxxx"
+    scan_ssid=1
+    psk=37bca5cf24a345f514d319211822f568bba28f8f0b74c894e7644
+    proto=RSN
+    key_mgmt=WPA-PSK
+    pairwise=CCMP
+    auth_alg=OPEN
+}
+</pre>
+</div>
+<dl class="org-dl">
+<dt> ctrl_interface </dt><dd>  套接字，最好不要修改，这样在执行wpa_cli的时候就不用指定路径了。
+</dd>
+<dt> ctrl_interface_group </dt><dd>  指定所归属的组，这样在该组的用户就能够执行wpa_cli。
+</dd>
+<dt> update_config </dt><dd>  如果设置为1，那么通过wpa_cli所做的修改就能够保存到配置文件中。
+</dd>
+</dl>
+
+<p>
+剩下的是network选项，每个network对应一个连接，优先级按照出现顺序排列。
+</p>
+<dl class="org-dl">
+<dt> ssid </dt><dd>  接入点名称。
+</dd>
+<dt> scan_ssid=1 </dt><dd>  如果无线接入点是隐藏的，就必须要设置这个参数。
+</dd>
+<dt> psk </dt><dd>  加密后的密码，由wpa_passphrase自动生成。
+</dd>
+<dt> proto=RSN </dt><dd>  协议。
+<ul class="org-ul">
+<li>WPA = WPA/IEEE 802.11i/D3.0。
+</li>
+<li>RSN = WPA2/IEEE 802.11i。
+</li>
+<li>默认为WPA RSN，也就是全部支持。
+</li>
+</ul>
+</dd>
+<dt> key_mgmt=WPA-PSK </dt><dd>  认证密钥管理协议。
+<ul class="org-ul">
+<li>WPA-PSK = WPA pre-shared key (this requires 'psk' field)。
+</li>
+<li>WPA-EAP = WPA using EAP authentication。
+</li>
+<li>IEEE8021X = IEEE 802.1X using EAP authentication and (optionally)
+dynamically generated WEP keys。
+</li>
+<li>NONE = WPA is not used; plaintext or static WEP could be used。
+</li>
+<li>WPA-PSK-SHA256 = Like WPA-PSK but using stronger SHA256-based algorithms。
+</li>
+<li>WPA-EAP-SHA256 = Like WPA-EAP but using stronger SHA256-based algorithms。
+</li>
+<li>默认值为WPA-PSK WPA-EAP。
+</li>
+</ul>
+</dd>
+<dt> pairwise=CCMP </dt><dd>  加密方式。
+<ul class="org-ul">
+<li>CCMP = AES in Counter mode with CBC-MAC。
+</li>
+<li>TKIP = Temporal Key Integrity Protocol。
+</li>
+<li>NONE = Use only Group Keys。
+</li>
+<li>默认值为CCMP TKIP。但是有些路由器无法自动识别，因此要二选一。
+</li>
+</ul>
+</dd>
+</dl>
+
+<p>
+可以利用wpa_passphrase生成network配置信息。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">wpa_passphrase &lt;name&gt; &lt;password&gt;
+</pre>
+</div>
+<p>
+因此可以用如下的命令直接将network配置添加到wpa_supplication.conf中。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">wpa_passphrase &lt;name&gt; &lt;password&gt; | <span style="color: #ff0000;">\</span>
+    sudo tee -a /etc/wpa_supplicant/wpa_supplicant.conf
+</pre>
+</div>
+</div>
+<div id="outline-container-sec-1-1" class="outline-3">
+<h3 id="sec-1-1"><span class="section-number-3">1.1</span> 参考资料</h3>
+<div class="outline-text-3" id="text-1-1">
+<ul class="org-ul">
+<li><a href="http://w1.fi/gitweb/gitweb.cgi?p=hostap.git;a=blob_plain;f=wpa_supplicant/wpa_supplicant.conf">Example wpa_supplicant configuration file</a>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-2" class="outline-2">
+<h2 id="sec-2"><span class="section-number-2">2</span> 使用wpa_supplicant</h2>
+<div class="outline-text-2" id="text-2">
+</div><div id="outline-container-sec-2-1" class="outline-3">
+<h3 id="sec-2-1"><span class="section-number-3">2.1</span> 服务端</h3>
+<div class="outline-text-3" id="text-2-1">
+<p>
+首先要启动wpa_supplicant。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">wpa_supplicant -Dwext -iwlan0 <span style="color: #ff0000;">\</span>
+               -c/etc/wpa_supplicant/wpa_supplicant.conf -B
+</pre>
+</div>
+<ul class="org-ul">
+<li><code>-D</code> 指定驱动，可以指定多个，常见的为wext、nl80211、hostap等
+</li>
+<li><code>-i</code> 指定接口，wlan0、wlan1
+</li>
+<li><code>-c</code> 指定配置文件
+</li>
+<li><code>-B</code> 后台执行
+</li>
+<li><code>-d</code> 打印调试信息，可以写成 <code>-dd</code> 以打印更丰富的信息
+</li>
+<li><code>-f</code> 将消息输出到文件
+</li>
+</ul>
+
+<p>
+如果出现如下问题，可能是驱动未安装好。
+</p>
+<blockquote>
+<p>
+socket(PF_INET,SOCK_DGRAM): Address family not supported by protocol
+Failed to initialize driver interface
+</p>
+</blockquote>
+</div>
+</div>
+
+<div id="outline-container-sec-2-2" class="outline-3">
+<h3 id="sec-2-2"><span class="section-number-3">2.2</span> 客户端</h3>
+<div class="outline-text-3" id="text-2-2">
+<div class="org-src-container">
+
+<pre class="src src-sh">wpa_cli -p/var/run/wpa_supplicant -iwlan0
+</pre>
+</div>
+<p>
+参数-p指定套接字，-i指定接口。
+如果套接字是"/var/run/wpa_supplicant"，是不用显式指定的。
+</p>
+
+<p>
+通过这个命令开启一个交互式会话，在该会话中常用的命令如下。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">scan                                    <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#25195;&#25551;</span>
+scan_results                            <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#26597;&#30475;&#25195;&#25551;&#32467;&#26524;</span>
+add_net                                 <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#28155;&#21152;&#32593;&#32476;&#65292;&#20250;&#26174;&#31034;&#19968;&#20010;&#32534;&#21495;</span>
+set_net &lt;n&gt; &lt;var&gt; &lt;val&gt;                 <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#35774;&#32622;&#32593;&#32476;&#30340;&#20855;&#20307;&#21442;&#25968;</span>
+enable_net &lt;n&gt;                          <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#36830;&#25509;&#21040;&#25351;&#23450;&#32593;&#32476;</span>
+select_net &lt;n&gt;                          <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#36873;&#20013;&#32593;&#32476;</span>
+save_config                             <span style="color: #228b22; font-style: italic;"># </span><span style="color: #228b22; font-style: italic;">&#20445;&#23384;&#37197;&#32622;</span>
+</pre>
+</div>
+
+<p>
+比较方便的做法是将要执行的命令写到一个脚本中，并加上可执行权限，
+通过如下方式来执行。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">wpa_cli -a &lt;script&gt;
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-3" class="outline-2">
+<h2 id="sec-3"><span class="section-number-2">3</span> 参考资料</h2>
+<div class="outline-text-2" id="text-3">
+<ul class="org-ul">
+<li><a href="https://wiki.archlinux.org/index.php/WPA_supplicant">WPA supplicant ArchWiki</a>
+</li>
+<li><a href="http://w1.fi/wpa_supplicant/">Linux WPA/WPA2/IEEE 802.1X Supplicant</a>
+</li>
+<li><a href="http://linux.die.net/man/8/wpa_supplicant">wpa_supplicant(8) - Linux man page</a>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</body>
+</html>
