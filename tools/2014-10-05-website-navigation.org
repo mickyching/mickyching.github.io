@@ -25,7 +25,8 @@
 | Python       | [[https://docs.python.org/2/][Python 2.x.y documentation]]                    |
 |              | [[https://docs.python.org/3/][Python 3.x.y documentation]]                    |
 | IT           | [[http://www.iteedu.com/][ITeedu.com]]                                    |
-| Linux        | [[https://www.kernel.org/doc/man-pages/][The Linux man-pages project]]                   |
+| Linux        | [[http://linux.die.net/man/][Linux man pages]]                               |
+|              | [[https://www.kernel.org/doc/man-pages/][The Linux man-pages project]]                   |
 |              | [[http://man7.org/index.html][Michael Kerrisk man7.org]]                      |
 |              | [[http://www.tldp.org/][The Linux Documentation Project]]               |
 |              | [[http://www.tldp.org/LDP/tlk/tlk.html][The Linux Kernel]]                              |
