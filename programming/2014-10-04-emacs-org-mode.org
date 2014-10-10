@@ -167,6 +167,19 @@ minted环境使用的其实是python的pygmentize语法高亮，
 
 参数比较多，一般常用的就是指定变量，输出路径等。
 请参考 [[http://orgmode.org/manual/Specific-header-arguments.html][Specific header arguments]] 。
+最常用的header参数如下：
+- exports ::
+  用于选择将哪些块导入到文档中。
+  - code： 仅导出代码
+  - results: 仅导出结果
+  - both：都导出。
+  - none：都不导出
+- results ::
+  选择将哪些内容输出到结果。
+  - value：仅对最后一行语句求值。
+  - output：STDOUT的输出。
+- session ::
+  用于交互会话模式输出。
 
 在代码区输入 =C-c '= 进入代码环境编辑区，
 org mode会为我们创建一个临时缓冲区，就像编辑本地语言一样，

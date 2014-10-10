@@ -680,7 +680,32 @@ src_&lt;language&gt;[&lt;header arguments&gt;]{&lt;body&gt;}
 <p>
 参数比较多，一般常用的就是指定变量，输出路径等。
 请参考 <a href="http://orgmode.org/manual/Specific-header-arguments.html">Specific header arguments</a> 。
+最常用的header参数如下：
 </p>
+<dl class="org-dl">
+<dt> exports </dt><dd>  用于选择将哪些块导入到文档中。
+<ul class="org-ul">
+<li>code： 仅导出代码
+</li>
+<li>results: 仅导出结果
+</li>
+<li>both：都导出。
+</li>
+<li>none：都不导出
+</li>
+</ul>
+</dd>
+<dt> results </dt><dd>  选择将哪些内容输出到结果。
+<ul class="org-ul">
+<li>value：仅对最后一行语句求值。
+</li>
+<li>output：STDOUT的输出。
+</li>
+</ul>
+</dd>
+<dt> session </dt><dd>  用于交互会话模式输出。
+</dd>
+</dl>
 
 <p>
 在代码区输入 =C-c '= 进入代码环境编辑区，
