@@ -1,0 +1,19 @@
+---
+layout: body
+---
+
+<div class="home">
+  <h2>文章</h2>
+
+  <ul>
+    {% for post in site.posts %}
+    <li class="post-list">
+      <a href="{{ post.url }}">
+        <span class="post-meta">{{ post.date | date: "%Y-%m-%2d" }}</span>
+        <span>{{ post.title }}</span>
+      </a>
+    </li>
+  {% endfor %}
+  </ul>
+
+</div>

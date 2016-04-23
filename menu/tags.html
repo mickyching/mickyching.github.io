@@ -1,0 +1,19 @@
+---
+layout: body
+---
+
+<div class="home">
+  {% capture tags %}
+  {% for tag in site.tags %}
+  {{ tag[0] }}
+  {% endfor %}
+  {% endcapture %}
+  {% assign sortedtags = tags | split: ' ' | sort %}
+
+  <h2>标签</h2>
+  <ul class="tag-box inline">
+    {% for tag in sortedtags %}
+    <a class="post-tags" href="/resource/tags/{{ tag }}.html">{{ tag }}<span><sup>{{ site.tags[tag].size }}</sup></span></a>
+    {% endfor %}
+  </ul>
+</div>

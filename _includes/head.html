@@ -6,7 +6,51 @@
   <title>{% if page.title %}{{ page.title }}{% else %}{{ site.title }}{% endif %}</title>
   <meta name="description" content="{% if page.excerpt %}{{ page.excerpt | strip_html | strip_newlines | truncate: 160 }}{% else %}{{ site.description }}{% endif %}">
 
-  <link rel="stylesheet" href="{{ "/css/main.css" | prepend: site.baseurl }}">
+  <link rel="stylesheet" href="{{ "/theme/css/main.css" | prepend: site.baseurl }}">
+  <link rel="icon" href="{{ "/theme/icon/leaf.png" | prepend: site.baseurl }}">
+  <link rel="shortcut icon" href="{{ "/theme/icon/leaf.png" | prepend: site.baseurl }}">
   <link rel="canonical" href="{{ page.url | replace:'index.html','' | prepend: site.baseurl | prepend: site.url }}">
   <link rel="alternate" type="application/rss+xml" title="{{ site.title }}" href="{{ "/feed.xml" | prepend: site.baseurl | prepend: site.url }}" />
+
+  <script src="/theme/js/jquery-2.1.1.min.js"></script>
+  <script src="/theme/js/default.js"></script>
+
+
 </head>
+
+<header>
+  <div class="sidebar">
+    <div align="center">
+      <div class="site-img">
+        <a href="{{ site.baseurl }}/"><image src="/theme/icon/leaf.png"></a>
+      </div>
+      <a class="side-nav" href="{{ "/menu/posts.html" | prepend: site.baseurl }}">文章</a>
+      <a class="side-nav" href="{{ "/menu/categories.html" | prepend: site.baseurl }}">分类</a>
+      <a class="side-nav" href="{{ "/menu/tags.html" | prepend: site.baseurl }}">标签</a>
+    </div>
+    <div align="center">
+      <a class="side-nav" href="{{ "/menu/feed.xml" | prepend: site.baseurl }}">订阅</a>
+      <a class="side-nav" href="{{ "/menu/favorite.html" | prepend: site.baseurl }}">收藏</a>
+      <a class="side-nav" href="{{ "/menu/about.html" | prepend: site.baseurl }}">关于</a>
+    </div>
+
+    <div class="side-toc">
+      <hr>
+      <div id="sidebar-toc">
+        <div align="center">
+          <br>
+          一切有为法<br>
+          如梦幻泡影<br>
+          如露亦如电<br>
+          应作如是观<br>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar-toggler">
+    <div id="sidebar-status">
+
+    </div>
+  </div>
+</header>
