@@ -1,0 +1,895 @@
+---
+title: Linux内核内存管理
+categories: kernel
+tags: linux kernel memory
+author: 敬叶
+---
+<dl class="post-meta">
+<dt class="post-meta">2015-06-06</dt><dd>敬叶 初稿</dd>
+</dl>
+<hr><br>
+<div id="table-of-contents"><h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#orgheadline1">常用接口</a>
+<ul>
+<li><a href="#orgheadline2">获取内存</a></li>
+<li><a href="#orgheadline3">直接内存访问（DMA）</a>
+<ul>
+<li><a href="#orgheadline4">一致DMA映射</a></li>
+<li><a href="#orgheadline5">流式映射</a></li>
+<li><a href="#orgheadline6">分散聚集映射</a></li>
+<li><a href="#orgheadline7">DMA池</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#orgheadline17">内存管理</a>
+<ul>
+<li><a href="#orgheadline8">进程地址空间</a></li>
+<li><a href="#orgheadline9">页表管理</a></li>
+<li><a href="#orgheadline10">内存管理</a>
+<ul>
+<li><a href="#orgheadline11">内存碎片</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline12">页缓存</a></li>
+<li><a href="#orgheadline16">进阶概念</a>
+<ul>
+<li><a href="#orgheadline13">vmalloc</a></li>
+<li><a href="#orgheadline14">malloc</a></li>
+<li><a href="#orgheadline15">mmap</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#orgheadline18">参考资料</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline1" class="outline-2">
+<h2 id="orgheadline1">常用接口</h2>
+<div class="outline-text-2" id="text-orgheadline1">
+<!--abstract-begin-->
+<p>
+虚拟地址空间由CPU决定字长决定，按3:1将低地址部分分给用户空间，少的部分留给内核。
+</p>
+
+<p>
+内核将内核地址空间分为如下三个区：
+</p>
+<dl class="org-dl">
+<dt>ZONE_DMA</dt><dd>可以执行DMA操作</dd>
+<dt>ZONE_NORMAL</dt><dd>即线性映射部分</dd>
+<dt>ZONE_HIGHMEM</dt><dd>非永久性映射区</dd>
+</dl>
+
+<p>
+内核部分的地址和物理内存可以直接关联，也就是线性映射。如果内核分到的物理地址比地址空间大，那么多余的部分就不能通过线性映射访问，这就是所谓的高端内存。而64位CPU由于其寻址空间非常大，就没有高端内存了。高端内存只对内核空间有影响，用户空间进程总是通过页表访问内存。
+</p>
+<!--abstract-end-->
+</div>
+
+<div id="outline-container-orgheadline2" class="outline-3">
+<h3 id="orgheadline2">获取内存</h3>
+<div class="outline-text-3" id="text-orgheadline2">
+<div class="org-src-container">
+
+<pre class="src src-c"><span style="color: #800;">void</span> *<span style="color: #048; font-weight: bold;">kmalloc</span>(<span style="color: #800;">size_t</span> <span style="color: #048;">size</span>, <span style="color: #800;">gfp_t</span> <span style="color: #048;">flags</span>);
+<span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">kfree</span>(<span style="color: #800;">const</span> <span style="color: #800;">void</span> *<span style="color: #048;">ptr</span>);
+</pre>
+</div>
+
+<p>
+gfp_mask有如下一些选项：
+</p>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">标志位</th>
+<th scope="col" class="org-left">功能</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">__GFP_WAIT</td>
+<td class="org-left">可以休眠</td>
+</tr>
+
+<tr>
+<td class="org-left">__GFP_HIGH</td>
+<td class="org-left">可以使用紧急内存池</td>
+</tr>
+
+<tr>
+<td class="org-left">__GFP_IO</td>
+<td class="org-left">可以执行IO操作</td>
+</tr>
+
+<tr>
+<td class="org-left">__GFP_FS</td>
+<td class="org-left">可以执行文件系统IO操作</td>
+</tr>
+
+<tr>
+<td class="org-left">__GFP_COLD</td>
+<td class="org-left">应该使用冷页</td>
+</tr>
+
+<tr>
+<td class="org-left">__GFP_NOWARN</td>
+<td class="org-left">不打印警告</td>
+</tr>
+
+<tr>
+<td class="org-left">__GFP_REPEAT</td>
+<td class="org-left">出错重试，重试仍可能出错</td>
+</tr>
+
+<tr>
+<td class="org-left">__GFP_NOFAIL</td>
+<td class="org-left">出错重试，不允许失败</td>
+</tr>
+
+<tr>
+<td class="org-left">__GFP_NORETRY</td>
+<td class="org-left">不重试</td>
+</tr>
+
+<tr>
+<td class="org-left">__GFP_NOMEMALLOC</td>
+<td class="org-left">不使用保留内存</td>
+</tr>
+
+<tr>
+<td class="org-left">__GFP_HARDWALL</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+
+<tr>
+<td class="org-left">__GFP_RECLAIMABLE</td>
+<td class="org-left">标记页面为reclaimable</td>
+</tr>
+
+<tr>
+<td class="org-left">__GFP_COMP</td>
+<td class="org-left">添加复合页属性</td>
+</tr>
+</tbody>
+<tbody>
+<tr>
+<td class="org-left">__GFP_DMA</td>
+<td class="org-left">只从DMA区分配</td>
+</tr>
+
+<tr>
+<td class="org-left">__GFP_DMA32</td>
+<td class="org-left">只从DMA32区分配</td>
+</tr>
+
+<tr>
+<td class="org-left">__GFP_HIGHMEM</td>
+<td class="org-left">可以从高端内存分配</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+下表的选项是实际中经常用到的，它们其实是上表中某些选项的组合。
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<tbody>
+<tr>
+<td class="org-left">GFP_ATOMIC</td>
+<td class="org-left">不允许休眠，可在中断上下文使用</td>
+</tr>
+
+<tr>
+<td class="org-left">GFP_NOWAIT</td>
+<td class="org-left">直接失败，而不尝试使用紧急内存池</td>
+</tr>
+
+<tr>
+<td class="org-left">GFP_NOIO</td>
+<td class="org-left">不允许磁盘IO</td>
+</tr>
+
+<tr>
+<td class="org-left">GFP_NOFS</td>
+<td class="org-left">不允许文件系统IO</td>
+</tr>
+
+<tr>
+<td class="org-left">GFP_KERNEL</td>
+<td class="org-left">常用选项，可能休眠</td>
+</tr>
+
+<tr>
+<td class="org-left">GFP_USER</td>
+<td class="org-left">用于给用户空间进程分配</td>
+</tr>
+
+<tr>
+<td class="org-left">GFP_HIGHUSER</td>
+<td class="org-left">可以从高端内存分配，用于给用户进程分配</td>
+</tr>
+
+<tr>
+<td class="org-left">GFP_DMA</td>
+<td class="org-left">从DMA区分配</td>
+</tr>
+</tbody>
+</table>
+
+<div class="org-src-container">
+
+<pre class="src src-c"><span style="color: #800;">void</span> *<span style="color: #048; font-weight: bold;">vmalloc</span>(<span style="color: #800;">unsigned</span> <span style="color: #800;">long</span> <span style="color: #048;">size</span>);
+<span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">vfree</span>(<span style="color: #800;">const</span> <span style="color: #800;">void</span> *<span style="color: #048;">addr</span>);
+</pre>
+</div>
+<p>
+vmalloc()只保证虚拟地址连续，而不保证物理地址连续，虽然大多情况下并不需要物理地址连续，但是出于性能上的考虑，内核一般不会用vmalloc，因为它需要设置页表项，并映射分散页。
+</p>
+
+<p>
+在有些情况下需要频繁的分配某些结构体，为了针对这样的情况做效率上的提升，内核引入了一个slab层，用于维护一个特定对象的缓存链表，当需要该对象时，可以直接从链表去取。这样做的好处有很多，对高频操作缓存本身能提高效率，也能够减少碎片。
+</p>
+
+<p>
+在逻辑层次上，一个cache就缓存一类对象，每个cache可以有多个slab，每个slab实际就是一个或多个物理页，每个slab由包含多个对象。对于小于页面的<code>kmalloc</code>调用，实际是基于slab提供的<code>kmalloc</code>函数，即在内核中除了很多专用slab分配器，还有很多是针对<code>kmalloc</code>提供的分配器。
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-c"><span style="color: #800;">struct</span> <span style="color: #800;">kmem_cache</span> *<span style="color: #048; font-weight: bold;">kmem_cache_create</span>(<span style="color: #800;">const</span> <span style="color: #800;">char</span> *<span style="color: #048;">name</span>, <span style="color: #800;">size_t</span> <span style="color: #048;">size</span>,
+        <span style="color: #800;">size_t</span> <span style="color: #048;">align</span>, <span style="color: #800;">unsigned</span> <span style="color: #800;">long</span> <span style="color: #048;">flags</span>, <span style="color: #800;">void</span> (*<span style="color: #048;">ctor</span>)(<span style="color: #800;">void</span> *));
+<span style="color: #800;">void</span> *<span style="color: #048; font-weight: bold;">kmem_cache_alloc</span>(<span style="color: #800;">struct</span> <span style="color: #800;">kmem_cache</span> *<span style="color: #048;">cachep</span>, <span style="color: #800;">gfp_t</span> <span style="color: #048;">flags</span>);
+<span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">kmem_cache_free</span>(<span style="color: #800;">struct</span> <span style="color: #800;">kmem_cache</span> *<span style="color: #048;">cachep</span>, <span style="color: #800;">void</span> *<span style="color: #048;">objp</span>);
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">kmem_cache_destroy</span>(<span style="color: #800;">struct</span> <span style="color: #800;">kmem_cache</span> *<span style="color: #048;">cachep</span>);
+</pre>
+</div>
+
+<p>
+当然也可以直接从栈上获取内存，但是栈的大小固定为1页或2页，中断上下文有一个单独的栈，大小固定为1页。
+</p>
+
+<p>
+对于高端内存，不会自动映射，所以需要手动去映射，下面的函数用于将页面映射到内核地址空间。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-c"><span style="color: #800;">void</span> *<span style="color: #048; font-weight: bold;">kmap</span>(<span style="color: #800;">struct</span> <span style="color: #800;">page</span> *<span style="color: #048;">page</span>);
+<span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">kunmap</span>(<span style="color: #800;">struct</span> <span style="color: #800;">page</span> *<span style="color: #048;">page</span>);
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline3" class="outline-3">
+<h3 id="orgheadline3">直接内存访问（DMA）</h3>
+<div class="outline-text-3" id="text-orgheadline3">
+<p>
+DMA允许外部设备和内存直接传输数据，而不需要CPU参与，由于没有CPU，那么就需要一个DMA控制器。数据传输以两种方式触发，第一种为软件请求，以read为例：
+</p>
+<ol class="org-ol">
+<li>进程调用read，驱动分配DMA缓冲区，指示硬件传输数据，进程睡眠</li>
+<li>硬件写入DMA缓冲区，完成时触发中断</li>
+<li>中断处理程序应答中断，唤醒进程</li>
+</ol>
+
+<p>
+第二种为硬件请求，即硬件接收到数据要通知CPU去处理，流程如下：
+</p>
+<ol class="org-ol">
+<li>硬件发出中断告知数据到达</li>
+<li>中断处理程序分配DMA缓冲区，让设备写入到缓冲区</li>
+<li>设备写完之后再次发出中断</li>
+<li>中断处理程序唤醒相关进程处理接收到的数据</li>
+</ol>
+
+<p>
+DMA控制器和具体的平台相关，如i386的8327有两个控制器8个通道。
+DMA传输器限制在低内存，装入寄存器的地址必须是物理地址。
+</p>
+
+<p>
+DMA映射的实质就是分配一段内存以便设备访问，在某些情况下，要对高端内存进行DMA操作，而高端内存又不能被外部设备访问，这个时候就要创建一个反弹缓冲区，用来作为中间体。
+</p>
+
+<p>
+根据DMA缓冲区保留时间的长短，可以分为两种DMA映射。
+</p>
+<dl class="org-dl">
+<dt>一致DMA映射</dt><dd>存在于驱动的整个生命周期，可以被CPU和外围设备同时访问</dd>
+<dt>流式DMA映射</dt><dd>为单个操作设置，通过映射CPU虚拟空间的一段地址供设备访问</dd>
+</dl>
+</div>
+
+<div id="outline-container-orgheadline4" class="outline-4">
+<h4 id="orgheadline4">一致DMA映射</h4>
+<div class="outline-text-4" id="text-orgheadline4">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">static</span> <span style="color: #800;">inline</span> <span style="color: #800;">void</span> *<span style="color: #048; font-weight: bold;">pci_alloc_consistent</span>(<span style="color: #800;">struct</span> <span style="color: #800;">pci_dev</span> *<span style="color: #048;">hwdev</span>, <span style="color: #800;">size_t</span> <span style="color: #048;">size</span>,
+                                         <span style="color: #800;">dma_addr_t</span> *<span style="color: #048;">dma_handle</span>)
+{
+    <span style="color: #800;">return</span> dma_alloc_coherent(hwdev == <span style="color: #800;">NULL</span> ? <span style="color: #800;">NULL</span> : &amp;hwdev-&gt;dev,
+                              size, dma_handle, GFP_ATOMIC);
+}
+</pre>
+</div>
+<p>
+由<code>dma_coherent_mem</code>描述一致映射内存：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">struct</span> <span style="color: #800;">dma_coherent_mem</span> {
+    <span style="color: #800;">void</span>            *<span style="color: #048;">virt_base</span>;
+    <span style="color: #800;">u32</span>             <span style="color: #048;">device_base</span>;
+    <span style="color: #800;">int</span>             <span style="color: #048;">size</span>;
+    <span style="color: #800;">int</span>             <span style="color: #048;">flags</span>;
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">long</span>   *<span style="color: #048;">bitmap</span>;
+};
+</pre>
+</div>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">void</span> *<span style="color: #048; font-weight: bold;">dma_alloc_coherent</span>(<span style="color: #800;">struct</span> <span style="color: #800;">device</span> *<span style="color: #048;">dev</span>, <span style="color: #800;">size_t</span> <span style="color: #048;">size</span>,
+                         <span style="color: #800;">dma_addr_t</span> *<span style="color: #048;">dma_handle</span>, <span style="color: #800;">int</span> <span style="color: #048;">gfp</span>)
+{
+    <span style="color: #800;">void</span> *<span style="color: #048;">ret</span>;
+    <span style="color: #666;">// </span><span style="color: #666;">&#33509;&#26159;&#35774;&#22791;&#65292;&#24471;&#21040;&#35774;&#22791;&#30340;dma&#20869;&#23384;&#21306;&#22495;</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">dma_coherent_mem</span> *<span style="color: #048;">mem</span> = dev ? dev-&gt;dma_mem : <span style="color: #800;">NULL</span>;
+    <span style="color: #800;">int</span> <span style="color: #048;">order</span> = get_order(size);        <span style="color: #666;">// </span><span style="color: #666;">&#23558;size&#36716;&#25442;&#25104;order</span>
+    gfp &amp;= ~(__GFP_DMA | __GFP_HIGHMEM);
+    <span style="color: #800;">if</span> (mem) {                          <span style="color: #666;">// </span><span style="color: #666;">&#35774;&#22791;&#30340;DMA&#26144;&#23556;</span>
+        <span style="color: #800;">int</span> <span style="color: #048;">page</span> = bitmap_find_free_region(mem-&gt;bitmap, mem-&gt;size, order);
+        <span style="color: #800;">if</span> (page &gt;= 0) {
+            *dma_handle = mem-&gt;device_base + (page &lt;&lt; PAGE_SHIFT);
+            ret = mem-&gt;virt_base + (page &lt;&lt; PAGE_SHIFT);
+            memset(ret, 0, size);
+            <span style="color: #800;">return</span> ret;
+        }
+        <span style="color: #800;">if</span> (mem-&gt;flags &amp; DMA_MEMORY_EXCLUSIVE)
+            <span style="color: #800;">return</span> <span style="color: #800;">NULL</span>;
+    }
+    <span style="color: #666;">// </span><span style="color: #666;">&#19981;&#26159;&#35774;&#22791;&#30340;DMA&#26144;&#23556;</span>
+    <span style="color: #800;">if</span> (dev == <span style="color: #800;">NULL</span> || (dev-&gt;coherent_dma_mask &lt; 0xffffffff))
+        gfp |= GFP_DMA;
+    <span style="color: #666;">// </span><span style="color: #666;">&#20998;&#37197;&#31354;&#38386;&#39029;</span>
+    ret = (<span style="color: #800;">void</span> *)__get_free_pages(gfp, order);
+    <span style="color: #800;">if</span> (ret != <span style="color: #800;">NULL</span>) {
+        memset(ret, 0, size);
+        *dma_handle = virt_to_phys(ret);
+    }
+    <span style="color: #800;">return</span> ret;
+}
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline5" class="outline-4">
+<h4 id="orgheadline5">流式映射</h4>
+<div class="outline-text-4" id="text-orgheadline5">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">static</span> <span style="color: #800;">inline</span> <span style="color: #800;">dma_addr_t</span> <span style="color: #048; font-weight: bold;">pci_map_single</span>(<span style="color: #800;">struct</span> <span style="color: #800;">pci_dev</span> *<span style="color: #048;">hwdev</span>,
+                                        <span style="color: #800;">void</span> *<span style="color: #048;">ptr</span>, <span style="color: #800;">size_t</span> <span style="color: #048;">size</span>, <span style="color: #800;">int</span> <span style="color: #048;">direction</span>)
+{
+    <span style="color: #800;">return</span> dma_map_single(hwdev == <span style="color: #800;">NULL</span> ? <span style="color: #800;">NULL</span> : &amp;hwdev-&gt;dev, ptr, size,
+                          (<span style="color: #800;">enum</span> <span style="color: #800;">ma_data_direction</span>) direction);
+}
+</pre>
+</div>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">static</span> <span style="color: #800;">inline</span> <span style="color: #800;">dma_addr_t</span> <span style="color: #048; font-weight: bold;">dma_map_single</span>(<span style="color: #800;">struct</span> <span style="color: #800;">device</span> *<span style="color: #048;">dev</span>, <span style="color: #800;">void</span> *<span style="color: #048;">ptr</span>,
+                                        <span style="color: #800;">size_t</span> <span style="color: #048;">size</span>,
+                                        <span style="color: #800;">enum</span> <span style="color: #800;">dma_data_direction</span> <span style="color: #048;">direction</span>)
+
+{
+    BUG_ON(direction == DMA_NONE);
+    <span style="color: #666;">// </span><span style="color: #666;">&#21487;&#33021;&#26377;&#20123;&#25968;&#25454;&#36824;&#20250;&#20445;&#30041;&#22312;&#22788;&#29702;&#22120;&#30340;&#39640;&#36895;&#32531;&#20914;&#23384;&#20648;&#22120;&#20013;&#65292;&#22240;&#27492;&#24517;&#39035;&#26174;&#24335;&#21047;&#26032;</span>
+    flush_write_buffers();
+    <span style="color: #800;">return</span> virt_to_phys(ptr);&#12288;<span style="color: #666;">// </span><span style="color: #666;">&#34394;&#25311;&#22320;&#22336;&#36716;&#21270;&#20026;&#29289;&#29702;&#22320;&#22336;</span>
+}
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline6" class="outline-4">
+<h4 id="orgheadline6">分散聚集映射</h4>
+<div class="outline-text-4" id="text-orgheadline6">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">struct</span> <span style="color: #800;">scatterlist</span> {
+    <span style="color: #800;">struct</span> <span style="color: #800;">page</span>         *<span style="color: #048;">page</span>;
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span>        <span style="color: #048;">offset</span>;
+    <span style="color: #800;">dma_addr_t</span>          <span style="color: #048;">dma_address</span>;    <span style="color: #666;">// </span><span style="color: #666;">&#29992;&#22312;&#20998;&#25955;&#32858;&#38598;&#25805;&#20316;&#20013;&#30340;&#32531;&#20914;&#21306;&#22320;&#22336;</span>
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span>        <span style="color: #048;">length</span>;         <span style="color: #666;">// </span><span style="color: #666;">&#35813;&#32531;&#20914;&#21306;&#30340;&#38271;&#24230;</span>
+};
+</pre>
+</div>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">static</span> <span style="color: #800;">inline</span> <span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">pci_map_sg</span>(<span style="color: #800;">struct</span> <span style="color: #800;">pci_dev</span> *<span style="color: #048;">hwdev</span>, <span style="color: #800;">struct</span> <span style="color: #800;">scatterlist</span> *<span style="color: #048;">sg</span>,
+                             <span style="color: #800;">int</span> <span style="color: #048;">nents</span>, <span style="color: #800;">int</span> <span style="color: #048;">direction</span>)
+{
+        <span style="color: #800;">return</span> dma_map_sg(hwdev == <span style="color: #800;">NULL</span> ? <span style="color: #800;">NULL</span> : &amp;hwdev-&gt;dev, sg, nents,
+                          (<span style="color: #800;">enum</span> <span style="color: #800;">dma_data_direction</span>)direction);
+}
+</pre>
+</div>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">static</span> <span style="color: #800;">inline</span> <span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">dma_map_sg</span>(<span style="color: #800;">struct</span> <span style="color: #800;">device</span> *<span style="color: #048;">dev</span>, <span style="color: #800;">struct</span> <span style="color: #800;">scatterlist</span> *<span style="color: #048;">sg</span>,
+                             <span style="color: #800;">int</span> <span style="color: #048;">nents</span>, <span style="color: #800;">enum</span> <span style="color: #800;">dma_data_direction</span> <span style="color: #048;">direction</span>)
+{
+    <span style="color: #800;">int</span> <span style="color: #048;">i</span>;
+
+    BUG_ON(direction == DMA_NONE);
+    <span style="color: #800;">for</span> (i = 0; i &lt; nents; i++ ) {
+        BUG_ON(<span style="color: #c00;">!</span>sg[i].page);
+        <span style="color: #666;">// </span><span style="color: #666;">&#23558;&#39029;&#21450;&#39029;&#20559;&#31227;&#22320;&#22336;&#36716;&#21270;&#20026;&#29289;&#29702;&#22320;&#22336;</span>
+        sg[i].dma_address = page_to_phys(sg[i].page) + sg[i].offset;
+    }
+    <span style="color: #666;">// </span><span style="color: #666;">&#21487;&#33021;&#26377;&#20123;&#25968;&#25454;&#36824;&#20250;&#20445;&#30041;&#22312;&#22788;&#29702;&#22120;&#30340;&#39640;&#36895;&#32531;&#20914;&#23384;&#20648;&#22120;&#20013;&#65292;&#22240;&#27492;&#24517;&#39035;&#26174;&#24335;&#21047;&#26032;</span>
+    flush_write_buffers();
+    <span style="color: #800;">return</span> nents;
+}
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline7" class="outline-4">
+<h4 id="orgheadline7">DMA池</h4>
+<div class="outline-text-4" id="text-orgheadline7">
+<p>
+有些驱动要用到许多很小的一致DMA映射，这种情况用DMA池更好。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">struct</span> <span style="color: #800;">dma_pool</span> {
+    <span style="color: #800;">struct</span> <span style="color: #800;">list_head</span>        <span style="color: #048;">page_list</span>;
+    <span style="color: #800;">spinlock_t</span>              <span style="color: #048;">lock</span>;
+    <span style="color: #800;">size_t</span>                  <span style="color: #048;">blocks_per_page</span>;&#12288;  <span style="color: #666;">// </span><span style="color: #666;">&#27599;&#39029;&#30340;&#22359;&#25968;</span>
+    size_t                  size;               <span style="color: #666;">// </span><span style="color: #666;">DMA&#27744;&#37324;&#30340;&#19968;&#33268;&#20869;&#23384;&#22359;&#30340;&#22823;&#23567;</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">device</span>           *<span style="color: #048;">dev</span>;               <span style="color: #666;">// </span><span style="color: #666;">&#23558;&#20570;DMA&#30340;&#35774;&#22791;</span>
+    <span style="color: #800;">size_t</span>                  <span style="color: #048;">allocation</span>;         <span style="color: #666;">// </span><span style="color: #666;">&#20998;&#37197;&#30340;&#27809;&#26377;&#36328;&#36234;&#36793;&#30028;&#30340;&#22359;&#25968;</span>
+                                                <span style="color: #666;">// </span><span style="color: #666;">&#26159;size&#30340;&#25972;&#25968;&#20493;</span>
+    <span style="color: #800;">char</span>                    <span style="color: #048;">name</span> [32];&#12288;        <span style="color: #666;">// </span><span style="color: #666;">&#27744;&#30340;&#21517;&#23383;</span>
+    wait_queue_head_t       waitq;              <span style="color: #666;">// </span><span style="color: #666;">&#31561;&#24453;&#38431;&#21015;</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">list_head</span>        <span style="color: #048;">pools</span>;
+};
+</pre>
+</div>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">struct</span> <span style="color: #800;">dma_pool</span> *<span style="color: #048; font-weight: bold;">dma_pool_create</span> (<span style="color: #800;">const</span> <span style="color: #800;">char</span> *<span style="color: #048;">name</span>, <span style="color: #800;">struct</span> <span style="color: #800;">device</span> *<span style="color: #048;">dev</span>,
+                                  <span style="color: #800;">size_t</span> <span style="color: #048;">size</span>, <span style="color: #800;">size_t</span> <span style="color: #048;">align</span>,
+                                  <span style="color: #800;">size_t</span> <span style="color: #048;">allocation</span>)
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="outline-container-orgheadline17" class="outline-2">
+<h2 id="orgheadline17">内存管理</h2>
+<div class="outline-text-2" id="text-orgheadline17">
+</div><div id="outline-container-orgheadline8" class="outline-3">
+<h3 id="orgheadline8">进程地址空间</h3>
+<div class="outline-text-3" id="text-orgheadline8">
+<p>
+内核不仅要管理自己的内存，还需要管理用户空间进程的内存，这部分内存称之为进程地址空间。
+Linux本身是一个虚拟化内存管理系统，也就是说每个进程从自己的视觉来看，就像是独占整个系统的内存资源一样。并且可以麻痹进程，让进程可以看到比物理内存大的内存。大体上虚拟内存管理技术有如下优点：
+</p>
+<ul class="org-ul">
+<li>进程不能直接访问物理地址，安全性更好，并可以看到比物理地址更广的空间</li>
+<li>多个相同程序同时运行时，可以看到同样的虚拟地址</li>
+</ul>
+
+<div class="org-center">
+
+<div class="figure">
+<p><img src="/resource/kernel/fig/kmem/process-mem.jpg" alt="process-mem.jpg" />
+</p>
+</div>
+</div>
+
+<p>
+进程地址空间作为一个平坦模型展示，意味着进程在32位机上可以访问0-4GB空间，有些操作系统提供分段地址空间，也就是由多个段组成。不过现代操作系统都用平坦模型。虽然进程地址空间范围是0-4GB，但是有些地方是不允许访问的。允许访问的区间为0x08048000-0xc0000000，被称之为内存区。当进程试图访问不允许访问的内存时，内核就会杀死进程，用户就能看到经典提示<code>Segmentation Fault</code>。内存区分为如下几个部分：
+</p>
+<dl class="org-dl">
+<dt>text</dt><dd>可执行文件代码，一般就叫做代码段，只读区</dd>
+<dt>data</dt><dd>已初始化全局变量，包括静态变量，保存在可执行文件中</dd>
+<dt>bss</dt><dd>全称block started by symbol，全0页，未初始化全局变量，注意text和data段在可执行文件中，而bss不在，由系统初始化</dd>
+<dt>stack</dt><dd>存放程序临时创建的局部变量，全0页，参数和返回值都会压入栈中</dd>
+<dt>heap</dt><dd>用于动态分配的内存段</dd>
+<dt>additon</dt><dd>额外的text、data、bss段，用于共享库</dd>
+<dt>files</dt><dd>内存映射的文件</dd>
+<dt>shared</dt><dd>共享内存段</dd>
+<dt>anonymous</dt><dd>匿名内存映射，例如关联malloc</dd>
+</dl>
+
+<p>
+这里说明一下bss段存在的意义，实际上最简单的做法是把bss段直接当作data段处理，但是为了进一步优化可执行文件的大小，才引入bss段。既然bss段都会清0，那么就没有必要保存起来，当程序启动时由系统将其初始化即可。静态变量也是一样的道理，已初始化就放到data段，未初始化就放到bss段。
+</p>
+
+<p>
+下面的示例程序用来打印各段地址：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">#include</span><span style="color: #800;">&lt;stdio.h&gt;</span>
+<span style="color: #800;">#include</span><span style="color: #800;">&lt;malloc.h&gt;</span>
+<span style="color: #800;">#include</span><span style="color: #800;">&lt;unistd.h&gt;</span>
+<span style="color: #800;">int</span> <span style="color: #048;">bss_var</span>;
+<span style="color: #800;">int</span> <span style="color: #048;">data_var0</span>=1;
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">main</span>(<span style="color: #800;">int</span> <span style="color: #048;">argc</span>, <span style="color: #800;">char</span> **<span style="color: #048;">argv</span>)
+{
+    printf(<span style="color: #800;">"Text: main address: %p\n"</span>, main);
+
+    <span style="color: #800;">int</span> <span style="color: #048;">stack_var0</span>=2;
+    printf(<span style="color: #800;">"Stack: stack end 0: %p\n"</span>, &amp;stack_var0);
+    <span style="color: #800;">int</span> <span style="color: #048;">stack_var1</span>=3;
+    printf(<span style="color: #800;">"       stack end 1: %p\n"</span>, &amp;stack_var1);
+
+    printf(<span style="color: #800;">"Data: Data 0: %p\n"</span>, &amp;data_var0);
+    <span style="color: #800;">static</span> <span style="color: #800;">int</span> <span style="color: #048;">data_var1</span>=4;
+    printf(<span style="color: #800;">"      Data 1: %p\n"</span>, &amp;data_var1);
+
+    printf(<span style="color: #800;">"BSS: bss_var: %p\n"</span>, &amp;bss_var);
+
+    <span style="color: #800;">char</span> *<span style="color: #048;">b</span> = (<span style="color: #800;">char</span> *)sbrk((<span style="color: #800;">ptrdiff_t</span>)0);
+    printf(<span style="color: #800;">"Heap: heap 0: %p\n"</span>, b);
+    brk(b+4);
+    b = (<span style="color: #800;">char</span> *)sbrk((<span style="color: #800;">ptrdiff_t</span>)0);
+    printf(<span style="color: #800;">"      heap 1: %p\n"</span>, b);
+    <span style="color: #800;">return</span> 0;
+}
+</pre>
+</div>
+
+<pre class="example">
+Text: main address: 0x4005bd
+Stack: stack end 0: 0x7fffb82edae0
+       stack end 1: 0x7fffb82edae4
+Data: Data 0: 0x601050
+      Data 1: 0x601054
+BSS: bss_var: 0x60105c
+Heap: heap 0: 0x15d4000
+      heap 1: 0x15d4004
+</pre>
+
+
+<p>
+内核用内存描述符来表示进程地址空间，即<code>mm_struct</code>结构。
+</p>
+<dl class="org-dl">
+<dt>mmap/mm_rb</dt><dd>前者是一个单向链表，后者是一个二叉树，两个数据结构都是用来描述所有内存的，只不过一个擅长遍历，一个擅长查询</dd>
+<dt>mmlist</dt><dd>通过该节点将所有<code>mm_struct</code>接入到全局链表<code>init_mm</code>，全局链表受<code>mmlist_lock</code>保护</dd>
+</dl>
+
+<p>
+进程可以通过在clone()是传递选项<code>CLONE_VM</code>来共享内存，这样就导致新产生的是线程而不是进程，这就是线程和进程的唯一区别。内核线程是不需要的进程地址空间的，因此不需要关联内存描述符，之所以不要，是因为内核线程不需要访问用户空间存储。
+</p>
+
+<p>
+内核中用<code>vm_area_struct</code>来表示内存区，内存区通常被称为虚拟内存区VMA。每个<code>vm_erea_struct</code>描述一个特定的内存区，如内存映射文件、进程栈等。一个<code>vm_erea_struct</code>所表示的内存范围由<code>(vm_start, vm_end]</code>来描述。如果两个线程共享地址空间，那么两个线程共享所有的<code>vm_erea_struct</code>。前面提到<code>mmap/mm_rb</code>是用来描述所有内存的，它们的节点就是<code>vm_erea_struct</code>。一个进程的内存区可以通过文件<code>/proc/pid/maps</code>查看。文件格式为：
+</p>
+<pre class="example">
+start-end         perm offset   major:minor inode  file
+00400000-0041f000 r-xp 00000000 00:11       25870  /usr/lib/...
+0061e000-0061f000 r--p 0001e000 00:11       25870  /usr/lib/...
+0061f000-00620000 rw-p 0001f000 00:11       25870  /usr/lib/...
+01b37000-01ecc000 rw-p 00000000 00:00       0      [heap]
+</pre>
+<p>
+另外也可以通过程序pmap来查看一个进程的内存空间信息。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">pmap [options] pid [...]
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline9" class="outline-3">
+<h3 id="orgheadline9">页表管理</h3>
+<div class="outline-text-3" id="text-orgheadline9">
+<p>
+虽然用户进程只会操作虚拟地址，但是处理器实际上是操作物理地址。所以处理器真正操作物理地址之前都需要一道转换程序，这种转换是通过查询页表来完成的。页表的功能就是完成对虚拟地址到物理地址的转换。
+Linux采用三级页表进行转换，分别是PGD、PMD、PTE，即全局目录，中间目录，目录项。在大多数机器上，页表查询都是由硬件来完成的。每个进程有自己独立的页表，线程共享。为了能够加速查询过程，处理器实现了TLB，Translation Lookaside Buffer，就是一个cache。
+</p>
+
+<div class="org-center">
+
+<div class="figure">
+<p><img src="/resource/kernel/fig/kmem/page-table.jpg" alt="page-table.jpg" />
+</p>
+</div>
+</div>
+
+<p>
+页表其本质就是页框的数组，只不过用一维数组不够用，要用多维来节省存储空间。而具体的每个页表项就是一个无符号长整型，高位31-12表示页框地址，低位表示属性。为什么低12位可以留作它用呢？因为每个页框的大小是4KB。
+</p>
+
+<p>
+Linux物理内存管理通过分页机制实现，分页可以让系统将页面拼凑出程序需要的大块内存，而不必连续页面。当然连续页面的好处是能降低TLB刷新率，为了降低刷新率，内核采用伙伴算法来管理空闲页面。这也是为什么<code>get_free_pages</code>只能获取2的幂的数量。用户空间调用<code>malloc</code>分配内存实际是通过<code>brk</code>来扩大或缩小进程堆空间，当现有空间不足时，内核会以页面为单位进行扩张。物理页面由<code>page</code>表示。
+</p>
+
+<div class="org-center">
+
+<div class="figure">
+<p><img src="/resource/kernel/fig/kmem/page-manage.jpg" alt="page-manage.jpg" />
+</p>
+</div>
+</div>
+
+<p>
+地址转换过程分为如下几个步骤：
+</p>
+<ol class="org-ol">
+<li>从CR3寄存器读取PGD所在基地址，从虚拟地址（也叫线性地址）第一部分获取页目录项索引，相加得到页目录项物理地址。</li>
+<li>读取PGD项，从中取出PUD基地址</li>
+<li>从虚拟地址第二部分获取PUD索引，和PUD基地址相加得PUD物理地址</li>
+<li>读取PUD项，从中取出PMD基地址</li>
+<li>从虚拟地址第三部分获取PMD索引，和PMD基地址相加得PMD物理地址</li>
+<li>读取PMD项，从中取出PTE基地址</li>
+<li>从虚拟地址第四部分获取PTE索引，和PTE基地址相加得PTE物理地址</li>
+<li>读取PTE项，从中取出物理页基地址</li>
+<li>从虚拟地址第五部分获取页内偏移，和物理页基地址相加得到最终物理地址</li>
+<li>最后可以从物理地址得到需要的数据</li>
+</ol>
+</div>
+</div>
+
+<div id="outline-container-orgheadline10" class="outline-3">
+<h3 id="orgheadline10">内存管理</h3>
+<div class="outline-text-3" id="text-orgheadline10">
+<p>
+Linux内核将物理页作为基本管理单元，32位机上一页为4KB，
+64位机上一页为8KB。内核中用<code>page</code>来描述物理页。由于每个物理页都需要一个<code>page</code>来描述，所以该结构体必须十分紧凑，另外要注意它只是描述物理页，而不是物理页中的数据。
+</p>
+<dl class="org-dl">
+<dt>count</dt><dd>当有人使用该页面的时候，计数器就不为0，使用者可以是page cache，
+private数据或进程页表。</dd>
+<dt>virtual</dt><dd>用于指向页面的虚拟地址，对于高端内存来说，如果没有做映射，该字段就指向NULL</dd>
+</dl>
+
+<div class="org-center">
+
+<div class="figure">
+<p><img src="/resource/kernel/fig/kmem/high-mem.png" alt="high-mem.png" />
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline11" class="outline-4">
+<h4 id="orgheadline11">内存碎片</h4>
+<div class="outline-text-4" id="text-orgheadline11">
+<p>
+内存碎片分为两种，一种叫内部碎片，一种叫外部碎片。内部和外部其实是相对于进程来说的，进程在请求内存时，系统在很多时候都不是精确分配，往往会多分配一点，这通常是出于性能和边界等考虑，那么多处的部分就是内部碎片。而外部碎片是因为系统在分配存储时，由于某些原因留下很多较小的空闲段，这些段因为太小，不能满足分配请求，就会形成外部碎片。
+</p>
+
+<p>
+简单的说，固定分区存在内部碎片，可变式分区存在外部碎片，页式虚拟存储存在内部碎片，段式虚拟存储存在外部碎片。例如最后一页装不满就形成内部碎片，而5K的段换出后，再换进4K的段，剩下的1K就是外部碎片。
+</p>
+
+<ol class="org-ol">
+<li><p>
+连续分配方式
+</p>
+
+<p>
+出现在早期，具体还可以分为：单一连续分配、固定分区分配、动态分区分配、动态重定位分区分配。
+</p></li>
+
+<li><p>
+分页管理
+</p>
+
+<p>
+连续分配会出现很多碎片，分页管理是一个进程占用多个不连续的页，系统为每个进程建立一张页面映射表，简称页表，页表的作用是实现从页号到物理块号的映射。页面管理方式会在进程最后一页形成内部碎片。
+</p></li>
+
+<li><p>
+分段管理
+</p>
+
+<p>
+分段和分页思路上是完全一样的，只不过页面大小是固定的，而段的长度不是固定的。所以分段管理存在外部碎片。
+</p></li>
+
+<li><p>
+段页式管理
+</p>
+
+<p>
+分页可以更好的管理内存，分段可以更好的满足用户需求，结合起来将用户程序分成若干段，每个段分若干页，地址结构包括段号、段内页号和页内偏移三部分。
+</p></li>
+</ol>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline12" class="outline-3">
+<h3 id="orgheadline12">页缓存</h3>
+<div class="outline-text-3" id="text-orgheadline12">
+<p>
+页缓存page cache本质上应该叫disk cache，因为缓存的目的起始是为了减少磁盘IO。用户在向磁盘写入数据的时候，实际上是写入到内存中，内核定期将内存中的数据更新到磁盘，称之为回写page writeback。同样，当用户要读取数据的时候，可以直接从内存得到需要的数据。
+</p>
+
+<p>
+在内存不够用的时候就需要回收部分缓存，LRU是一种基本的回收机制，将最后访问的文件插入到LRU链表，当内存不够用的时候就释放LRU中很久没有访问的文件。这样的方法其实还是有缺陷的，因为有些文件用一次就不用了，有些文件会频繁使用。
+Linux使用的LRU变体，即双链表策略，一个活动链表，一个不活动链表，当一个不活动链表中的文件被访问时，它就被加入到活动链表。当活动链表太长的时候，其尾部节点就扔到不活动链表，这种方法记位LRU/2。
+</p>
+
+<p>
+一个页缓存中的页可以是物理上不连续的磁盘块，Linux对page cache的设计下了大功夫，只要是基于页面的对象都可以缓存，包括文件、内存映射等等。
+Linux用<code>address_space</code>来描述缓存页，一个文件可以有多个<code>vm_area_struct</code>但是只有一个<code>address_space</code>，因为一个文件可以有多个虚拟地址，但是只有一个物理内存。
+</p>
+
+<p>
+内核在做IO操作之前必须检查是否有缓存页，所以要能具有快速搜索能力，在每个<code>address_space</code>中都有一个radix tree，内核利用该数据结构来进行页面查找。在早期内核是通过哈希表查找的，使用全局哈希表有如下一些问题：
+</p>
+<ol class="org-ol">
+<li>访问全局变量需要锁，高频率的获取锁是有效率问题的</li>
+<li>一个巨大的哈希表是没有必要的，因为我们只需要查找和文件关联的页</li>
+<li>当页面不存在的时候效率很低，因为你需要遍历冲突链表才知道不存在</li>
+<li>全局哈希很占空间</li>
+</ol>
+
+<p>
+除了这里提到的页缓存，对于块设备来说，还有一个块缓存，在通用块层提供了从内存块到物理块的映射。也就是对块的IO操作必须以单个磁盘块为单位，内核通过<code>bread()</code>来从磁盘读取一个块。
+</p>
+
+<p>
+为了能够将缓存页回写到磁盘上，内核提供了一个刷新线程。在如下几种情况下去执行回写操作：
+</p>
+<ol class="org-ol">
+<li>内存紧张，需要释放部分缓存</li>
+<li>脏数据缓存时间到期</li>
+<li>用户调用sync或fsync</li>
+</ol>
+
+<p>
+此外Linux还支持一种称为laptop的模式，将<code>/proc/sys/vm/laptop_mode</code>设置为1可以打开。该模式能够省电，其工作原理是当一个文件缓存时间到期后，刷新所有到期文件。当然必须要配置到期时间足够长，如10分钟，这样的后果就是一旦崩溃，系统可能就挂了。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline16" class="outline-3">
+<h3 id="orgheadline16">进阶概念</h3>
+<div class="outline-text-3" id="text-orgheadline16">
+</div><div id="outline-container-orgheadline13" class="outline-4">
+<h4 id="orgheadline13">vmalloc</h4>
+<div class="outline-text-4" id="text-orgheadline13">
+<p>
+vmalloc在地址空间范围由VMALLOC_START和VMALLOC_END限定，内部又分为多个vmalloc区，间隔为4KB，由<code>vm_struct</code>描述每个区，所有的<code>vm_struct</code>组成一个全局链表<code>vmlist</code>。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">struct</span> <span style="color: #800;">vm_struct</span> {
+    <span style="color: #800;">struct</span> <span style="color: #800;">vm_struct</span>        *<span style="color: #048;">next</span>;      <span style="color: #666;">// </span><span style="color: #666;">&#38142;&#34920;&#19979;&#19968;&#33410;&#28857;</span>
+    <span style="color: #800;">void</span>                    *<span style="color: #048;">addr</span>;      <span style="color: #666;">// </span><span style="color: #666;">&#20869;&#23384;&#21306;&#36215;&#22987;&#22320;&#22336;</span>
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">long</span>           <span style="color: #048;">size</span>;       <span style="color: #666;">// </span><span style="color: #666;">&#21306;&#22495;&#22823;&#23567;</span>
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">long</span>           <span style="color: #048;">flags</span>;      <span style="color: #666;">// </span><span style="color: #666;">&#20869;&#23384;&#21306;&#31867;&#22411;</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">page</span>             **<span style="color: #048;">pages</span>;    <span style="color: #666;">// </span><span style="color: #666;">&#27599;&#20010;page&#20851;&#32852;&#21040;&#19968;&#20010;&#29289;&#29702;&#39029;&#24103;</span>
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span>            <span style="color: #048;">nr_pages</span>;   <span style="color: #666;">// </span><span style="color: #666;">&#24635;page&#25968;</span>
+    <span style="color: #800;">phys_addr_t</span>             <span style="color: #048;">phys_addr</span>;  <span style="color: #666;">// </span><span style="color: #666;">&#36890;&#24120;&#20026;0&#65292;&#29992;&#20110;ioremap</span>
+    <span style="color: #800;">const</span> <span style="color: #800;">void</span>              *<span style="color: #048;">caller</span>;    <span style="color: #666;">// </span><span style="color: #666;">&#36820;&#22238;&#22320;&#22336;</span>
+};
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">void</span> *<span style="color: #048; font-weight: bold;">vmalloc</span>(<span style="color: #800;">unsigned</span> <span style="color: #800;">long</span> <span style="color: #048;">size</span>)
+{
+    <span style="color: #800;">return</span> __vmalloc_node_flags(size, NUMA_NO_NODE,
+                                GFP_KERNEL | __GFP_HIGHMEM);
+}
+<span style="color: #800;">static</span> <span style="color: #800;">inline</span> <span style="color: #800;">void</span> *<span style="color: #048; font-weight: bold;">__vmalloc_node_flags</span>(<span style="color: #800;">unsigned</span> <span style="color: #800;">long</span> <span style="color: #048;">size</span>,
+                                         <span style="color: #800;">int</span> <span style="color: #048;">node</span>, <span style="color: #800;">gfp_t</span> <span style="color: #048;">flags</span>)
+{
+    <span style="color: #800;">return</span> __vmalloc_node(size, 1, flags, PAGE_KERNEL,
+                          node, __builtin_return_address(0));
+}
+<span style="color: #800;">static</span> <span style="color: #800;">void</span> *<span style="color: #048; font-weight: bold;">__vmalloc_node</span>(<span style="color: #800;">unsigned</span> <span style="color: #800;">long</span> <span style="color: #048;">size</span>, <span style="color: #800;">unsigned</span> <span style="color: #800;">long</span> <span style="color: #048;">align</span>,
+                            <span style="color: #800;">gfp_t</span> <span style="color: #048;">gfp_mask</span>, <span style="color: #800;">pgprot_t</span> <span style="color: #048;">prot</span>,
+                            <span style="color: #800;">int</span> <span style="color: #048;">node</span>, <span style="color: #800;">const</span> <span style="color: #800;">void</span> *<span style="color: #048;">caller</span>)
+{
+    <span style="color: #800;">return</span> __vmalloc_node_range(size, align, VMALLOC_START, VMALLOC_END,
+                                gfp_mask, prot, 0, node, caller);
+}
+<span style="color: #800;">void</span> *<span style="color: #048; font-weight: bold;">__vmalloc_node_range</span>(<span style="color: #800;">unsigned</span> <span style="color: #800;">long</span> <span style="color: #048;">size</span>, <span style="color: #800;">unsigned</span> <span style="color: #800;">long</span> <span style="color: #048;">align</span>,
+                           <span style="color: #800;">unsigned</span> <span style="color: #800;">long</span> <span style="color: #048;">start</span>, <span style="color: #800;">unsigned</span> <span style="color: #800;">long</span> <span style="color: #048;">end</span>,
+                           <span style="color: #800;">gfp_t</span> <span style="color: #048;">gfp_mask</span>, <span style="color: #800;">pgprot_t</span> <span style="color: #048;">prot</span>,
+                           <span style="color: #800;">unsigned</span> <span style="color: #800;">long</span> <span style="color: #048;">vm_flags</span>, <span style="color: #800;">int</span> <span style="color: #048;">node</span>,
+                           <span style="color: #800;">const</span> <span style="color: #800;">void</span> *<span style="color: #048;">caller</span>);
+</pre>
+</div>
+<dl class="org-dl">
+<dt>size</dt><dd>要分配的大小</dd>
+<dt>align</dt><dd>1表示将size大小的虚拟内存作为一个整体</dd>
+<dt>start-end</dt><dd>指定VMALLOC区范围</dd>
+<dt>gfp_mask</dt><dd>高端内存：<code>GFP_KERNEL | __GFP_HIGHMEM</code></dd>
+<dt>prot</dt><dd>保护标志，即内核权限：PAGE_KERNEL</dd>
+<dt>vm_flags</dt><dd>0</dd>
+<dt>node</dt><dd>用于分配的节点，或者<code>NUMA_NO_NODE</code>表示未指定节点</dd>
+<dt>caller</dt><dd>返回地址</dd>
+</dl>
+
+<p>
+具体的分配流程如下：
+</p>
+<ol class="org-ol">
+<li><code>__get_vm_area_node</code>查找空闲内存，由(start, end)指定范围</li>
+<li><code>__vmalloc_area_node</code>分配物理页框</li>
+</ol>
+</div>
+</div>
+<div id="outline-container-orgheadline14" class="outline-4">
+<h4 id="orgheadline14">malloc</h4>
+<div class="outline-text-4" id="text-orgheadline14">
+<p>
+从进程地址空间可以看到，break将堆分成两半，下面是已经映射的堆，上面是未映射的堆。提供了两个接口修改break的位置：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">brk</span>(<span style="color: #800;">void</span> *<span style="color: #048;">addr</span>);                    <span style="color: #666;">// </span><span style="color: #666;">return 0 for ok</span>
+<span style="color: #800;">void</span> *<span style="color: #048; font-weight: bold;">sbrk</span>(<span style="color: #800;">intptr_t</span> <span style="color: #048;">increment</span>);         <span style="color: #666;">// </span><span style="color: #666;">return (void *)-1 when failed</span>
+</pre>
+</div>
+
+<p>
+实际malloc的实现中除了用到brk还会用到mmap，
+mmap用到堆和栈中间的一块虚拟内存，也叫文件映射区。
+malloc小于128KB的时候就调用brk，将break往高处推，当首次读写的时候发生缺页中断才会分配实际物理页，并建立映射关系。
+malloc大于128KB的时候是由mmap分配，所以会初始化为0。用brk分配的主要问题是高地址释放之后低地址才能释放，虽然释放低地址不会释放物理地址，但是好在malloc可以重用。当高地址空闲长度大于128KB时即可发生紧缩，降低break位置。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline15" class="outline-4">
+<h4 id="orgheadline15">mmap</h4>
+<div class="outline-text-4" id="text-orgheadline15">
+<p>
+内存映射<code>mmap</code>可以将内存映射到文件上，可以访问文件来达到访问内存的目的，同样可以通过对内存读写来达到对设备内存的读写。用户调用<code>mmap</code>时，最终会调用到<code>file_operations</code>提供的<code>mmap</code>。建立页表可以调用<code>remap_page_range</code>一次建立所有映射区页表，也可以用<code>vma_struct</code>的<code>nopage</code>在缺页时现场建立。
+</p>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline18" class="outline-2">
+<h2 id="orgheadline18">参考资料</h2>
+<div class="outline-text-2" id="text-orgheadline18">
+<ul class="org-ul">
+<li><a href="http://c.biancheng.net/cpp/u/xitong_3/">C语言中文网－内存管理</a></li>
+</ul>
+</div>
+</div>

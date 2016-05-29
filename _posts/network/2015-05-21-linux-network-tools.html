@@ -1,0 +1,432 @@
+---
+title: Linux网络工具
+categories: network
+tags: linux network
+author: 敬叶
+---
+<dl class="post-meta">
+<dt class="post-meta">2015-05-21</dt><dd>敬叶 初稿</dd>
+</dl>
+<hr><br>
+<div id="table-of-contents"><h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#orgheadline4">wpa_supplicant</a>
+<ul>
+<li><a href="#orgheadline1">简介</a></li>
+<li><a href="#orgheadline2">基本用法</a>
+<ul>
+<li><a href="#orgheadline3">wpa_cli</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#orgheadline5">iperf</a>
+<ul>
+<li><a href="#orgheadline10">基本参数</a>
+<ul>
+<li><a href="#orgheadline6">GENERAL OPTIONS</a></li>
+<li><a href="#orgheadline7">SERVER SPECIFIC OPTIONS</a></li>
+<li><a href="#orgheadline8">CLIENT SPECIFIC OPTIONS</a></li>
+<li><a href="#orgheadline9">其它参数</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline11">基本用法</a>
+<ul>
+<li><a href="#orgheadline12">测试TCP</a></li>
+<li><a href="#orgheadline13">测试UDP</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#orgheadline14">参考资料</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline4" class="outline-2">
+<h2 id="orgheadline4">wpa_supplicant</h2>
+<div class="outline-text-2" id="text-orgheadline4">
+</div><div id="outline-container-orgheadline1" class="outline-3">
+<h3 id="orgheadline1">简介</h3>
+<div class="outline-text-3" id="text-orgheadline1">
+<!--abstract-begin-->
+
+<p>
+wpa_supplicant是一个发送WPA请求的工具，WPA是Wi-Fi Protected Access的简称。用于在Linux、MAC、Windows上支持WPA和WPA2(IEEE 802.11i / RSN)。不论是在桌面应用还是嵌入式设备都是一个实用的工具。该工具设计为一个daemon程序，支持两个前端，wpa_cli是文本界面，wpa_gui是图形界面。
+</p>
+
+<!--abstract-end-->
+</div>
+</div>
+
+<div id="outline-container-orgheadline2" class="outline-3">
+<h3 id="orgheadline2">基本用法</h3>
+<div class="outline-text-3" id="text-orgheadline2">
+<p>
+首先需要写一个配置文件，一般就叫<code>wpa_supplicant.conf</code>。如果有密码，就需要指定psk，psk的计算可以通过如下命令来生成。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">wpa_passphrase YOUR-SSID YOUR-PASSWORD
+</pre>
+</div>
+<p>
+执行上面的命令就会输出下面的结果。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-conf"><span style="color: #048;">network</span>={
+        <span style="color: #048;">ssid</span>=<span style="color: #800;">"YOUR-SSID"</span>
+        <span style="color: #666;">#</span><span style="color: #666;">psk="YOUR-PASSWORD"</span>
+        <span style="color: #048;">psk</span>=e1a0872bd7f7cfd7efa1cbc7d7aec742c58f3ae24e4757d98eae8bf7b53254de
+}
+</pre>
+</div>
+
+<p>
+通常配置还包括许多其它信息，如下所示。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-conf"><span style="color: #048;">ctrl_interface</span>=DIR=/run/wpa_supplicant GROUP=wheel
+<span style="color: #048;">update_config</span>=1
+<span style="color: #048;">network</span>={
+        <span style="color: #048;">ssid</span>=<span style="color: #800;">"YOUR-SSID"</span>
+        <span style="color: #666;">#</span><span style="color: #666;">psk="YOUR-PASSWORD"</span>
+        <span style="color: #048;">psk</span>=e1a0872bd7f7cfd7efa1cbc7d7aec742c58f3ae24e4757d98eae8bf7b53254de
+}
+</pre>
+</div>
+<dl class="org-dl">
+<dt>ctrl_interface</dt><dd>要使用wpa_cli就必须设置<code>ctrl_interface</code>，
+GROUP用于指定哪些组的用户可以执行wpa_cli命令。</dd>
+<dt>update_config=1</dt><dd>表示wpa_cli中做的更改可以保存下来。</dd>
+</dl>
+
+<p>
+写好配置文件之后，用如下命令启动。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">wpa_supplicant -d -D wext -i wlan0 -c wpa_supplicant.conf &amp;
+</pre>
+</div>
+<dl class="org-dl">
+<dt>-B</dt><dd>后台执行</dd>
+<dt>-d</dt><dd>调试信息</dd>
+<dt>-i INTERFACE</dt><dd>指定网络接口，如wlan0、wlan1等等</dd>
+<dt>-c CONF</dt><dd>配置文件名</dd>
+<dt>-D DRIVER</dt><dd>驱动名，如<code>nl80211</code>是标准，但是支持不广，而<code>wext</code>已经不建议使用，但是支持广泛。</dd>
+</dl>
+</div>
+
+<div id="outline-container-orgheadline3" class="outline-4">
+<h4 id="orgheadline3">wpa_cli</h4>
+<div class="outline-text-4" id="text-orgheadline3">
+<p>
+在wpa_cli交户界面下可以执行的命令如下所示。
+</p>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">简写</th>
+<th scope="col" class="org-left">全写</th>
+<th scope="col" class="org-left">含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">stat</td>
+<td class="org-left">status</td>
+<td class="org-left">连接状态</td>
+</tr>
+
+<tr>
+<td class="org-left">disc</td>
+<td class="org-left">disconnect</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+
+<tr>
+<td class="org-left">q</td>
+<td class="org-left">quit</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+
+<tr>
+<td class="org-left">term</td>
+<td class="org-left">terminate</td>
+<td class="org-left">kill wpa_supplicant</td>
+</tr>
+
+<tr>
+<td class="org-left">recon</td>
+<td class="org-left">reconfigure</td>
+<td class="org-left">重新载入配置文件</td>
+</tr>
+
+<tr>
+<td class="org-left">scan</td>
+<td class="org-left">scan</td>
+<td class="org-left">扫描网络</td>
+</tr>
+
+<tr>
+<td class="org-left">scan_r</td>
+<td class="org-left">scan_result</td>
+<td class="org-left">扫描结果</td>
+</tr>
+
+<tr>
+<td class="org-left">list_n</td>
+<td class="org-left">list_networks</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+
+<tr>
+<td class="org-left">select_n</td>
+<td class="org-left">select_network</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+
+<tr>
+<td class="org-left">enable_n</td>
+<td class="org-left">enable_network</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+
+<tr>
+<td class="org-left">disable_n</td>
+<td class="org-left">disable_network</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+
+<tr>
+<td class="org-left">remove_n</td>
+<td class="org-left">remove_network</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+
+<tr>
+<td class="org-left">add_n</td>
+<td class="org-left">add_network</td>
+<td class="org-left">添加新网络，自动返回编号</td>
+</tr>
+
+<tr>
+<td class="org-left">set_n</td>
+<td class="org-left">set_network</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+
+<tr>
+<td class="org-left">get_n</td>
+<td class="org-left">get_network</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+
+<tr>
+<td class="org-left">save_c</td>
+<td class="org-left">save_config</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+<b>1. 连接无加密AP</b>
+</p>
+<div class="org-src-container">
+
+<pre class="src src-conf">&gt;add_network <span style="color: #666;"># </span><span style="color: #666;">It will display a network id for you, assume it returns 0</span>
+&gt;set_network 0 ssid <span style="color: #800;">"666"</span>
+&gt;set_network 0 key_mgmt NONE
+&gt;enable_network 0
+&gt;quit
+</pre>
+</div>
+
+<p>
+<b>2. 连接WEP加密AP</b>
+</p>
+<div class="org-src-container">
+
+<pre class="src src-conf">&gt;add_network <span style="color: #666;"># </span><span style="color: #666;">assume return 1</span>
+&gt;set_network 1 ssid <span style="color: #800;">"666"</span>
+&gt;set_network 1 key_mgmt NONE
+&gt;set_network 1 wep_key0 <span style="color: #800;">"your ap password"</span>
+&gt;enable_network 1
+</pre>
+</div>
+
+<p>
+<b>3. 连接WPA-PSK/WPA2-PSK加密的AP</b>
+</p>
+<div class="org-src-container">
+
+<pre class="src src-conf">&gt;add_network <span style="color: #666;"># </span><span style="color: #666;">assume return 2</span>
+&gt;set_network 2 ssid <span style="color: #800;">"666"</span>
+&gt;set_network 2 psk <span style="color: #800;">"your pre-shared key"</span>
+&gt;enable_network 2
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline5" class="outline-2">
+<h2 id="orgheadline5">iperf</h2>
+<div class="outline-text-2" id="text-orgheadline5">
+<p>
+iperf是一个网络吞吐量测试工具，可以对TCP或UDP测试，要进行测试，需要配置服务端和客户端。
+</p>
+</div>
+<div id="outline-container-orgheadline10" class="outline-3">
+<h3 id="orgheadline10">基本参数</h3>
+<div class="outline-text-3" id="text-orgheadline10">
+</div><div id="outline-container-orgheadline6" class="outline-4">
+<h4 id="orgheadline6">GENERAL OPTIONS</h4>
+<div class="outline-text-4" id="text-orgheadline6">
+<div class="org-src-container">
+
+<pre class="src src-text">-f, --format [kmKM]     format to report: Kbits, Mbits...
+-i, --interval n        pause n seconds between reports
+-l, --len n[KM]         set buffer length to n (default 8 KB)
+-m, --print_mss         print TCP maximum segment size
+-p, --port n            set server port to n (default 5001)
+-u, --udp               use UDP rather than TCP
+-w, --window n[KM]      TCP window size (socket buffer size)
+-B, --bind &lt;host&gt;       bind to &lt;host&gt;
+-M, --mss n             set TCP maximum segment size
+-N, --nodelay           set TCP no delay
+-v, --version           print version information and quit
+-V, --IPv6Version       Set the domain to IPv6
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-orgheadline7" class="outline-4">
+<h4 id="orgheadline7">SERVER SPECIFIC OPTIONS</h4>
+<div class="outline-text-4" id="text-orgheadline7">
+<div class="org-src-container">
+
+<pre class="src src-text">-s, --server            run in server mode
+-U, --single_udp        run in single threaded UDP mode
+-D, --daemon            run the server as a daemon
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline8" class="outline-4">
+<h4 id="orgheadline8">CLIENT SPECIFIC OPTIONS</h4>
+<div class="outline-text-4" id="text-orgheadline8">
+<div class="org-src-container">
+
+<pre class="src src-text">-b, --bandwidth n[KM]   set target bandwidth to n bits/sec
+                        This setting requires UDP (-u).
+-c, --client &lt;host&gt;     connecting to &lt;host&gt;
+-d, --dualtest          Do a bidirectional test simultaneously
+-n, --num n[KM]         number of bytes to transmit
+-r, --tradeoff          Do a bidirectional test individually
+-t, --time n            time in seconds to transmit
+-F, --fileinput &lt;name&gt;  input the data to be transmitted
+-I, --stdin             input the data to be transmitted
+-L, --listenport n      port to receive bidirectional tests
+-P, --parallel n        number of parallel client threads
+-T, --ttl n             time-to-live, for multicast
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline9" class="outline-4">
+<h4 id="orgheadline9">其它参数</h4>
+<div class="outline-text-4" id="text-orgheadline9">
+<dl class="org-dl">
+<dt>TCP_WINDOW_SIZE</dt><dd>环境变量，用于控制TCP缓冲区大小。</dd>
+</dl>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline11" class="outline-3">
+<h3 id="orgheadline11">基本用法</h3>
+<div class="outline-text-3" id="text-orgheadline11">
+<p>
+要进行网络传输测试需要两台机器，同一台机器可能并没有通过网络传输，所以速度过快。
+</p>
+</div>
+
+<div id="outline-container-orgheadline12" class="outline-4">
+<h4 id="orgheadline12">测试TCP</h4>
+<div class="outline-text-4" id="text-orgheadline12">
+<p>
+启动服务端：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">iperf -s -p1234
+</pre>
+</div>
+
+<p>
+启动客户端：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #666;"># </span><span style="color: #666;">&#20256;&#36755;30s&#65292;&#27599;2s&#25171;&#21360;&#19968;&#27425;&#25253;&#21578;</span>
+iperf -c 192.168.0.100 -p1234 -i2 -t30
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline13" class="outline-4">
+<h4 id="orgheadline13">测试UDP</h4>
+<div class="outline-text-4" id="text-orgheadline13">
+<p>
+启动服务端：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">iperf -s -p1234 -u
+</pre>
+</div>
+
+<p>
+启动客户端：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">iperf -c 192.168.0.100 -p1234 -i2 -t30 -u -b1000M
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline14" class="outline-2">
+<h2 id="orgheadline14">参考资料</h2>
+<div class="outline-text-2" id="text-orgheadline14">
+<ul class="org-ul">
+<li><a href="http://linux.die.net/man/8/wpa_supplicant">wpa_supplicant(8) - Linux man page</a></li>
+<li><a href="http://linux.die.net/man/5/wpa_supplicant.conf">wpa_supplicant.conf(5) - Linux man page</a></li>
+<li><a href="http://w1.fi/wpa_supplicant/">Linux WPA/WPA2/IEEE 802.1X Supplicant</a></li>
+<li><a href="https://wiki.archlinux.org/index.php/WPA_supplicant">Archlinux WPA supplicant</a></li>
+</ul>
+</div>
+</div>

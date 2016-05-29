@@ -1,0 +1,19 @@
+* plantUML images
+** dma-buf-mechanism.png
+#+BEGIN_SRC plantuml :file dma-buf-mechanism.png
+actor exporter
+actor user
+autonumber
+exporter -> user: dma_buf_export()
+exporter -> user: dma_buf_fd()
+user -> exporter: dma_buf_get()
+user -> exporter: dma_buf_attach()
+user -> exporter: dma_buf_map_attachment()
+user -> exporter: using sg_table
+user -> exporter: dma_buf_unmap_attachment()
+user -> exporter: dma_buf_detach()
+user -> exporter: dma_buf_put()
+#+END_SRC
+
+#+RESULTS:
+[[file:dma-buf-mechanism.png]]

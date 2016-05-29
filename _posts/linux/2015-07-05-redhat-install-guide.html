@@ -1,0 +1,525 @@
+---
+title: Redhat安装指南
+categories: linux
+tags: linux redhat
+author: 敬叶
+---
+<dl class="post-meta">
+<dt class="post-meta">2015-07-05</dt><dd>敬叶 初稿</dd>
+</dl>
+<hr><br>
+<div id="table-of-contents"><h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#orgheadline1">RHEL安装指南</a>
+<ul>
+<li><a href="#orgheadline4">RHEL6安装指南</a>
+<ul>
+<li><a href="#orgheadline2">制作U盘启动盘</a></li>
+<li><a href="#orgheadline3">安装破解</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline7">RHEL7安装指南</a>
+<ul>
+<li><a href="#orgheadline5">制作U盘启动盘</a></li>
+<li><a href="#orgheadline6">安装破解</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#orgheadline22">RHEL使用指南</a>
+<ul>
+<li><a href="#orgheadline11">软件包管理</a>
+<ul>
+<li><a href="#orgheadline8">yum命令</a></li>
+<li><a href="#orgheadline9">rpm命令</a></li>
+<li><a href="#orgheadline10">yum-config-manager命令</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline14">Linux内核开发</a>
+<ul>
+<li><a href="#orgheadline12">安装基本开发环境</a></li>
+<li><a href="#orgheadline13">编译安装内核</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline21">常见问题</a>
+<ul>
+<li><a href="#orgheadline15">调整背光亮度</a></li>
+<li><a href="#orgheadline16">安装python-pip</a></li>
+<li><a href="#orgheadline17">安装vlc</a></li>
+<li><a href="#orgheadline18">安装libQtWebkit.so.4</a></li>
+<li><a href="#orgheadline19">查看kernel日志</a></li>
+<li><a href="#orgheadline20">添加启动项</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#orgheadline23">参考资料</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline1" class="outline-2">
+<h2 id="orgheadline1">RHEL安装指南</h2>
+<div class="outline-text-2" id="text-orgheadline1">
+<!--abstract-begin-->
+
+<p>
+RHEL的全称为Red Hat Enterprise Linux，面向商业市场，红帽公司对每个版本提供10年的技术支持，大约三年才发布一个新版本。相比于其它Linux发行版，RHEL是收费才能使用的。
+RHEL有三个发行版本，
+Client面向娱乐办公，Workstation面向开发程序，Server面向服务器。不论是哪个版本，在安装的时候都可以选择GUI软件包装上图形界面。
+</p>
+
+<!--abstract-end-->
+
+<p>
+安装过程中需要破解和更新，相关脚本通过如下命令获取：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">git clone https://gitcafe.com/clone/rhtools.git
+</pre>
+</div>
+<p>
+需要说明的是脚本中使用的是上海交大的源，如果希望使用中科大的源，请参考文档：<a href="https://lug.ustc.edu.cn/wiki/mirrors/help/centos">Centos镜像使用帮助</a>。不过要将<code>$releasever</code>替换为对应的版本号，如RHEL7就替换为<code>7</code>。
+</p>
+</div>
+
+<div id="outline-container-orgheadline4" class="outline-3">
+<h3 id="orgheadline4">RHEL6安装指南</h3>
+<div class="outline-text-3" id="text-orgheadline4">
+</div><div id="outline-container-orgheadline2" class="outline-4">
+<h4 id="orgheadline2">制作U盘启动盘</h4>
+<div class="outline-text-4" id="text-orgheadline2">
+<p>
+下载ISO安装镜像：<a href="http://pan.baidu.com/s/1gdrLC8F#path=%2Fredhat_linux">http://pan.baidu.com/s/1gdrLC8F#path=%2Fredhat_linux</a>
+</p>
+
+<p>
+使用Ultraiso制作U盘启动盘：<a href="http://download.pcpop.com/shiyonggongju/guangqugongju/96645.html">http://download.pcpop.com/shiyonggongju/guangqugongju/96645.html</a>
+</p>
+
+<p>
+注意：如果之前用dd在U盘上写过镜像，需要清零：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">dd <span style="color: #048;">if</span>=/dev/zero <span style="color: #048;">of</span>=/dev/sdx <span style="color: #048;">bs</span>=4M <span style="color: #048;">count</span>=1000
+</pre>
+</div>
+
+<p>
+如果不清零，会出现错误：
+</p>
+<blockquote>
+<p>
+Unknown Device : The installation source given by device['/dev/sdb1']
+could not be found. Please check your parameters and try again.
+</p>
+</blockquote>
+<p>
+检查U盘信息可以得到如下结果：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">$ blkid /dev/sdx
+<span style="color: #048;">LABEL</span>=<span style="color: #800;">"RHEL_..."</span> <span style="color: #048;">TYPE</span>=<span style="color: #800;">"iso9660"</span>
+$ blkid /dev/sdx1
+<span style="color: #048;">LABEL</span>=<span style="color: #800;">"RHEL_..."</span> <span style="color: #048;">UUID</span>=<span style="color: #800;">"..."</span> <span style="color: #048;">TYPE</span>=<span style="color: #800;">"vfat"</span>
+</pre>
+</div>
+
+<p>
+将安装镜像复制到U盘。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline3" class="outline-4">
+<h4 id="orgheadline3">安装破解</h4>
+<div class="outline-text-4" id="text-orgheadline3">
+<p>
+按提示安装即可，需要桌面环境的用户在最后选择安装软件的时候要选择
+<code>Desktop</code>软件。
+</p>
+
+<p>
+执行<code>rhtools/r6</code>中的<code>crack.sh</code>完成破解并更新系统。
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline7" class="outline-3">
+<h3 id="orgheadline7">RHEL7安装指南</h3>
+<div class="outline-text-3" id="text-orgheadline7">
+</div><div id="outline-container-orgheadline5" class="outline-4">
+<h4 id="orgheadline5">制作U盘启动盘</h4>
+<div class="outline-text-4" id="text-orgheadline5">
+<p>
+下载ISO安装镜像：<a href="http://pan.baidu.com/s/1gdrLC8F#path=%2Fredhat_linux">http://pan.baidu.com/s/1gdrLC8F#path=%2Fredhat_linux</a>
+</p>
+
+<p>
+umount U盘并写入镜像，注意修改<code>sdb</code>为对应的U盘设备名：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">dd <span style="color: #048;">if</span>=disk.iso <span style="color: #048;">of</span>=/dev/sdb <span style="color: #048;">bs</span>=4M
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline6" class="outline-4">
+<h4 id="orgheadline6">安装破解</h4>
+<div class="outline-text-4" id="text-orgheadline6">
+<p>
+按提示安装即可，需要桌面环境的用户在最后选择安装软件的时候要选择
+<code>Desktop</code>软件。
+</p>
+
+<p>
+执行<code>rhtools/r7</code>中的<code>crack.sh</code>完成破解并更新系统。
+</p>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline22" class="outline-2">
+<h2 id="orgheadline22">RHEL使用指南</h2>
+<div class="outline-text-2" id="text-orgheadline22">
+</div><div id="outline-container-orgheadline11" class="outline-3">
+<h3 id="orgheadline11">软件包管理</h3>
+<div class="outline-text-3" id="text-orgheadline11">
+</div><div id="outline-container-orgheadline8" class="outline-4">
+<h4 id="orgheadline8">yum命令</h4>
+<div class="outline-text-4" id="text-orgheadline8">
+<div class="org-src-container">
+
+<pre class="src src-sh">yum search &lt;pkgname&gt;                    <span style="color: #666;"># </span><span style="color: #666;">&#25628;&#32034;&#36719;&#20214;&#21253;</span>
+yum install &lt;pkgname&gt;                   <span style="color: #666;"># </span><span style="color: #666;">&#23433;&#35013;&#36719;&#20214;&#21253;</span>
+yum update --skip-broken                <span style="color: #666;"># </span><span style="color: #666;">&#26356;&#26032;&#31995;&#32479;</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline9" class="outline-4">
+<h4 id="orgheadline9">rpm命令</h4>
+<div class="outline-text-4" id="text-orgheadline9">
+<div class="org-src-container">
+
+<pre class="src src-sh">rpm -qa                                 <span style="color: #666;"># </span><span style="color: #666;">&#26597;&#35810;&#25152;&#26377;&#23433;&#35013;&#30340;&#21253;</span>
+rpm -qf &lt;filename&gt;                      <span style="color: #666;"># </span><span style="color: #666;">&#26597;&#35810;&#25991;&#20214;&#23646;&#20110;&#21738;&#20010;&#21253;</span>
+rpm -qi &lt;package&gt;                       <span style="color: #666;"># </span><span style="color: #666;">&#26597;&#35810;&#21253;&#30340;&#20449;&#24687;</span>
+rpm -ql &lt;package&gt;                       <span style="color: #666;"># </span><span style="color: #666;">&#21015;&#20030;&#21253;&#20013;&#30340;&#25991;&#20214;</span>
+rpm -q --whatprovides &lt;bar.so.2&gt;        <span style="color: #666;"># </span><span style="color: #666;">&#26597;&#35810;&#20381;&#36182;&#21253;</span>
+
+rpm -qip &lt;package.rpm&gt;                  <span style="color: #666;"># </span><span style="color: #666;">&#26597;&#35810;&#26410;&#23433;&#35013;&#30340;&#21253;&#30340;&#20449;&#24687;</span>
+rpm -qip &lt;package.rpm&gt;                  <span style="color: #666;"># </span><span style="color: #666;">&#21015;&#20030;&#26410;&#23433;&#35013;&#30340;&#21253;&#30340;&#25991;&#20214;</span>
+
+rpm -ivh &lt;package.rpm&gt;                  <span style="color: #666;"># </span><span style="color: #666;">&#23433;&#35013;&#36719;&#20214;</span>
+rpm -Uvh &lt;package.rpm&gt;                  <span style="color: #666;"># </span><span style="color: #666;">&#26356;&#26032;&#36719;&#20214;</span>
+rpm -ivh --replacepkgs &lt;package.rpm&gt;    <span style="color: #666;"># </span><span style="color: #666;">&#26367;&#25442;&#24615;&#23433;&#35013;</span>
+rpm -e &lt;package&gt;                        <span style="color: #666;"># </span><span style="color: #666;">&#21024;&#38500;&#36719;&#20214;&#65292;&#19981;&#35201;&#21152;&#21518;&#32512;</span>
+rpm -q [options] &lt;package&gt;              <span style="color: #666;"># </span><span style="color: #666;">&#26597;&#35810;&#36719;&#20214;&#20449;&#24687;</span>
+rpm -V[fap] &lt;package&gt;                   <span style="color: #666;"># </span><span style="color: #666;">&#39564;&#35777;&#36719;&#20214;&#21253;</span>
+</pre>
+</div>
+
+<p>
+如果安装过程出现如下提示，就需要加上<code>--replacepkgs</code>选项。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-text">Preparing...                ########################################### [100%]
+file /usr/bin/foo from install of foo-1.0-1 conflicts with file from package bar-2.0.20
+</pre>
+</div>
+
+<p>
+如果安装过程中提示缺少依赖软件，可以用<code>rpm -q --whatprovides</code>查询所依赖的包的名字。
+</p>
+
+<p>
+查询可以提供的选项如下所示：
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<tbody>
+<tr>
+<td class="org-left">-f</td>
+<td class="org-left">查询哪个软件包包含指定文件</td>
+</tr>
+
+<tr>
+<td class="org-left">-p</td>
+<td class="org-left">查询指定的软件包</td>
+</tr>
+
+<tr>
+<td class="org-left">-i</td>
+<td class="org-left">详细信息</td>
+</tr>
+
+<tr>
+<td class="org-left">-l</td>
+<td class="org-left">包含的文件列表</td>
+</tr>
+
+<tr>
+<td class="org-left">-s</td>
+<td class="org-left">包含的文件状态</td>
+</tr>
+
+<tr>
+<td class="org-left">-d</td>
+<td class="org-left">包含的文档文件</td>
+</tr>
+
+<tr>
+<td class="org-left">-c</td>
+<td class="org-left">包含的配置文件</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<div id="outline-container-orgheadline10" class="outline-4">
+<h4 id="orgheadline10">yum-config-manager命令</h4>
+<div class="outline-text-4" id="text-orgheadline10">
+<div class="org-src-container">
+
+<pre class="src src-sh">yum-config-manager --add-repo repository_url <span style="color: #666;"># </span><span style="color: #666;">&#28155;&#21152;&#20179;&#24211;</span>
+yum repolist all                             <span style="color: #666;"># </span><span style="color: #666;">&#26597;&#30475;&#20179;&#24211;&#21015;&#34920;</span>
+yum-config-manager --enable repository...    <span style="color: #666;"># </span><span style="color: #666;">&#21551;&#29992;&#20179;&#24211;</span>
+yum-config-manager --disable repository...   <span style="color: #666;"># </span><span style="color: #666;">&#31105;&#29992;&#20179;&#24211;</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline14" class="outline-3">
+<h3 id="orgheadline14">Linux内核开发</h3>
+<div class="outline-text-3" id="text-orgheadline14">
+</div><div id="outline-container-orgheadline12" class="outline-4">
+<h4 id="orgheadline12">安装基本开发环境</h4>
+<div class="outline-text-4" id="text-orgheadline12">
+<p>
+如果要开发驱动模块，就需要安装必要的内核开发环境，可以执行如下命令安装。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">yum install gcc kernel-devel
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline13" class="outline-4">
+<h4 id="orgheadline13">编译安装内核</h4>
+<div class="outline-text-4" id="text-orgheadline13">
+<p>
+有时候为了重新配置内核，或者向内核添加驱动，就需要从源代码安装内核。
+</p>
+
+<p>
+在编译内核之前安装依赖软件包：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">yum install rpm-build redhat-rpm-config asciidoc hmaccalc <span style="color: #800;">\</span>
+    perl-ExtUtils-Embed pesign xmlto
+yum install audit-libs-devel binutils-devel elfutils-devel <span style="color: #800;">\</span>
+    elfutils-libelf-devel
+yum install newt-devel numactl-devel pciutils-devel <span style="color: #800;">\</span>
+    python-devel zlib-devel
+yum install gcc ncurses-devel
+</pre>
+</div>
+
+<p>
+内核的rpm源码包可以从<a href="http://vault.centos.org/">CentOS server</a>下载，找到对应的版本号，进入<code>os/Source/SPackages/</code>查找要下载的rpm包并下载。使用如下命令将内核源代码安装到<code>~/rpmbuild/</code>目录：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">rpm -i kernel-3.10.0-123.el7.src.rpm
+</pre>
+</div>
+
+<p>
+通过如下命令编译安装内核：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #800;">cd</span> ~/rpmbuild/SPECS
+rpmbuild -bp --target=$(<span style="font-weight: bold;">uname</span> -m) kernel.spec <span style="color: #666;"># </span><span style="color: #666;">&#29983;&#25104;&#28304;&#30721;&#26641;</span>
+<span style="color: #800;">cd</span> ~/rpmbuild/BUILD/&lt;kernel-src&gt;              <span style="color: #666;"># </span><span style="color: #666;">&#36827;&#20837;&#28304;&#30721;&#26641;</span>
+make menuconfig
+make
+make modules_install
+make install
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline21" class="outline-3">
+<h3 id="orgheadline21">常见问题</h3>
+<div class="outline-text-3" id="text-orgheadline21">
+</div><div id="outline-container-orgheadline15" class="outline-4">
+<h4 id="orgheadline15">调整背光亮度</h4>
+<div class="outline-text-4" id="text-orgheadline15">
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #800;">echo</span> 5 &gt; /sys/class/backlight/acpi_video0/brightness
+</pre>
+</div>
+<p>
+输入的数字范围为0-10.
+</p>
+</div>
+</div>
+<div id="outline-container-orgheadline16" class="outline-4">
+<h4 id="orgheadline16">安装python-pip</h4>
+<div class="outline-text-4" id="text-orgheadline16">
+<p>
+ref: <a href="http://sharadchhetri.com/2014/05/30/install-pip-centos-rhel-ubuntu-debian/">How to install pip on CentOS/RHEL/Ubuntu/Debian</a>
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">yum install epel-release
+yum install -y python-pip
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline17" class="outline-4">
+<h4 id="orgheadline17">安装vlc</h4>
+<div class="outline-text-4" id="text-orgheadline17">
+<p>
+安装vlc需要添加nux-dextop源，添加成功之后执行<code>yum install vlc</code>即可安装，如果过程提示依赖文件无法安装，可能是基本的源缺少某些软件包，推荐换一下基本的源尝试，例如我用163的源安装不成功，换成sjtu的源就能成功了。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline18" class="outline-4">
+<h4 id="orgheadline18">安装libQtWebkit.so.4</h4>
+<div class="outline-text-4" id="text-orgheadline18">
+<p>
+也需要添加nux-dextop源，执行<code>yum install qtwebkit-devel</code>安装。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline19" class="outline-4">
+<h4 id="orgheadline19">查看kernel日志</h4>
+<div class="outline-text-4" id="text-orgheadline19">
+<div class="org-src-container">
+
+<pre class="src src-sh">tail -f /var/log/messages
+</pre>
+</div>
+
+<p>
+在内核日志量非常大的时候就会报出如下信息，然后就看不到日志了。
+</p>
+<blockquote>
+<p>
+rsyslogd-2177: imjournal: begin to drop messages due to rate-limiting
+</p>
+</blockquote>
+
+<p>
+详细信息请参考 <a href="https://bugzilla.redhat.com/show_bug.cgi?id=1123190">Bug 1123190</a> ，要想查看所有日志，可以修改文件
+<code>/etc/systemd/journald.conf</code>。该文件具体参数的含义可以参考 <a href="http://www.freedesktop.org/software/systemd/man/journald.conf.html">journald.conf, journald.conf.d — Journal service configuration files</a> ，或者 <a href="http://www.dsm.fordham.edu/cgi-bin/man-cgi.pl?topic=journald.conf&amp;ampsect=5">Man page journald.conf</a>。
+</p>
+<dl class="org-dl">
+<dt>RateLimitInterval=, RateLimitBurst=</dt><dd>用于配置rate limiting，要想关闭rate limiting最直接的办法是将其中一个值设置为0。其默认值如下所示。</dd>
+</dl>
+<div class="org-src-container">
+
+<pre class="src src-sh">$<span style="color: #048;">RateLimitInterval</span>=30s
+$<span style="color: #048;">RateLimitBurst</span>=1000
+</pre>
+</div>
+
+<p>
+然后重启systemd-journald.service。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #666;"># </span><span style="color: #666;">systemctl restart systemd-journald.service</span>
+service systemd-journald restart
+<span style="color: #666;"># </span><span style="color: #666;">systemctl restart rsyslog</span>
+service rsyslog restart
+</pre>
+</div>
+
+<p>
+如果出现如下错误信息，需要删除<code>/var/lib/rsyslog/imjournal.state</code>，然后执行<code>service rsyslog restart</code>重启syslog。详情请参考<a href="https://bugzilla.redhat.com/show_bug.cgi?id=1088021">Bug 1088021</a>。
+</p>
+<blockquote>
+<p>
+rsyslog-2027: imjournal: fscanf on state file `/var/lib/rsyslog/imjournal.state' failed
+</p>
+</blockquote>
+</div>
+</div>
+
+<div id="outline-container-orgheadline20" class="outline-4">
+<h4 id="orgheadline20">添加启动项</h4>
+<div class="outline-text-4" id="text-orgheadline20">
+<p>
+如果是双系统安装，安装完成rhel之后，如果看不到Windows启动项，可以按照如下方法配置。创建并编辑文件<code>/etc/grub.d/40_custom</code>。添加如下内容，注意(hd0,1)表示第一个分区，如果Windows不是装载第一个分区，需要相应的作出修改。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #666;">#</span><span style="color: #666;">!/bin/</span><span style="color: #800;">sh</span>
+<span style="color: #800;">exec</span> tail -n +3 $<span style="color: #048;">0</span>
+<span style="color: #666;"># </span><span style="color: #666;">This file provides an easy way to add custom menu entries.  Simply type the</span>
+<span style="color: #666;"># </span><span style="color: #666;">menu entries you want to add after this comment.  Be careful not to change</span>
+<span style="color: #666;"># </span><span style="color: #666;">the 'exec tail' line above.</span>
+menuentry <span style="color: #800;">'Windows system'</span> {
+         insmod part_msdos
+         insmod ntfs
+         insmod ntldr
+         <span style="color: #800;">set</span> <span style="color: #048;">root</span>=(hd0,1)
+         chainloader +1
+         boot
+}
+</pre>
+</div>
+<p>
+添加好文件之后，执行如下命令更新grub配置，重启即可。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">grub2-mkconfig -o /boot/grub2/grub.cfg
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline23" class="outline-2">
+<h2 id="orgheadline23">参考资料</h2>
+<div class="outline-text-2" id="text-orgheadline23">
+<ul class="org-ul">
+<li><a href="http://wiki.centos.org/HowTos/I_need_the_Kernel_Source">I Need the Kernel Source</a></li>
+</ul>
+</div>
+</div>

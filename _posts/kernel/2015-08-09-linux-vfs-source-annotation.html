@@ -1,0 +1,994 @@
+---
+title: Linux虚拟文件系统源码分析
+categories: kernel
+tags: linux kernel vfs
+author: 敬叶
+---
+<dl class="post-meta">
+<dt class="post-meta">2015-08-09</dt><dd>敬叶 初稿</dd>
+</dl>
+<hr><br>
+<div id="table-of-contents"><h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#orgheadline1">数据结构</a>
+<ul>
+<li><a href="#orgheadline4">超级块</a>
+<ul>
+<li><a href="#orgheadline2">super_block</a></li>
+<li><a href="#orgheadline3">super_operations</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline7">索引节点</a>
+<ul>
+<li><a href="#orgheadline5">inode</a></li>
+<li><a href="#orgheadline6">inode_operations</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline8">文件</a>
+<ul>
+<li><a href="#orgheadline9">file</a></li>
+<li><a href="#orgheadline10">file_operations</a></li>
+<li><a href="#orgheadline11">fs_struct</a></li>
+<li><a href="#orgheadline12">files_struct</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline15">目录项</a>
+<ul>
+<li><a href="#orgheadline13">dentry</a></li>
+<li><a href="#orgheadline14">dentry_operations</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline16">挂载点</a></li>
+<li><a href="#orgheadline17">文件名</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline23">基本操作</a>
+<ul>
+<li><a href="#orgheadline18">从描述符获取文件</a></li>
+<li><a href="#orgheadline20">索引节点哈希表</a>
+<ul>
+<li><a href="#orgheadline19">哈希表结构</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline22">目录项哈希表</a>
+<ul>
+<li><a href="#orgheadline21">哈希表结构</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#orgheadline34">复杂操作</a>
+<ul>
+<li><a href="#orgheadline27">根文件系统</a>
+<ul>
+<li><a href="#orgheadline24">注册文件系统类型</a></li>
+<li><a href="#orgheadline25">挂载根文件系统</a></li>
+<li><a href="#orgheadline26">创建名字空间</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline31">文件查询</a>
+<ul>
+<li><a href="#orgheadline28">基本概念</a></li>
+<li><a href="#orgheadline29">数据结构</a></li>
+<li><a href="#orgheadline30">路径查找</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline33">文件访问</a>
+<ul>
+<li><a href="#orgheadline32">打开文件</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline1" class="outline-2">
+<h2 id="orgheadline1">数据结构</h2>
+<div class="outline-text-2" id="text-orgheadline1">
+<!--abstract-begin-->
+
+<p>
+VFS中关联的数据结构很多，如下图所示。在这里我们先把核心要素说明一下，基本上都是按照面向对象的思路来设计的，而最重要的要素就是超级块、索引节点、文件和目录项。
+</p>
+
+<p>
+这里会介绍文件描述符到文件的转换，索引节点和目录项哈希表的基本操作，并以根文件系统为例说明文件系统的注册与挂载操作。此外还包括文件名查询代码的分析，以及文件访问操作等。
+</p>
+<!--abstract-end-->
+
+<div class="figure">
+<p><img src="/resource/kernel/fig/vfs/vfs-frame-look.png" alt="vfs-frame-look.png" />
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline4" class="outline-3">
+<h3 id="orgheadline4">超级块</h3>
+<div class="outline-text-3" id="text-orgheadline4">
+</div><div id="outline-container-orgheadline2" class="outline-4">
+<h4 id="orgheadline2">super_block</h4>
+<div class="outline-text-4" id="text-orgheadline2">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">struct</span> <span style="color: #800;">super_block</span> {
+    <span style="color: #800;">struct</span> <span style="color: #800;">list_head</span>            <span style="color: #048;">s_list</span>; <span style="color: #666;">// </span><span style="color: #666;">super_blocks &amp; sb_lock</span>
+    <span style="color: #800;">dev_t</span>                       <span style="color: #048;">s_dev</span>;  <span style="color: #666;">// </span><span style="color: #666;">MKDEV()</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">block_device</span>         *<span style="color: #048;">s_bdev</span>;
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">long</span>               <span style="color: #048;">s_blocksize</span>;      <span style="color: #666;">// </span><span style="color: #666;">512 or 2**n</span>
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">char</span>               <span style="color: #048;">s_blocksize_bits</span>; <span style="color: #666;">// </span><span style="color: #666;">log2(s_blocksize)</span>
+    <span style="color: #800;">loff_t</span>                      <span style="color: #048;">s_maxbytes</span>; <span style="color: #666;">// </span><span style="color: #666;">MAX_LFS_FILESIZE</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">file_system_type</span>     *<span style="color: #048;">s_type</span>;
+
+    <span style="color: #800;">const</span> <span style="color: #800;">struct</span> <span style="color: #800;">super_operations</span>       *<span style="color: #048;">s_op</span>;
+    <span style="color: #800;">const</span> <span style="color: #800;">struct</span> <span style="color: #800;">dquot_operations</span>       *<span style="color: #048;">dq_op</span>;
+    <span style="color: #800;">const</span> <span style="color: #800;">struct</span> <span style="color: #800;">quotactl_ops</span>           *<span style="color: #048;">s_qcop</span>;
+    <span style="color: #800;">const</span> <span style="color: #800;">struct</span> <span style="color: #800;">export_operations</span>      *<span style="color: #048;">s_export_op</span>;
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">long</span>                       <span style="color: #048;">s_flags</span>;
+
+<span style="color: #800;">#define</span> <span style="color: #048;">MS_RDONLY</span>        1              <span style="color: #666;">// </span><span style="color: #666;">&#21482;&#35835;</span>
+<span style="color: #800;">#define</span> <span style="color: #048;">MS_NOSUID</span>        2              <span style="color: #666;">// </span><span style="color: #666;">&#24573;&#30053;GID&#21644;UID</span>
+<span style="color: #800;">#define</span> <span style="color: #048;">MS_NODEV</span>         4              <span style="color: #666;">// </span><span style="color: #666;">&#19981;&#20801;&#35768;&#35775;&#38382;&#35774;&#22791;&#29305;&#27530;&#25991;&#20214;</span>
+<span style="color: #800;">#define</span> <span style="color: #048;">MS_NOEXEC</span>        8              <span style="color: #666;">// </span><span style="color: #666;">&#19981;&#20801;&#35768;&#25191;&#34892;&#31243;&#24207;</span>
+<span style="color: #800;">#define</span> <span style="color: #048;">MS_SYNCHRONOUS</span>  16              <span style="color: #666;">// </span><span style="color: #666;">&#20889;&#20837;&#31435;&#21363;&#21516;&#27493;</span>
+<span style="color: #800;">#define</span> <span style="color: #048;">MS_REMOUNT</span>      32              <span style="color: #666;">// </span><span style="color: #666;">&#26356;&#25913;&#25346;&#36733;&#26631;&#24535;</span>
+<span style="color: #800;">#define</span> <span style="color: #048;">MS_MANDLOCK</span>     64              <span style="color: #666;">// </span><span style="color: #666;">&#20801;&#35768;&#23545;FS&#24378;&#21046;&#38145;&#20303;</span>
+<span style="color: #800;">#define</span> <span style="color: #048;">MS_DIRSYNC</span>      128             <span style="color: #666;">// </span><span style="color: #666;">&#30446;&#24405;&#26356;&#25913;&#31435;&#21363;&#21516;&#27493;</span>
+<span style="color: #800;">#define</span> <span style="color: #048;">MS_NOATIME</span>      1024            <span style="color: #666;">// </span><span style="color: #666;">&#19981;&#26356;&#26032;&#35775;&#38382;&#26102;&#38388;</span>
+<span style="color: #800;">#define</span> <span style="color: #048;">MS_NODIRATIME</span>   2048            <span style="color: #666;">// </span><span style="color: #666;">&#19981;&#26356;&#26032;&#30446;&#24405;&#35775;&#38382;&#26102;&#38388;</span>
+    <span style="color: #666;">// </span><span style="color: #666;">...</span>
+
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">long</span>               <span style="color: #048;">s_magic</span>;  <span style="color: #666;">// </span><span style="color: #666;">&#39564;&#35777;&#30913;&#30424;&#20449;&#24687;</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">dentry</span>               *<span style="color: #048;">s_root</span>;  <span style="color: #666;">// </span><span style="color: #666;">root dentry</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">rw_semaphore</span>         <span style="color: #048;">s_umount</span>; <span style="color: #666;">// </span><span style="color: #666;">&#35835;&#20889;&#26399;&#38388;&#38450;&#27490;umount</span>
+    <span style="color: #800;">int</span>                         <span style="color: #048;">s_count</span>; <span style="color: #666;">// </span><span style="color: #666;">get_super()/put_super()</span>
+    <span style="color: #800;">atomic_t</span>                    <span style="color: #048;">s_active</span>; <span style="color: #666;">// </span><span style="color: #666;">grab_super(), freeze_super()</span>
+                                          <span style="color: #666;">// </span><span style="color: #666;">deactivate_super()</span>
+
+    <span style="color: #800;">const</span> <span style="color: #800;">struct</span> <span style="color: #800;">xattr_handler</span>  **<span style="color: #048;">s_xattr</span>;
+    <span style="color: #800;">struct</span> <span style="color: #800;">list_head</span>            <span style="color: #048;">s_inodes</span>; <span style="color: #666;">// </span><span style="color: #666;">&#25152;&#26377;&#30340;&#32034;&#24341;&#33410;&#28857;&#38142;&#34920;</span>
+                                          <span style="color: #666;">// </span><span style="color: #666;">inode-&gt;i_sb_list</span>
+                                          <span style="color: #666;">// </span><span style="color: #666;">inode_sb_list_lock</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">hlist_bl_head</span>        <span style="color: #048;">s_anon</span>; <span style="color: #666;">// </span><span style="color: #666;">&#36828;&#31243;&#32593;&#32476;&#25991;&#20214;&#31995;&#32479;&#30340;&#21311;&#21517;&#30446;&#24405;&#39033;&#38142;&#34920;</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">list_head</span>            <span style="color: #048;">s_mounts</span>; <span style="color: #666;">// </span><span style="color: #666;">&#25152;&#26377;&#25346;&#36733;&#28857;</span>
+                                          <span style="color: #666;">// </span><span style="color: #666;">mount-&gt;mnt_instances</span>
+                                          <span style="color: #666;">// </span><span style="color: #666;">mount_lock</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">backing_dev_info</span>     *<span style="color: #048;">s_bdi</span>;
+    <span style="color: #800;">struct</span> <span style="color: #800;">mtd_info</span>             *<span style="color: #048;">s_mtd</span>;
+    <span style="color: #800;">struct</span> <span style="color: #800;">hlist_node</span>           <span style="color: #048;">s_instances</span>; <span style="color: #666;">// </span><span style="color: #666;">&#25991;&#20214;&#31995;&#32479;&#23454;&#20363;&#33410;&#28857;</span>
+                                             <span style="color: #666;">// </span><span style="color: #666;">file_system_type-&gt;fs_supers</span>
+                                             <span style="color: #666;">// </span><span style="color: #666;">sb_lock</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">quota_info</span>           <span style="color: #048;">s_dquot</span>;
+    <span style="color: #800;">struct</span> <span style="color: #800;">sb_writers</span>           <span style="color: #048;">s_writers</span>;
+
+    <span style="color: #800;">char</span>                        <span style="color: #048;">s_id</span>[32]; <span style="color: #666;">// </span><span style="color: #666;">&#35774;&#22791;&#21517;</span>
+    <span style="color: #800;">u8</span>                          <span style="color: #048;">s_uuid</span>[16];
+
+    <span style="color: #800;">void</span>                        *<span style="color: #048;">s_fs_info</span>; <span style="color: #666;">// </span><span style="color: #666;">&#25351;&#21521;&#20855;&#20307;&#25991;&#20214;&#31995;&#32479;&#30340;&#20449;&#24687;</span>
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span>                <span style="color: #048;">s_max_links</span>; <span style="color: #666;">// </span><span style="color: #666;">&#26368;&#22823;&#30828;&#38142;&#25509;&#25968;</span>
+    <span style="color: #800;">fmode_t</span>                     <span style="color: #048;">s_mode</span>; <span style="color: #666;">// </span><span style="color: #666;">&#25991;&#20214;&#25805;&#20316;&#26435;&#38480;</span>
+    <span style="color: #800;">u32</span>                         <span style="color: #048;">s_time_gran</span>; <span style="color: #666;">// </span><span style="color: #666;">&#26102;&#38388;&#31934;&#24230;ns&#65292;&#26368;&#22823;&#20026;1s</span>
+
+    <span style="color: #666;">// </span><span style="color: #666;">&#21482;&#26377;VFS&#20250;&#20351;&#29992;&#36825;&#20010;&#20114;&#26021;&#38145;&#65292;&#20855;&#20307;&#25991;&#20214;&#31995;&#32479;&#30340;&#20195;&#30721;&#19981;&#33021;&#20351;&#29992;</span>
+    <span style="color: #666;">// </span><span style="color: #666;">&#36825;&#20010;&#38145;&#29992;&#20110;&#38450;&#27490;&#25226;&#19968;&#20010;&#30446;&#24405;&#37325;&#21629;&#21517;&#20026;&#23427;&#30340;&#23376;&#30446;&#24405;</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">mutex</span>                <span style="color: #048;">s_vfs_rename_mutex</span>;
+
+    <span style="color: #666;">// </span><span style="color: #666;">&#23376;&#31867;&#22411;&#65292;&#22312;/proc/mounts&#26174;&#31034;&#26684;&#24335;&#20026;"type.subtype"</span>
+    <span style="color: #800;">char</span>                        *<span style="color: #048;">s_subtype</span>;
+
+    <span style="color: #800;">char</span> <span style="color: #048;">__rcu</span>                  *s_options; <span style="color: #666;">// </span><span style="color: #666;">&#20256;&#36882;&#32473;mount()&#30340;data</span>
+    <span style="color: #800;">const</span> <span style="color: #800;">struct</span> <span style="color: #800;">dentry_operations</span> *<span style="color: #048;">s_d_op</span>; <span style="color: #666;">// </span><span style="color: #666;">dentry&#30340;&#40664;&#35748;&#25805;&#20316;&#38598;</span>
+
+    <span style="color: #666;">// </span><span style="color: #666;">&#32531;&#23384;&#27744;ID&#65292;-1&#34920;&#31034;&#27809;&#26377;&#32531;&#23384;&#27744;</span>
+    <span style="color: #666;">// </span><span style="color: #666;">&#21482;&#26377;ext3&#12289;ext4&#21644;btrfs&#25991;&#20214;&#31995;&#32479;&#25903;&#25345;&#36825;&#20010;&#29305;&#24615;</span>
+    <span style="color: #800;">int</span>                         <span style="color: #048;">cleancache_poolid</span>;
+
+    <span style="color: #800;">struct</span> <span style="color: #800;">shrinker</span>             <span style="color: #048;">s_shrink</span>;
+
+    <span style="color: #666;">// </span><span style="color: #666;">number of inodes with nlink == 0 but still referenced</span>
+    <span style="color: #800;">atomic_long_t</span>               <span style="color: #048;">s_remove_count</span>;
+
+    <span style="color: #666;">// </span><span style="color: #666;">being remounted read-only</span>
+    <span style="color: #800;">int</span>                         <span style="color: #048;">s_readonly_remount</span>;
+
+    <span style="color: #666;">// </span><span style="color: #666;">AIO completions deferred from interrupt context</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">workqueue_struct</span>     *<span style="color: #048;">s_dio_done_wq</span>;
+
+    <span style="color: #666;">// </span><span style="color: #666;">dentry&#30340;lru&#38142;&#34920;&#65292;&#33410;&#28857;&#20026;dentry-&gt;d_lru</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">list_lru</span>             <span style="color: #800;">s_dentry_lru</span> <span style="color: #048;">____cacheline_aligned_in_smp</span>;
+    <span style="color: #666;">// </span><span style="color: #666;">inode&#30340;lru&#38142;&#34920;&#65292;&#33410;&#28857;&#20026;inode-&gt;i_lru</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">list_lru</span>             <span style="color: #800;">s_inode_lru</span> <span style="color: #048;">____cacheline_aligned_in_smp</span>;
+    <span style="color: #800;">struct</span> <span style="color: #800;">rcu_head</span>             <span style="color: #048;">rcu</span>;
+};
+</pre>
+</div>
+
+<p>
+相关函数：
+</p>
+<dl class="org-dl">
+<dt>sget</dt><dd>构造函数，如果没有从已经挂载的文件系统找到需要的<code>super_block</code>
+     就会调用<code>alloc_super</code>分配一个</dd>
+<dt>put_super</dt><dd>析构函数，当引用计数减少到0时才会调用<code>destroy_super</code>
+     真正释放</dd>
+</dl>
+</div>
+</div>
+
+<div id="outline-container-orgheadline3" class="outline-4">
+<h4 id="orgheadline3">super_operations</h4>
+<div class="outline-text-4" id="text-orgheadline3">
+<p>
+主要包括对inode数据结构的操作，注意不是对inode的操作，对inode的操作由inode_operations来完成。如：alloc_inode、destroy_inode、dirty_inode等等。
+</p>
+
+<p>
+还包括文件系统挂载和卸载等操作，如：sync_fs、statfs、remount_fs等等。
+</p>
+
+<p>
+所有的函数由VFS调用，都在进程上下文调用，所有的函数都可能阻塞。
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline7" class="outline-3">
+<h3 id="orgheadline7">索引节点</h3>
+<div class="outline-text-3" id="text-orgheadline7">
+</div><div id="outline-container-orgheadline5" class="outline-4">
+<h4 id="orgheadline5">inode</h4>
+<div class="outline-text-4" id="text-orgheadline5">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">struct</span> <span style="color: #800;">inode</span> {
+    <span style="color: #800;">umode_t</span>                     <span style="color: #048;">i_mode</span>; <span style="color: #666;">// </span><span style="color: #666;">&#35775;&#38382;&#26435;&#38480;</span>
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">short</span>              <span style="color: #048;">i_opflags</span>; <span style="color: #666;">// </span><span style="color: #666;">&#29992;&#20110;&#26631;&#35782;&#20855;&#22791;&#37027;&#20123;&#25805;&#20316;</span>
+<span style="color: #800;">#define</span> <span style="color: #048;">IOP_FASTPERM</span>    0x0001          <span style="color: #666;">// </span><span style="color: #666;">&#27809;&#26377;permission()</span>
+<span style="color: #800;">#define</span> <span style="color: #048;">IOP_LOOKUP</span>      0x0002          <span style="color: #666;">// </span><span style="color: #666;">&#20855;&#26377;lookup()</span>
+<span style="color: #800;">#define</span> <span style="color: #048;">IOP_NOFOLLOW</span>    0x0004          <span style="color: #666;">// </span><span style="color: #666;">&#27809;&#26377;follow_link()</span>
+
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span>                <span style="color: #048;">i_flags</span>;
+<span style="color: #800;">#define</span> <span style="color: #048;">S_SYNC</span>          1       <span style="color: #666;">/* </span><span style="color: #666;">Writes are synced at once */</span>
+<span style="color: #800;">#define</span> <span style="color: #048;">S_NOATIME</span>       2       <span style="color: #666;">/* </span><span style="color: #666;">Do not update access times */</span>
+<span style="color: #800;">#define</span> <span style="color: #048;">S_APPEND</span>        4       <span style="color: #666;">/* </span><span style="color: #666;">Append-only file */</span>
+<span style="color: #800;">#define</span> <span style="color: #048;">S_IMMUTABLE</span>     8       <span style="color: #666;">/* </span><span style="color: #666;">Immutable file */</span>
+<span style="color: #800;">#define</span> <span style="color: #048;">S_DEAD</span>          16      <span style="color: #666;">/* </span><span style="color: #666;">removed, but still open directory */</span>
+<span style="color: #800;">#define</span> <span style="color: #048;">S_NOQUOTA</span>       32      <span style="color: #666;">/* </span><span style="color: #666;">Inode is not counted to quota */</span>
+<span style="color: #800;">#define</span> <span style="color: #048;">S_DIRSYNC</span>       64      <span style="color: #666;">/* </span><span style="color: #666;">Directory modifications are synchronous */</span>
+<span style="color: #800;">#define</span> <span style="color: #048;">S_NOCMTIME</span>      128     <span style="color: #666;">/* </span><span style="color: #666;">Do not update file c/mtime */</span>
+<span style="color: #800;">#define</span> <span style="color: #048;">S_SWAPFILE</span>      256     <span style="color: #666;">/* </span><span style="color: #666;">Do not truncate: swapon got its bmaps */</span>
+<span style="color: #800;">#define</span> <span style="color: #048;">S_PRIVATE</span>       512     <span style="color: #666;">/* </span><span style="color: #666;">Inode is fs-internal */</span>
+<span style="color: #800;">#define</span> <span style="color: #048;">S_IMA</span>           1024    <span style="color: #666;">/* </span><span style="color: #666;">Inode has an associated IMA struct */</span>
+<span style="color: #800;">#define</span> <span style="color: #048;">S_AUTOMOUNT</span>     2048    <span style="color: #666;">/* </span><span style="color: #666;">Automount/referral quasi-directory */</span>
+<span style="color: #800;">#define</span> <span style="color: #048;">S_NOSEC</span>         4096    <span style="color: #666;">/* </span><span style="color: #666;">no suid or xattr security attributes */</span>
+
+    <span style="color: #666;">// </span><span style="color: #666;">attrs: i_uid, i_gid, i_atime, i_mtime, i_ctime</span>
+
+    <span style="color: #800;">const</span> <span style="color: #800;">inode_operations</span>      *<span style="color: #048;">i_op</span>;
+    <span style="color: #800;">const</span> <span style="color: #800;">file_operations</span>       *<span style="color: #048;">i_fop</span>;
+    <span style="color: #800;">struct</span> <span style="color: #800;">super_block</span>          *<span style="color: #048;">i_sb</span>;
+    <span style="color: #800;">address_space</span>               *<span style="color: #048;">i_mapping</span>;
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">long</span>               <span style="color: #048;">i_ino</span>;
+    <span style="color: #800;">dev_t</span>                       <span style="color: #048;">i_rdev</span>;
+    <span style="color: #800;">const</span> <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span>          <span style="color: #048;">i_nlink</span>;
+    <span style="color: #800;">loff_t</span>                      <span style="color: #048;">i_size</span>;         <span style="color: #666;">// </span><span style="color: #666;">&#25991;&#20214;&#22823;&#23567;&#65292;&#23383;&#33410;&#25968;</span>
+    <span style="color: #800;">blkcnt_t</span>                    <span style="color: #048;">i_blocks</span>;       <span style="color: #666;">// </span><span style="color: #666;">&#25991;&#20214;&#22823;&#23567;&#65292;&#22359;&#25968;</span>
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span>                <span style="color: #048;">i_blkbits</span>;      <span style="color: #666;">// </span><span style="color: #666;">&#22359;&#30340;&#20301;&#25968;&#65292;&#20174;sb&#32487;&#25215;</span>
+
+    <span style="color: #800;">spinlock_t</span>                  <span style="color: #048;">i_lock</span>;  <span style="color: #666;">// </span><span style="color: #666;">protect i_state</span>
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">short</span>              <span style="color: #048;">i_bytes</span>; <span style="color: #666;">// </span><span style="color: #666;">bytes consumed</span>
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">long</span>               <span style="color: #048;">i_state</span>;
+<span style="color: #800;">#define</span> <span style="color: #048;">I_DIRTY_SYNC</span>            (1 &lt;&lt; 0)
+<span style="color: #800;">#define</span> <span style="color: #048;">I_DIRTY_DATASYNC</span>        (1 &lt;&lt; 1)
+<span style="color: #800;">#define</span> <span style="color: #048;">I_DIRTY_PAGES</span>           (1 &lt;&lt; 2)
+<span style="color: #800;">#define</span> <span style="color: #048;">__I_NEW</span>                 3
+<span style="color: #800;">#define</span> <span style="color: #048;">I_NEW</span>                   (1 &lt;&lt; __I_NEW)
+<span style="color: #800;">#define</span> <span style="color: #048;">I_WILL_FREE</span>             (1 &lt;&lt; 4)
+<span style="color: #800;">#define</span> <span style="color: #048;">I_FREEING</span>               (1 &lt;&lt; 5)
+<span style="color: #800;">#define</span> <span style="color: #048;">I_CLEAR</span>                 (1 &lt;&lt; 6)
+<span style="color: #800;">#define</span> <span style="color: #048;">__I_SYNC</span>                7
+<span style="color: #800;">#define</span> <span style="color: #048;">I_SYNC</span>                  (1 &lt;&lt; __I_SYNC)
+<span style="color: #800;">#define</span> <span style="color: #048;">I_REFERENCED</span>            (1 &lt;&lt; 8)
+<span style="color: #800;">#define</span> <span style="color: #048;">__I_DIO_WAKEUP</span>          9
+<span style="color: #800;">#define</span> <span style="color: #048;">I_DIO_WAKEUP</span>            (1 &lt;&lt; I_DIO_WAKEUP)
+<span style="color: #800;">#define</span> <span style="color: #048;">I_LINKABLE</span>              (1 &lt;&lt; 10)
+<span style="color: #800;">#define</span> <span style="color: #048;">I_DIRTY</span> (I_DIRTY_SYNC | I_DIRTY_DATASYNC | I_DIRTY_PAGES)
+
+    <span style="color: #800;">struct</span> <span style="color: #800;">mutex</span>                <span style="color: #048;">i_mutex</span>;
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">long</span>               <span style="color: #048;">dirtied_when</span>; <span style="color: #666;">// </span><span style="color: #666;">jiffies</span>
+
+    <span style="color: #800;">struct</span> <span style="color: #800;">hlist_node</span>           <span style="color: #048;">i_hash</span>; <span style="color: #666;">// </span><span style="color: #666;">inode_hashtable</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">list_head</span>            <span style="color: #048;">i_wb_list</span>;
+    <span style="color: #800;">struct</span> <span style="color: #800;">list_head</span>            <span style="color: #048;">i_lru</span>;  <span style="color: #666;">// </span><span style="color: #666;">sb-&gt;s_inode_lru &amp; inode-&gt;i_lock</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">list_head</span>            <span style="color: #048;">i_sb_list</span>; <span style="color: #666;">// </span><span style="color: #666;">sb-&gt;s_inodes</span>
+                                           <span style="color: #666;">// </span><span style="color: #666;">inode_sb_list_lock</span>
+    <span style="color: #800;">union</span> {
+        <span style="color: #800;">struct</span> <span style="color: #800;">hlist_head</span>       <span style="color: #048;">i_dentry</span>; <span style="color: #666;">// </span><span style="color: #666;">&#25152;&#26377;&#24341;&#29992;&#35813;&#33410;&#28857;&#30340;dentry</span>
+                                          <span style="color: #666;">// </span><span style="color: #666;">dentry-&gt;d_alias</span>
+        <span style="color: #800;">struct</span> <span style="color: #800;">rcu_head</span>         <span style="color: #048;">i_rcu</span>;
+    };
+    <span style="color: #800;">u64</span>                         <span style="color: #048;">i_version</span>;
+    <span style="color: #800;">atomic_t</span>                    <span style="color: #048;">i_count</span>; <span style="color: #666;">// </span><span style="color: #666;">iput()</span>
+    <span style="color: #800;">atomic_t</span>                    <span style="color: #048;">i_dio_count</span>; <span style="color: #666;">// </span><span style="color: #666;">direct io count</span>
+    <span style="color: #800;">atomic_t</span>                    <span style="color: #048;">i_writecount</span>; <span style="color: #666;">// </span><span style="color: #666;">&#26377;&#22810;&#23569;&#20010;&#29992;&#25143;&#23545;&#35813;&#33410;&#28857;&#26377;&#20889;&#26435;&#38480;</span>
+
+    <span style="color: #800;">struct</span> <span style="color: #800;">file_lock</span>            *<span style="color: #048;">i_flock</span>;
+    <span style="color: #800;">struct</span> <span style="color: #800;">address_space</span>        <span style="color: #048;">i_data</span>;
+    <span style="color: #800;">struct</span> <span style="color: #800;">list_head</span>            <span style="color: #048;">i_devices</span>;
+    <span style="color: #800;">union</span> {
+        <span style="color: #800;">struct</span> <span style="color: #800;">pipe_inode_info</span>  *<span style="color: #048;">i_pipe</span>;
+        <span style="color: #800;">struct</span> <span style="color: #800;">block_device</span>     *<span style="color: #048;">i_bdev</span>;
+        <span style="color: #800;">struct</span> <span style="color: #800;">cdev</span>             *<span style="color: #048;">i_cdev</span>;
+    };
+
+    <span style="color: #800;">__u32</span>                       <span style="color: #048;">i_generation</span>; <span style="color: #666;">// </span><span style="color: #666;">&#32034;&#24341;&#33410;&#28857;&#29256;&#26412;&#21495;</span>
+    <span style="color: #800;">void</span>                        *<span style="color: #048;">i_private</span>; <span style="color: #666;">// </span><span style="color: #666;">private pointer</span>
+};
+</pre>
+</div>
+<dl class="org-dl">
+<dt>i_nlink</dt><dd>硬链接数，虽然这里显示为const，实际上是可以改变的，设计为union，可以用(set/clear/inc/drop)_nlink()
+或inode_(inc/dec)_link_count()修改</dd>
+<dt>i_version</dt><dd>用来记录索引节点的改变，例如我们用编辑器打开一个文件，里面的数据缓存在file中，当另外一个程序修改文件以后，编辑器就会提示我们，磁盘上的文件已经被修改，我们可以强制覆盖，也可以从磁盘重新读取。</dd>
+<dt>i_devices</dt><dd>之所以用链表而不是单个对象，是因为我们可以为同一个设备创建多个设备节点，用mknod就能做到。另外chroot环境会使得一个设备通过多个设备文件。</dd>
+</dl>
+
+<p>
+相关函数：
+</p>
+<dl class="org-dl">
+<dt>new_inode</dt><dd>构造函数，调用<code>alloc_inode</code>从<code>inode_cachep</code>分配索引节点</dd>
+</dl>
+</div>
+</div>
+<div id="outline-container-orgheadline6" class="outline-4">
+<h4 id="orgheadline6">inode_operations</h4>
+<div class="outline-text-4" id="text-orgheadline6">
+<p>
+对索引节点的操作，包括create、lookup、mkdir、rmdir、link、unlink等等。
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline8" class="outline-3">
+<h3 id="orgheadline8">文件</h3>
+<div class="outline-text-3" id="text-orgheadline8">
+<p>
+文件是和进程息息相关的，和文件相关的结构包括：
+</p>
+<dl class="org-dl">
+<dt>file</dt><dd>文件的表示</dd>
+<dt>fs_struct</dt><dd>进程和文件系统的关系</dd>
+<dt>files_struct</dt><dd>用于将文件描述符转换为<code>file</code></dd>
+</dl>
+</div>
+<div id="outline-container-orgheadline9" class="outline-4">
+<h4 id="orgheadline9">file</h4>
+<div class="outline-text-4" id="text-orgheadline9">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">struct</span> <span style="color: #800;">file</span> {
+    <span style="color: #800;">union</span> {
+        <span style="color: #800;">struct</span> <span style="color: #800;">llist_node</span>       <span style="color: #048;">fu_llist</span>;
+        <span style="color: #800;">struct</span> <span style="color: #800;">rcu_head</span>         <span style="color: #048;">fu_rcuhead</span>;
+    } <span style="color: #048;">f_u</span>;
+
+    <span style="color: #800;">struct</span> <span style="color: #800;">path</span>                 <span style="color: #048;">f_path</span>;
+<span style="color: #800;">#define</span> <span style="color: #048;">f_dentry</span>            f_path.dentry
+    <span style="color: #800;">struct</span> <span style="color: #800;">inode</span>                *<span style="color: #048;">f_inode</span>;
+    <span style="color: #800;">const</span> <span style="color: #800;">struct</span> <span style="color: #800;">file_operations</span> *<span style="color: #048;">f_op</span>;
+    <span style="color: #800;">atomic_long_t</span>               <span style="color: #048;">f_count</span>;
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span>                <span style="color: #048;">f_flags</span>;
+    <span style="color: #800;">fmode_t</span>                     <span style="color: #048;">f_mode</span>;
+    <span style="color: #800;">loff_t</span>                      <span style="color: #048;">f_pos</span>;
+    <span style="color: #800;">struct</span> <span style="color: #800;">fown_struct</span>          <span style="color: #048;">f_owner</span>;
+    <span style="color: #800;">u64</span>                         <span style="color: #048;">f_version</span>;
+    <span style="color: #800;">void</span>                        *<span style="color: #048;">private_data</span>;
+
+    <span style="color: #800;">spinlock_t</span>                  <span style="color: #048;">f_lock</span>;
+    <span style="color: #800;">struct</span> <span style="color: #800;">mutex</span>                <span style="color: #048;">f_pos_lock</span>;
+    <span style="color: #800;">const</span> <span style="color: #800;">struct</span> <span style="color: #800;">cred</span>           *<span style="color: #048;">f_cred</span>;
+    <span style="color: #800;">struct</span> <span style="color: #800;">file_ra_state</span>        <span style="color: #048;">f_ra</span>;
+    <span style="color: #800;">struct</span> <span style="color: #800;">address_space</span>        *<span style="color: #048;">f_mapping</span>;
+} <span style="color: #800;">__attribute__</span>((aligned(4)));
+</pre>
+</div>
+<p>
+相关函数：
+</p>
+<dl class="org-dl">
+<dt>alloc_file</dt><dd>调用<code>get_empty_filp</code>从<code>filp_cachep</code>分配一个文件</dd>
+</dl>
+</div>
+</div>
+<div id="outline-container-orgheadline10" class="outline-4">
+<h4 id="orgheadline10">file_operations</h4>
+<div class="outline-text-4" id="text-orgheadline10">
+<p>
+这个操作集包含了对文件的所有操作，如读取、写入、打开和关闭等等。
+</p>
+</div>
+</div>
+<div id="outline-container-orgheadline11" class="outline-4">
+<h4 id="orgheadline11">fs_struct</h4>
+<div class="outline-text-4" id="text-orgheadline11">
+<p>
+主要包含两个路径，一个是当前工作目录，一个是工作目录所在文件系统的根目录。主要体现了进程和具体文件系统的关系。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">struct</span> <span style="color: #800;">fs_struct</span> {
+    <span style="color: #800;">int</span>                 <span style="color: #048;">users</span>;
+    <span style="color: #800;">spinlock_t</span>          <span style="color: #048;">lock</span>;
+    <span style="color: #800;">seqcount_t</span>          <span style="color: #048;">seq</span>;
+    <span style="color: #800;">int</span>                 <span style="color: #048;">umask</span>;
+    <span style="color: #800;">int</span>                 <span style="color: #048;">in_exec</span>;
+    <span style="color: #800;">struct</span> <span style="color: #800;">path</span>         <span style="color: #048;">root</span>, <span style="color: #048;">pwd</span>;
+};
+<span style="color: #800;">struct</span> <span style="color: #800;">path</span> {
+    <span style="color: #800;">struct</span> <span style="color: #800;">vfsmount</span>     *<span style="color: #048;">mnt</span>;
+    <span style="color: #800;">struct</span> <span style="color: #800;">dentry</span>       *<span style="color: #048;">dentry</span>;
+};
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline12" class="outline-4">
+<h4 id="orgheadline12">files_struct</h4>
+<div class="outline-text-4" id="text-orgheadline12">
+<p>
+主要就是一个file指针数组，我们通常说的文件描述符是一个整数，而这个整数正好可以作为下标，从而从files_struct中获得file结构。具体查找是通过fdt-&gt;fd[fd]来找到对应的file。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">struct</span> <span style="color: #800;">files_struct</span> {
+    <span style="color: #800;">atomic_t</span> <span style="color: #048;">count</span>;
+    <span style="color: #800;">struct</span> <span style="color: #800;">fdtable</span> <span style="color: #800;">__rcu</span> *<span style="color: #048;">fdt</span>;
+    <span style="color: #800;">struct</span> <span style="color: #800;">fdtable</span> <span style="color: #048;">fdtab</span>;
+    spinlock_t <span style="color: #800;">file_lock</span> <span style="color: #048;">____cacheline_aligned_in_smp</span>;
+    <span style="color: #800;">int</span> <span style="color: #048;">next_fd</span>;                        <span style="color: #666;">// </span><span style="color: #666;">&#24403;&#21069;fd + 1</span>
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">long</span> <span style="color: #048;">close_on_exec_init</span>[1];
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">long</span> <span style="color: #048;">open_fds_init</span>[1];
+    <span style="color: #800;">struct</span> <span style="color: #800;">file</span> <span style="color: #800;">__rcu</span> * <span style="color: #048;">fd_array</span>[NR_OPEN_DEFAULT];
+};
+</pre>
+</div>
+<dl class="org-dl">
+<dt>fdt</dt><dd><p>
+  默认是指向fdtab的，当打开的文件数目比较多的时候，就需要重新分配一个fdtable，并增大其fd数组和打开位图，然后将这个fdt指向新分配的fdtable。原来fdt所指向的内存会复制到新的fdtable。
+</p>
+
+<p>
+至于如何判断fdt是否指向动态fdtable，也就是最后是否需要释放fdt所指向的内存，可以通过判断fdt和fdtab的地址是否相等来确定。
+</p></dd>
+<dt>file_lock</dt><dd>保护对file_struct的修改。</dd>
+</dl>
+
+<p>
+从文件描述符转换为<code>file</code>的关键数据结构就是<code>fdtable</code>。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">struct</span> <span style="color: #800;">fdtable</span> {
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048;">max_fds</span>;               <span style="color: #666;">// </span><span style="color: #666;">&#26368;&#22823;&#21487;&#25171;&#24320;&#25991;&#20214;&#25968;&#65292;&#21363;fd&#25968;&#32452;&#38271;&#24230;</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">file</span> <span style="color: #800;">__rcu</span> **<span style="color: #048;">fd</span>;             <span style="color: #666;">// </span><span style="color: #666;">fd&#25968;&#32452;</span>
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">long</span> *<span style="color: #048;">close_on_exec</span>;       <span style="color: #666;">// </span><span style="color: #666;">&#20301;&#22270;&#65306;&#24102;O_CLOEXEC&#25171;&#24320;&#26631;&#24535;&#30340;fd</span>
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">long</span> *<span style="color: #048;">open_fds</span>;            <span style="color: #666;">// </span><span style="color: #666;">&#20301;&#22270;&#65306;&#24050;&#32463;&#25171;&#24320;&#30340;fd</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">rcu_head</span> <span style="color: #048;">rcu</span>;
+};
+</pre>
+</div>
+<dl class="org-dl">
+<dt>fd</dt><dd><p>
+  如果打开的文件比较少，那么这个fd将指向files_struct的fd_array。如果打开的文件比较多，fdtable本身就是动态分配的，fd也是动态分配。所以是否要释放fd所指空间很好判断，如果要释放fdtable就一定会释放fd。对fd的分配会尝试kmalloc()和vmalloc()两种方法。
+</p>
+
+<p>
+另外，close_on_exec与open_fds的行为同fd，如果fdtable是动态分配的，那么他们也必然是动态分配的。
+</p></dd>
+</dl>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline15" class="outline-3">
+<h3 id="orgheadline15">目录项</h3>
+<div class="outline-text-3" id="text-orgheadline15">
+</div><div id="outline-container-orgheadline13" class="outline-4">
+<h4 id="orgheadline13">dentry</h4>
+<div class="outline-text-4" id="text-orgheadline13">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">struct</span> <span style="color: #800;">dentry</span> {
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span>                <span style="color: #048;">d_flags</span>; <span style="color: #666;">// </span><span style="color: #666;">&#34920;&#31034;&#25903;&#25345;&#21738;&#20123;&#25805;&#20316;</span>
+    <span style="color: #800;">seqcount_t</span>                  <span style="color: #048;">d_seq</span>;
+    <span style="color: #800;">struct</span> <span style="color: #800;">hlist_bl_node</span>        <span style="color: #048;">d_hash</span>;
+    <span style="color: #800;">struct</span> <span style="color: #800;">dentry</span>               *<span style="color: #048;">d_parent</span>;
+    <span style="color: #800;">struct</span> <span style="color: #800;">qstr</span>                 <span style="color: #048;">d_name</span>; <span style="color: #666;">// </span><span style="color: #666;">&#21517;&#23383;&#21450;hash&#20540;&#65292;</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">inode</span>                *<span style="color: #048;">d_inode</span>; <span style="color: #666;">// </span><span style="color: #666;">&#20851;&#32852;inode&#65292;NULL&#34920;&#31034;negative</span>
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">char</span>               <span style="color: #048;">d_iname</span>[DNAME_INLINE_LEN];
+    <span style="color: #800;">struct</span> <span style="color: #800;">lockref</span>              <span style="color: #048;">d_lockref</span>;
+    <span style="color: #800;">const</span> <span style="color: #800;">struct</span> <span style="color: #800;">dentry_operations</span> *<span style="color: #048;">d_op</span>;
+    <span style="color: #800;">struct</span> <span style="color: #800;">super_block</span>          *<span style="color: #048;">d_sb</span>; <span style="color: #666;">// </span><span style="color: #666;">&#25351;&#21521;&#36229;&#32423;&#22359;</span>
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">long</span>               <span style="color: #048;">d_time</span>; <span style="color: #666;">// </span><span style="color: #666;">used by d_revalidate</span>
+    <span style="color: #800;">void</span>                        *<span style="color: #048;">d_fsdata</span>; <span style="color: #666;">// </span><span style="color: #666;">fs-specific data</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">list_head</span>            <span style="color: #048;">d_lru</span>;  <span style="color: #666;">// </span><span style="color: #666;">sb-&gt;s_dentry_lru</span>
+    <span style="color: #800;">union</span> {
+        <span style="color: #800;">struct</span> <span style="color: #800;">list_head</span>        <span style="color: #048;">d_child</span>; <span style="color: #666;">// </span><span style="color: #666;">parent&#30340;&#23376;&#33410;&#28857;&#65292;&#24212;&#21483;d_sibling</span>
+        <span style="color: #800;">struct</span> <span style="color: #800;">rcu_head</span>         <span style="color: #048;">d_rcu</span>;
+    } <span style="color: #048;">d_u</span>;
+
+    <span style="color: #666;">// </span><span style="color: #666;">&#36825;&#20010;&#21517;&#23383;&#20063;&#19981;&#24688;&#24403;&#65292;&#22240;&#20026;&#23427;&#19981;&#20165;&#20165;&#21253;&#21547;&#30446;&#24405;&#65292;&#36824;&#21253;&#21547;&#25991;&#20214;&#12290;</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">list_head</span>            <span style="color: #048;">d_subdirs</span>; <span style="color: #666;">// </span><span style="color: #666;">&#36825;&#25165;&#26159;&#30495;&#27491;&#30340;children</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">hlist_node</span>           <span style="color: #048;">d_alias</span>; <span style="color: #666;">// </span><span style="color: #666;">inode-&gt;i_dentry</span>
+};
+</pre>
+</div>
+
+<p>
+相关函数：
+</p>
+<dl class="org-dl">
+<dt>d_alloc</dt><dd>构造函数，从<code>dentry_cache</code>分配一个negative目录项</dd>
+<dt>dput</dt><dd>析够函数，当引用计数为0时调用<code>dentry_kill</code>释放目录项</dd>
+</dl>
+</div>
+</div>
+
+<div id="outline-container-orgheadline14" class="outline-4">
+<h4 id="orgheadline14">dentry_operations</h4>
+<div class="outline-text-4" id="text-orgheadline14">
+<p>
+由于dentry主要供VFS使用，所以操作集中的函数一般情况下也不需要具体文件系统去实现。这里的函数是针对dentry的操作，如d_revalidate、d_hash、d_compare、d_delete、
+d_release、d_prune等等。
+</p>
+
+<p>
+比较容易混淆的是d_delete和d_prune，前者只是判断是否需要delete，如果要delete就会释放dentry，否则会将dentry加入到LRU，而后者是在unhash前的最后一步动作，当然一般也不需要实现。而d_release只会在最后调用，它负责释放内存。
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline16" class="outline-3">
+<h3 id="orgheadline16">挂载点</h3>
+<div class="outline-text-3" id="text-orgheadline16">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">struct</span> <span style="color: #800;">mount</span> {
+    <span style="color: #800;">struct</span> <span style="color: #800;">hlist_node</span>           <span style="color: #048;">mnt_hash</span>; <span style="color: #666;">// </span><span style="color: #666;">mount_hashtable[i]</span>
+                                          <span style="color: #666;">// </span><span style="color: #666;">mount_lock</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">mount</span>                *<span style="color: #048;">mnt_parent</span>;
+    <span style="color: #800;">struct</span> <span style="color: #800;">dentry</span>               *<span style="color: #048;">mnt_mountpoint</span>; <span style="color: #666;">// </span><span style="color: #666;">&#21363;mnt-&gt;mnt_root&#12290;</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">vfsmount</span>             <span style="color: #048;">mnt</span>;
+    <span style="color: #800;">struct</span> <span style="color: #800;">rcu_head</span>             <span style="color: #048;">mnt_rcu</span>;
+<span style="color: #800;">#ifdef</span> CONFIG_SMP
+    <span style="color: #800;">struct</span> <span style="color: #800;">mnt_pcp</span> <span style="color: #800;">__percpu</span>     *<span style="color: #048;">mnt_pcp</span>;
+<span style="color: #800;">#else</span>
+    <span style="color: #800;">int</span>                         <span style="color: #048;">mnt_count</span>;
+    <span style="color: #800;">int</span>                         <span style="color: #048;">mnt_writers</span>;
+<span style="color: #800;">#endif</span>
+
+    <span style="color: #800;">struct</span> <span style="color: #800;">list_head</span> <span style="color: #048;">mnt_mounts</span>;    <span style="color: #666;">// </span><span style="color: #666;">mount-&gt;mnt_child</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">list_head</span> <span style="color: #048;">mnt_child</span>;     <span style="color: #666;">// </span><span style="color: #666;">mount-&gt;mnt_mounts</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">list_head</span> <span style="color: #048;">mnt_instance</span>;  <span style="color: #666;">// </span><span style="color: #666;">sb-&gt;s_mounts</span>
+    <span style="color: #800;">const</span> <span style="color: #800;">char</span> *<span style="color: #048;">mnt_devname</span>;        <span style="color: #666;">// </span><span style="color: #666;">device name: "/dev/dsk/hda1"</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">list_head</span> <span style="color: #048;">mnt_list</span>;      <span style="color: #666;">// </span><span style="color: #666;">mnt_namespace-&gt;list</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">list_head</span> <span style="color: #048;">mnt_expire</span>;    <span style="color: #666;">// </span><span style="color: #666;">link in fs-specific expiry list</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">list_head</span> <span style="color: #048;">mnt_share</span>;     <span style="color: #666;">// </span><span style="color: #666;">circular list of shared mounts</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">list_head</span> <span style="color: #048;">mnt_slave_list</span>;<span style="color: #666;">// </span><span style="color: #666;">list of slave mounts</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">list_head</span> <span style="color: #048;">mnt_slave</span>;     <span style="color: #666;">// </span><span style="color: #666;">slave list entry</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">mount</span> *<span style="color: #048;">mnt_master</span>;       <span style="color: #666;">// </span><span style="color: #666;">slave is on master-&gt;mnt_slave_list</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">mnt_namespace</span> *<span style="color: #048;">mnt_ns</span>;   <span style="color: #666;">// </span><span style="color: #666;">containing namespace</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">mountpoint</span> *<span style="color: #048;">mnt_mp</span>;      <span style="color: #666;">// </span><span style="color: #666;">where is it mounted</span>
+
+    <span style="color: #800;">int</span> <span style="color: #048;">mnt_id</span>;                     <span style="color: #666;">// </span><span style="color: #666;">mount identifier</span>
+    <span style="color: #800;">int</span> <span style="color: #048;">mnt_group_id</span>;               <span style="color: #666;">// </span><span style="color: #666;">peer group identifier</span>
+    <span style="color: #800;">int</span> <span style="color: #048;">mnt_expiry_mark</span>;
+    <span style="color: #800;">int</span> <span style="color: #048;">mnt_pinned</span>;
+    <span style="color: #800;">struct</span> <span style="color: #800;">path</span> <span style="color: #048;">mnt_ex_mountpoint</span>;
+};
+
+<span style="color: #800;">struct</span> <span style="color: #800;">vfsmount</span> {
+    <span style="color: #800;">struct</span> <span style="color: #800;">dentry</span> *<span style="color: #048;">mnt_root</span>;        <span style="color: #666;">// </span><span style="color: #666;">&#25346;&#36733;&#30446;&#24405;&#39033;</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">super_block</span> *<span style="color: #048;">mnt_sb</span>;     <span style="color: #666;">// </span><span style="color: #666;">&#25351;&#21521;super_block</span>
+    <span style="color: #800;">int</span> <span style="color: #048;">mnt_flags</span>;
+};
+
+<span style="color: #800;">struct</span> <span style="color: #800;">mountpoint</span> {
+    <span style="color: #800;">struct</span> <span style="color: #800;">hlist_node</span> <span style="color: #048;">m_hash</span>;       <span style="color: #666;">// </span><span style="color: #666;">mountpoint_hashtable</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">dentry</span> *<span style="color: #048;">m_dentry</span>;
+    <span style="color: #800;">int</span> <span style="color: #048;">m_count</span>;
+};
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-orgheadline17" class="outline-3">
+<h3 id="orgheadline17">文件名</h3>
+<div class="outline-text-3" id="text-orgheadline17">
+<p>
+用户空间查询路径的时候实际是传递字符串，内核也可以只保存字符串，但是考虑到内核中查询路径过程比较复杂，单用字符串比较麻烦，就将和文件名相关的信息用一个结构体<code>filename</code>表示，最关键的还是其名字。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">struct</span> <span style="color: #800;">filename</span> {
+    <span style="color: #800;">const</span> <span style="color: #800;">char</span>              *<span style="color: #048;">name</span>;
+    <span style="color: #666;">// </span><span style="color: #666;">- &#25351;&#21521;&#29992;&#25143;&#31354;&#38388;&#30340;&#25991;&#20214;&#21517;&#65292;&#22914;&#26524;&#19981;&#26159;&#20174;&#29992;&#25143;&#31354;&#38388;&#20256;&#36882;&#21017;&#25351;&#21521;NULL</span>
+    <span style="color: #800;">const</span> <span style="color: #800;">__user</span> <span style="color: #800;">char</span>       *<span style="color: #048;">uptr</span>;
+    <span style="color: #800;">struct</span> <span style="color: #800;">audit_names</span>      *<span style="color: #048;">aname</span>;     <span style="color: #666;">// </span><span style="color: #666;">&#19981;&#35752;&#35770;audit&#30456;&#20851;&#20195;&#30721;</span>
+    <span style="color: #800;">bool</span>                    <span style="color: #048;">separate</span>;
+};
+</pre>
+</div>
+<dl class="org-dl">
+<dt>separate</dt><dd>filename设计精巧之处在于将长度小于<code>EMBEDDED_NAME_MAX</code>
+的文件名放到filename所在空间后面，这由<code>__getname</code>保证。当然如果文件名长度很大，就需要单独分配空间来存放文件名。这里的<code>separate</code>就是为了提供线索，告诉<code>__putname</code>如何去释放。</dd>
+</dl>
+
+<p>
+相关函数：
+</p>
+<dl class="org-dl">
+<dt>getname</dt><dd>即<code>getname_flags(filename, 0, NULL)</code></dd>
+<dt>getname_kernel</dt><dd>该函数要求文件名长度小于<code>EMBEDDED_NAME_MAX</code>，这由内核代码来保证。</dd>
+<dt>putname</dt><dd>释放<code>filename</code></dd>
+</dl>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline23" class="outline-2">
+<h2 id="orgheadline23">基本操作</h2>
+<div class="outline-text-2" id="text-orgheadline23">
+</div><div id="outline-container-orgheadline18" class="outline-3">
+<h3 id="orgheadline18">从描述符获取文件</h3>
+<div class="outline-text-3" id="text-orgheadline18">
+<p>
+查找文件的线路图为：current -&gt; files_struct -&gt; fdtable -&gt; file，具体可以参考<code>fget</code>函数。但是内核在查询的时候引入一些标志，这些标志存放在file指针的低位，为了方便使用引入<code>fd</code>来分离低位的标志，如下所示。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">struct</span> <span style="color: #800;">fd</span> {
+    <span style="color: #800;">struct</span> <span style="color: #800;">file</span> *<span style="color: #048;">file</span>;
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048;">flags</span>;
+};
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">static</span> <span style="color: #800;">inline</span> <span style="color: #800;">struct</span> <span style="color: #800;">fd</span> <span style="color: #048; font-weight: bold;">fdget</span>(<span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048;">fd</span>)
+{
+    <span style="color: #800;">return</span> __to_fd(__fdget(fd));
+}
+<span style="color: #800;">static</span> <span style="color: #800;">inline</span> <span style="color: #800;">struct</span> <span style="color: #800;">fd</span> <span style="color: #048; font-weight: bold;">__to_fd</span>(<span style="color: #800;">unsigned</span> <span style="color: #800;">long</span> <span style="color: #048;">v</span>)
+{
+    <span style="color: #800;">return</span> (<span style="color: #800;">struct</span> <span style="color: #800;">fd</span>){(<span style="color: #800;">struct</span> <span style="color: #800;">file</span> *)(<span style="color: #800;">v</span> &amp; ~3), <span style="color: #800;">v</span> &amp; 3};
+}
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline20" class="outline-3">
+<h3 id="orgheadline20">索引节点哈希表</h3>
+<div class="outline-text-3" id="text-orgheadline20">
+</div><div id="outline-container-orgheadline19" class="outline-4">
+<h4 id="orgheadline19">哈希表结构</h4>
+<div class="outline-text-4" id="text-orgheadline19">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">struct</span> <span style="color: #800;">hlist_head</span> {
+    <span style="color: #800;">struct</span> <span style="color: #800;">hlist_node</span> *<span style="color: #048;">first</span>;
+};
+
+<span style="color: #800;">struct</span> <span style="color: #800;">hlist_node</span> {
+    <span style="color: #800;">struct</span> <span style="color: #800;">hlist_node</span> *<span style="color: #048;">next</span>, **<span style="color: #048;">pprev</span>;
+};
+
+<span style="color: #800;">static</span> __initdata <span style="color: #800;">unsigned</span> <span style="color: #800;">long</span> <span style="color: #048;">ihash_entries</span>;
+<span style="color: #800;">static</span> <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048;">i_hash_mask</span> __read_mostly;
+<span style="color: #800;">static</span> <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048;">i_hash_shift</span> __read_mostly;
+<span style="color: #800;">static</span> <span style="color: #800;">struct</span> <span style="color: #800;">hlist_head</span> *<span style="color: #048;">inode_hashtable</span> __read_mostly;
+<span style="color: #800;">static</span> <span style="color: #800;">__cacheline_aligned_in_smp</span> <span style="color: #048; font-weight: bold;">DEFINE_SPINLOCK</span>(inode_hash_lock);
+</pre>
+</div>
+<dl class="org-dl">
+<dt>i_hash_mask</dt><dd>实际长度位数，即<code>ilog2(ihash_entries)</code></dd>
+<dt>i_hash_shift</dt><dd>最大索引值，即<code>(1 &lt;&lt; i_hash_mask) - 1</code></dd>
+</dl>
+
+<p>
+关于hash值的计算使用的是如下函数，参数<code>hashval</code>实际就是inode的索引号。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">static</span> <span style="color: #800;">unsigned</span> <span style="color: #800;">long</span> <span style="color: #048; font-weight: bold;">hash</span>(<span style="color: #800;">struct</span> <span style="color: #800;">super_block</span> *<span style="color: #048;">sb</span>, <span style="color: #800;">unsigned</span> <span style="color: #800;">long</span> <span style="color: #048;">hashval</span>)
+{
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">long</span> <span style="color: #048;">tmp</span>;
+
+    tmp = (hashval * (<span style="color: #800;">unsigned</span> <span style="color: #800;">long</span>)sb) ^ (GOLDEN_RATIO_PRIME + hashval) /
+        L1_CACHE_BYTES;
+    tmp = tmp ^ ((tmp ^ GOLDEN_RATIO_PRIME) &gt;&gt; i_hash_shift);
+    <span style="color: #800;">return</span> tmp &amp; i_hash_mask;
+}
+</pre>
+</div>
+<dl class="org-dl">
+<dt>insert_inode_hash</dt><dd>将inode插入哈希表</dd>
+<dt>remove_inode_hash</dt><dd>将inode从哈希表删除</dd>
+</dl>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline22" class="outline-3">
+<h3 id="orgheadline22">目录项哈希表</h3>
+<div class="outline-text-3" id="text-orgheadline22">
+</div><div id="outline-container-orgheadline21" class="outline-4">
+<h4 id="orgheadline21">哈希表结构</h4>
+<div class="outline-text-4" id="text-orgheadline21">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">struct</span> <span style="color: #800;">hlist_bl_head</span> {
+    <span style="color: #800;">struct</span> <span style="color: #800;">hlist_bl_node</span> *<span style="color: #048;">first</span>;
+};
+<span style="color: #800;">struct</span> <span style="color: #800;">hlist_bl_node</span> {
+    <span style="color: #800;">struct</span> <span style="color: #800;">hlist_bl_node</span> *<span style="color: #048;">next</span>, **<span style="color: #048;">pprev</span>;
+};
+<span style="color: #800;">static</span> __initdata <span style="color: #800;">unsigned</span> <span style="color: #800;">long</span> <span style="color: #048;">dhash_entries</span>;
+<span style="color: #800;">static</span> <span style="color: #800;">struct</span> <span style="color: #800;">hlist_bl_head</span> *<span style="color: #048;">dentry_hashtable</span> __read_mostly;
+<span style="color: #800;">static</span> <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048;">d_hash_mask</span> __read_mostly;
+<span style="color: #800;">static</span> <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048;">d_hash_shift</span> __read_mostly;
+</pre>
+</div>
+<dl class="org-dl">
+<dt>dentry_hashtable</dt><dd>在dcache_init()/dcache_init_early()时会对其初始化</dd>
+<dt>d_hash_mask</dt><dd>实际长度位数，即<code>ilog2(dhash_entries)</code></dd>
+<dt>d_hash_shift</dt><dd>最大索引值，即<code>(1 &lt;&lt; d_hash_mask) - 1</code></dd>
+</dl>
+
+<p>
+对hash值的计算采用的是如下函数，注意<code>d_hash</code>的参数<code>hash</code>是将路径名转换出来的一个数字，具体转换方法比较复杂，请参考<code>full_name_hash</code>。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">static</span> <span style="color: #800;">inline</span> <span style="color: #800;">u32</span> <span style="color: #048; font-weight: bold;">hash_32</span>(<span style="color: #800;">u32</span> <span style="color: #048;">val</span>, <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048;">bits</span>)
+{
+    <span style="color: #666;">/* </span><span style="color: #666;">On some cpus multiply is faster, on others gcc will do shifts */</span>
+    <span style="color: #800;">u32</span> <span style="color: #048;">hash</span> = val * GOLDEN_RATIO_PRIME_32;
+
+    <span style="color: #666;">/* </span><span style="color: #666;">High bits are more random, so use them. */</span>
+    <span style="color: #800;">return</span> hash &gt;&gt; (32 - bits);
+}
+
+<span style="color: #800;">static</span> <span style="color: #800;">inline</span> <span style="color: #800;">struct</span> <span style="color: #800;">hlist_bl_head</span> *<span style="color: #048; font-weight: bold;">d_hash</span>(<span style="color: #800;">const</span> <span style="color: #800;">struct</span> <span style="color: #800;">dentry</span> *<span style="color: #048;">parent</span>,
+                                           <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048;">hash</span>)
+{
+    hash += (<span style="color: #800;">unsigned</span> <span style="color: #800;">long</span>) parent / L1_CACHE_BYTES;
+    <span style="color: #800;">return</span> dentry_hashtable + hash_32(hash, d_hash_shift);
+}
+</pre>
+</div>
+<dl class="org-dl">
+<dt>d_add</dt><dd>实例化dentry并加入哈希表，所谓实例化就是和具体的inode关联</dd>
+<dt>d_lookup</dt><dd>根据路径名查找目录项，在<code>__d_lookup</code>基础上加了一个顺序锁校验</dd>
+</dl>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline34" class="outline-2">
+<h2 id="orgheadline34">复杂操作</h2>
+<div class="outline-text-2" id="text-orgheadline34">
+</div><div id="outline-container-orgheadline27" class="outline-3">
+<h3 id="orgheadline27">根文件系统</h3>
+<div class="outline-text-3" id="text-orgheadline27">
+</div><div id="outline-container-orgheadline24" class="outline-4">
+<h4 id="orgheadline24">注册文件系统类型</h4>
+<div class="outline-text-4" id="text-orgheadline24">
+<p>
+注册rootfs是在init_rootfs()中完成的，主要工作就是注册rootfs_fs_type。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">static</span> <span style="color: #800;">struct</span> <span style="color: #800;">file_system_type</span> <span style="color: #048;">rootfs_fs_type</span> = {
+    .name           = <span style="color: #800;">"rootfs"</span>,
+    .mount          = rootfs_mount,
+    .kill_sb        = kill_litter_super,
+};
+</pre>
+</div>
+
+<p>
+一旦我们注册好这个文件系统，在初始化rootfs的时候就会调用init_ramfs_fs()，也就是说注册了rootfs会紧接着注册ramfs，而初始化ramfs只不过就是注册ramfs_fs_type。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">static</span> <span style="color: #800;">struct</span> <span style="color: #800;">file_system_type</span> <span style="color: #048;">ramfs_fs_type</span> = {
+    .name           = <span style="color: #800;">"ramfs"</span>,
+    .mount          = ramfs_mount,
+    .kill_sb        = ramfs_kill_sb,
+    .fs_flags       = FS_USERNS_MOUNT,
+};
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline25" class="outline-4">
+<h4 id="orgheadline25">挂载根文件系统</h4>
+<div class="outline-text-4" id="text-orgheadline25">
+<p>
+一旦注册好上面两个文件系统，接下来就要开始初始化挂载树：
+</p>
+<dl class="org-dl">
+<dt>init_mount_tree</dt><dd>调用<code>vfs_kern_mount</code>，创建名字空间，设置进程pwd/root路径</dd>
+<dt>vfs_kern_mount</dt><dd>分配<code>mount</code>，调用<code>mount_fs</code>来执行挂载操作，建立挂载点关系</dd>
+<dt>mount_fs</dt><dd>调用具体文件系统提供的<code>mount</code>操作，这里为<code>rootfs_mount</code></dd>
+<dt>rootfs_mount</dt><dd>设置<code>super_block</code>填充函数为<code>ramfs_fill_super</code>
+     转交给<code>mount_nodev</code></dd>
+<dt>mount_nodec</dt><dd>调用<code>sget</code>分配<code>super_block</code>，用<code>ramfs_fill_super</code>初始化，</dd>
+<dt>ramfs_fill_super</dt><dd>初始化<code>super_block</code>，调用<code>ramfs_get_inode</code>创建根节点，调用<code>d_make_root</code>设置根目录项</dd>
+<dt>ramfs_get_inode</dt><dd>调用<code>new_inode</code>分配一个inode，然后初始化<code>inode_operations</code>和<code>file_operations</code></dd>
+<dt>d_make_root</dt><dd>调用<code>__d_alloc</code>分配一个目录项，再调用<code>d_inistantiate</code>和根索引节点关联</dd>
+</dl>
+</div>
+</div>
+
+<div id="outline-container-orgheadline26" class="outline-4">
+<h4 id="orgheadline26">创建名字空间</h4>
+<div class="outline-text-4" id="text-orgheadline26">
+<p>
+在<code>init_mount_tree</code>完成根目录挂载之后，会为系统init进程准备namespace，其目的就是将mnt和dentry信息记录在进程数据块中。
+</p>
+
+<dl class="org-dl">
+<dt>create_mnt_ns</dt><dd>调用<code>alloc_mnt_ns</code>分配挂载名字空间<code>mnt_namespace</code>，然后设置挂载点和名字空间关系</dd>
+<dt>alloc_mnt_ns</dt><dd>分配名字空间</dd>
+</dl>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline31" class="outline-3">
+<h3 id="orgheadline31">文件查询</h3>
+<div class="outline-text-3" id="text-orgheadline31">
+</div><div id="outline-container-orgheadline28" class="outline-4">
+<h4 id="orgheadline28">基本概念</h4>
+<div class="outline-text-4" id="text-orgheadline28">
+<ul class="org-ul">
+<li>路径查找就是通过路径名查找dentry。</li>
+<li>查找从路径名第1个元素开始，要么是ROOT，要么是CWD。
+<ul class="org-ul">
+<li>然后查找其子目录，称之为路径名的下一个元素。</li>
+</ul></li>
+<li>从2.5.62开始使用了新的锁模型，利用RCU来避免使用锁。</li>
+<li>从2.6.38开始使用RCU实现完全的"store-free"。
+<ul class="org-ul">
+<li>不需要锁，不用原子操作，不用保存常用dentry到cachelines。</li>
+</ul></li>
+</ul>
+
+<p>
+如果路径名地一个字符是'/'那么就从current-&gt;fs-&gt;root开始查找，不然就从current-&gt;fs-&gt;pwd查找。
+</p>
+
+<p>
+除了查找路径我们还有许多事情要做，对目录的访问权限必须检查，符号链接可能导致循环引用，内核必须考虑这些情况，文件名可能是一个新的文件系统，这时必须要能检测到并跳到新的文件系统。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline29" class="outline-4">
+<h4 id="orgheadline29">数据结构</h4>
+<div class="outline-text-4" id="text-orgheadline29">
+<p>
+在搜索的过程中需要有一个数据结构保存中间结果，这个nameidata就起着路标的作用。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">struct</span> <span style="color: #800;">nameidata</span> {
+    <span style="color: #800;">struct</span> <span style="color: #800;">path</span>     <span style="color: #048;">path</span>;        <span style="color: #666;">// </span><span style="color: #666;">&#24050;&#35299;&#26512;&#36335;&#24452;</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">qstr</span>     <span style="color: #048;">last</span>;        <span style="color: #666;">// </span><span style="color: #666;">&#19979;&#19968;&#20010;&#31561;&#24453;&#35299;&#26512;&#30340;&#36335;&#24452;&#20803;&#32032;</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">path</span>     <span style="color: #048;">root</span>;        <span style="color: #666;">// </span><span style="color: #666;">&#26681;&#30446;&#24405;</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">inode</span>    *<span style="color: #048;">inode</span>;      <span style="color: #666;">// </span><span style="color: #666;">&#24050;&#35299;&#26512;&#33410;&#28857;&#65306;path.dentry.d_inode</span>
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span>    <span style="color: #048;">flags</span>;       <span style="color: #666;">// </span><span style="color: #666;">&#20197;&#20309;&#31181;&#26041;&#24335;&#26597;&#35810;</span>
+    <span style="color: #800;">unsigned</span>        <span style="color: #048;">seq</span>, <span style="color: #048;">m_seq</span>;  <span style="color: #666;">// </span><span style="color: #666;">&#39034;&#24207;&#38145;</span>
+    <span style="color: #800;">int</span>             <span style="color: #048;">last_type</span>;   <span style="color: #666;">// </span><span style="color: #666;">&#19979;&#19968;&#20010;&#35201;&#35299;&#26512;&#30340;&#36335;&#24452;&#21333;&#20803;&#31867;&#22411;</span>
+    <span style="color: #800;">unsigned</span>        <span style="color: #048;">depth</span>;       <span style="color: #666;">// </span><span style="color: #666;">&#31526;&#21495;&#38142;&#25509;&#28145;&#24230;</span>
+    <span style="color: #800;">char</span>            *<span style="color: #048;">saved_names</span>[MAX_NESTED_LINKS + 1];
+};
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline30" class="outline-4">
+<h4 id="orgheadline30">路径查找</h4>
+<div class="outline-text-4" id="text-orgheadline30">
+<p>
+这里先举一个简单例子来加深理解。假设我们要创建一个"/dev"目录，创建目录是由系统调用mkdir()完成的，这个系统调用我们简单来看，包括两个部分。
+</p>
+
+<p>
+第一个部分创建dentry：也就是根据文件名来创建dentry，首先要找到父目录，父目录都不用找了，直接可以从current-&gt;fs中获取。然后我们需要找一下nameidata指定的目录，看看是不是已经有这个要创建的目录了。然后创建dentry，分配是由lookup_hash()来完成的。
+</p>
+
+<p>
+第二个部分是调用inode-&gt;i_op-&gt;mkdir()来创建节点，因为创建节点要dentry参数，这个参数就是用第一步分配的dentry。注意这里的inode是父目录的inode。
+</p>
+
+<p>
+我们以kern_path()作为起始函数进行研究。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">kern_path</span>(<span style="color: #800;">const</span> <span style="color: #800;">char</span> *<span style="color: #048;">name</span>, <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048;">flags</span>, <span style="color: #800;">struct</span> <span style="color: #800;">path</span> *<span style="color: #048;">path</span>)
+{
+    <span style="color: #800;">struct</span> <span style="color: #800;">nameidata</span> <span style="color: #048;">nd</span>;
+    <span style="color: #800;">int</span> <span style="color: #048;">res</span> = do_path_lookup(AT_FDCWD, name, flags, &amp;nd);
+    <span style="color: #800;">if</span> (<span style="color: #c00;">!</span>res)
+        *path = nd.path;
+    <span style="color: #800;">return</span> res;
+}
+<span style="color: #800;">static</span> <span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">do_path_lookup</span>(<span style="color: #800;">int</span> <span style="color: #048;">dfd</span>, <span style="color: #800;">const</span> <span style="color: #800;">char</span> *<span style="color: #048;">name</span>,
+                          <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048;">flags</span>, <span style="color: #800;">struct</span> <span style="color: #800;">nameidata</span> *<span style="color: #048;">nd</span>)
+{
+    <span style="color: #800;">struct</span> <span style="color: #800;">filename</span> <span style="color: #048;">filename</span> = { .name = name };
+    <span style="color: #800;">return</span> filename_lookup(dfd, &amp;filename, flags, nd);
+}
+</pre>
+</div>
+<dl class="org-dl">
+<dt>nameidata</dt><dd>用于保存查询中间信息</dd>
+<dt>filename</dt><dd>仅内核参数，无需<code>getname()/putname()</code>，可直接构造</dd>
+<dt>flags</dt><dd>查询标志位，即以什么样的方式查询</dd>
+<dt>LOOKUP_FOLLOW</dt><dd>跟随符号链接</dd>
+<dt>LOOKUP_DIRECTORY</dt><dd>最后一个目录项必须是目录</dd>
+<dt>LOOKUP_AUTOMOUNT</dt><dd>当用户试图访问挂载点下面的文件时会自动挂载</dd>
+<dt>LOOKUP_PARENT</dt><dd>查找父目录</dd>
+<dt>LOOKUP_REVAL</dt><dd>不信任dcache，直接从磁盘查找</dd>
+<dt>LOOKUP_RCU</dt><dd>从最近使用的缓存查找，这是首选也是最快的方式</dd>
+<dt>LOOKUP_OPEN</dt><dd>试图打开一个文件</dd>
+<dt>LOOKUP_CREATE</dt><dd>如果不存在会试图创建一个文件</dd>
+<dt>filename_lookup</dt><dd>调用<code>path_lookupat</code>，一共有三次调用机会，第一次RCU查找，第二次REF查找，第三次REVAL查找。</dd>
+<dt>path_lookupat</dt><dd>这是文件名查找核心函数，首先初始化<code>nameidata</code>，这一步转交给<code>path_init</code>来做，然后分解文件名并逐个查找，这一步转交给<code>link_path_walk</code>，要注意这个函数只会走到倒数第二个元素，这是为了便于对最后一个元素特殊处理。最后一个元素的查询交给<code>lookup_last</code>来做。查询完毕由<code>complete_all</code>来做善后工作。</dd>
+<dt>path_init</dt><dd>就是用来初始化<code>nameidata</code>，如果是从根目录查找，那么设置<code>nd-&gt;path</code>和<code>nd-&gt;inode</code>为根路径和节点。如果是从相对路径查找，那么<code>nd-&gt;path</code>就设置为当前路径，还有一种情况是从指定文件描述符位置查找，道理都是一样的</dd>
+<dt>link_path_walk</dt><dd>这是个重量级函数，从<code>nd</code>所在位置开始查询名字。这个函数主要功能在循环中，每次迭代取出一个分量，设置<code>nd</code>之后交给<code>walk_component</code>处理。如遇到<code>.</code>直接跳过，遇到<code>..</code>跳回到父目录等。如果<code>walk_component</code>返回1表示要跟踪符号链接，又将问题抛给<code>nested_symlink</code>。迭代完成就查询完成。</dd>
+<dt>walk_component</dt><dd>先尝试<code>lookup_fast</code>再尝试<code>lookup_slow</code></dd>
+<dt>nested_symlink</dt><dd>循环调用<code>follow_link</code>和<code>walk_component</code>，如果最后一个分量还是符号连接，就继续循环。而<code>follow_link</code>本质上就是调用<code>link_path_walk</code>，这也是为什么<code>link_path_walk</code>不去查找最后一个分量的原因。</dd>
+<dt>lookup_fast</dt><dd>如果RCU方式则调用<code>__d_lookup_rcu</code>，当然还要对查询的结果用顺序锁校验，如果不对就返回<code>-ECHILD</code>，这会导致退回原点用别的方式查询。如果用普通方式就调用<code>__d_lookup</code>。此外还需要对查询到的目录项校验，即调用<code>d_revalidate</code>。最后调用<code>follow_managed</code>。</dd>
+<dt>lookup_slow</dt><dd>调用<code>__lookup_hash</code>，然后调用<code>follow_managed</code>。而<code>__lookup_hash</code>会调用<code>lookup_dcache</code>，如果<code>lookup_dcache</code>没找到就调用<code>lookup_real</code>。其实<code>lookup_dcache</code>就是调用<code>d_lookup</code>，然后在找不到的情况下分配一个negative目录项，以供<code>lookup_real</code>使用。进一步<code>lookup_real</code>是调用<code>inode_operations</code>提供的<code>lookup</code>函数。当然<code>i_op-&gt;lookup</code>也会遵循一些惯例，如找到目录项就调用<code>d_add</code>加入到dcache。</dd>
+</dl>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline33" class="outline-3">
+<h3 id="orgheadline33">文件访问</h3>
+<div class="outline-text-3" id="text-orgheadline33">
+</div><div id="outline-container-orgheadline32" class="outline-4">
+<h4 id="orgheadline32">打开文件</h4>
+<div class="outline-text-4" id="text-orgheadline32">
+<dl class="org-dl">
+<dt>open</dt><dd>系统调用，转调用<code>do_sys_open</code></dd>
+<dt>do_sys_open</dt><dd>根据参数计算打开标志，调用<code>getname</code>获取文件名，调用<code>get_unused_fd_flags</code>分配文件描述符，调用<code>do_filp_open</code>分配文件，并和inode关联。</dd>
+<dt>get_unused_fd_flags</dt><dd>调用<code>__alloc_fd</code>分配文件描述符</dd>
+<dt>__alloc_fd</dt><dd>从<code>fdt</code>中的位图找第一个0位，如果满足要求就返回。如果找不到就需要扩展<code>fdt</code>，由<code>expand_files</code>来扩展。</dd>
+<dt>do_filp_open</dt><dd>和<code>filename_lookup</code>一样有三次机会，只不过调用<code>path_openat</code></dd>
+<dt>path_openat</dt><dd>调用<code>get_empty_filp</code>分配文件，剩下的部分和<code>path_lookupat</code>很相似，调用<code>path_init</code>初始化，调用<code>link_path_walk</code>逐个元素查询，调用<code>do_last</code>处理最后一步打开操作。</dd>
+<dt>get_empty_filp</dt><dd>从<code>filp_cachep</code>分配一个文件</dd>
+<dt>do_last</dt><dd>最后一步的操作很复杂，状态太多。主要工作是查询最后一个元素，然后调用<code>follow_managed</code>，最后调用<code>complete_all</code>处理查询的善后。</dd>
+</dl>
+</div>
+</div>
+</div>
+</div>

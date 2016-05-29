@@ -1,0 +1,652 @@
+---
+title: Linux磁盘工具
+categories: linux
+tags: linux
+author: 敬叶
+---
+<dl class="post-meta">
+<dt class="post-meta">2015-05-20</dt><dd>敬叶 初稿</dd>
+</dl>
+<hr><br>
+<div id="table-of-contents"><h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#orgheadline5">Linux磁盘相关工具</a>
+<ul>
+<li><a href="#orgheadline4">fio</a>
+<ul>
+<li><a href="#orgheadline1">简介</a></li>
+<li><a href="#orgheadline2">参数说明</a></li>
+<li><a href="#orgheadline3">报告格式</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline5" class="outline-2">
+<h2 id="orgheadline5">Linux磁盘相关工具</h2>
+<div class="outline-text-2" id="text-orgheadline5">
+</div><div id="outline-container-orgheadline4" class="outline-3">
+<h3 id="orgheadline4">fio</h3>
+<div class="outline-text-3" id="text-orgheadline4">
+</div><div id="outline-container-orgheadline1" class="outline-4">
+<h4 id="orgheadline1">简介</h4>
+<div class="outline-text-4" id="text-orgheadline1">
+<!--abstract-begin-->
+
+<p>
+FIO的简称是flexible I/O tester，能够创建一定数量的线程以实现特定的IO操作。
+FIO是一个命令行工具，命令格式为：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-text">fio [options] [jobfile]...
+</pre>
+</div>
+<p>
+选项不是很重要，重要的是jobfile，jobfile遵循"ini"格式，实际上就是每一行包含一个参数和一个值。一个jobfile可以包含很多组，组名放在方括号中。以分号或井号开头作为注释符。
+</p>
+
+<p>
+还有一个关键字叫global，一个jobfile可以有多个global组，每一个组只会受到上层中最接近的global影响。
+</p>
+<!--abstract-end-->
+</div>
+</div>
+
+<div id="outline-container-orgheadline2" class="outline-4">
+<h4 id="orgheadline2">参数说明</h4>
+<div class="outline-text-4" id="text-orgheadline2">
+<p>
+常用命令行选项：
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">常用选项</th>
+<th scope="col" class="org-left">含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">&#x2013;output=filename</td>
+<td class="org-left">将报告输出到文件</td>
+</tr>
+
+<tr>
+<td class="org-left">&#x2013;timeout=timeout</td>
+<td class="org-left">限制执行时间，单位秒</td>
+</tr>
+
+<tr>
+<td class="org-left">&#x2013;latency-log=1</td>
+<td class="org-left">对每个job生成传输日志</td>
+</tr>
+
+<tr>
+<td class="org-left">&#x2013;bandwidth-log=1</td>
+<td class="org-left">对每个job生成带宽日志</td>
+</tr>
+
+<tr>
+<td class="org-left">&#x2013;minimal</td>
+<td class="org-left">生成紧凑格式的日志，可读性很差</td>
+</tr>
+
+<tr>
+<td class="org-left">&#x2013;showcmd</td>
+<td class="org-left">将jobfile转换为命令行选项</td>
+</tr>
+
+<tr>
+<td class="org-left">&#x2013;readonly</td>
+<td class="org-left">检查只读安全，确保jobfile没有写入</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+参数类型：
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">类型</th>
+<th scope="col" class="org-left">　含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">str</td>
+<td class="org-left">字符串</td>
+</tr>
+
+<tr>
+<td class="org-left">int</td>
+<td class="org-left">可以包含前缀，如0x，或后缀，如kMGTP、KiB/MiB/GiB</td>
+</tr>
+
+<tr>
+<td class="org-left">irange</td>
+<td class="org-left">lower:upper或者lower-upper</td>
+</tr>
+
+<tr>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">多组range可以用分号或者斜杠分割</td>
+</tr>
+
+<tr>
+<td class="org-left">float-list</td>
+<td class="org-left">用冒号分割一系列浮点数</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+常见参数：
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">表达式</th>
+<th scope="col" class="org-left">含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">name=str</td>
+<td class="org-left">job name，默认同组名</td>
+</tr>
+
+<tr>
+<td class="org-left">description=str</td>
+<td class="org-left">描述，一般不用设置</td>
+</tr>
+
+<tr>
+<td class="org-left">directory=str</td>
+<td class="org-left">前缀目录，默认是当前目录</td>
+</tr>
+
+<tr>
+<td class="org-left">filename=str</td>
+<td class="org-left">指定文件名，默认同job name</td>
+</tr>
+
+<tr>
+<td class="org-left">rw=str</td>
+<td class="org-left">[rand](read/write), [rand]rw</td>
+</tr>
+
+<tr>
+<td class="org-left">bs_unaligned</td>
+<td class="org-left">不能和direct IO使用</td>
+</tr>
+
+<tr>
+<td class="org-left">direct=bool</td>
+<td class="org-left">打开O_DIRECT，默认未打开</td>
+</tr>
+
+<tr>
+<td class="org-left">offset=int</td>
+<td class="org-left">文件中的偏移位置</td>
+</tr>
+
+<tr>
+<td class="org-left">thread</td>
+<td class="org-left">用pthread_create(3)替代fork(2)</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+引擎参数：
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">ioengine=str</th>
+<th scope="col" class="org-left">含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">sync</td>
+<td class="org-left">read(2), write(2), fseek(2)</td>
+</tr>
+
+<tr>
+<td class="org-left">psync</td>
+<td class="org-left">pread(2), pwrite(2)</td>
+</tr>
+
+<tr>
+<td class="org-left">vsync</td>
+<td class="org-left">readv(2),  writev(2)</td>
+</tr>
+
+<tr>
+<td class="org-left">libaio</td>
+<td class="org-left">Linux native asynchronous I/O</td>
+</tr>
+
+<tr>
+<td class="org-left">posixaio</td>
+<td class="org-left">aio_read(3), aio_write(3)</td>
+</tr>
+
+<tr>
+<td class="org-left">mmap</td>
+<td class="org-left">mmap(2), memcpy(3)</td>
+</tr>
+
+<tr>
+<td class="org-left">splice</td>
+<td class="org-left">splice(2), vmsplice(2)</td>
+</tr>
+
+<tr>
+<td class="org-left">sg</td>
+<td class="org-left">SCSI generic sg v3 I/O</td>
+</tr>
+
+<tr>
+<td class="org-left">net</td>
+<td class="org-left">Transfer over the network</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+验证参数：
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">verify=str</th>
+<th scope="col" class="org-left">含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">md5 crc16 crc32 crc32c crc32c-intel</td>
+</tr>
+
+<tr>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">crc64 crc7 sha256 sha512 sha1</td>
+</tr>
+
+<tr>
+<td class="org-left">verify_fatal=bool</td>
+<td class="org-left">当发现验证错误时立即退出，默认不会退出</td>
+</tr>
+
+<tr>
+<td class="org-left">verify_dump=bool</td>
+<td class="org-left">验证出错的时候打印数据</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+控制job数量的参数：
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">job数目</th>
+<th scope="col" class="org-left">含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">iodepth=int</td>
+<td class="org-left">对同一文件操作的进程数</td>
+</tr>
+
+<tr>
+<td class="org-left">numjobs=int</td>
+<td class="org-left">clone当前job的进程数量</td>
+</tr>
+
+<tr>
+<td class="org-left">nrfiles=int</td>
+<td class="org-left">总共产生的文件数目</td>
+</tr>
+
+<tr>
+<td class="org-left">openfiles=int</td>
+<td class="org-left">保持打开的文件数目</td>
+</tr>
+
+<tr>
+<td class="org-left">loops=int</td>
+<td class="org-left">当前job的迭代次数</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+控制IO数量的参数：
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">IO数目</th>
+<th scope="col" class="org-left">含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">size=int</td>
+<td class="org-left">总数据大小</td>
+</tr>
+
+<tr>
+<td class="org-left">filesize=irange</td>
+<td class="org-left">单个文件的大小范围</td>
+</tr>
+
+<tr>
+<td class="org-left">bs=int[,int]</td>
+<td class="org-left">块大小</td>
+</tr>
+
+<tr>
+<td class="org-left">bsrange=irange[,irange]</td>
+<td class="org-left">块范围</td>
+</tr>
+
+<tr>
+<td class="org-left">ba=int[,int]</td>
+<td class="org-left">块对齐大小</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+样本文件：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">[global]
+<span style="color: #048;">ioengine</span>=sync
+<span style="color: #048;">size</span>=128M
+<span style="color: #048;">bs</span>=2M
+<span style="color: #048;">rw</span>=rw
+
+[verify-direct-io]
+<span style="color: #048;">direct</span>=1
+<span style="color: #048;">verify</span>=sha256
+<span style="color: #048;">verify_fatal</span>=1
+<span style="color: #048;">verify_dump</span>=1
+
+[verify-buffer-io]
+<span style="color: #048;">verify</span>=sha256
+<span style="color: #048;">verify_fatal</span>=1
+<span style="color: #048;">verify_dump</span>=1
+
+[multi-direct-io]
+<span style="color: #048;">direct</span>=1
+<span style="color: #048;">numjobs</span>=2
+
+[multi-buffer-io]
+<span style="color: #048;">numjobs</span>=2
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline3" class="outline-4">
+<h4 id="orgheadline3">报告格式</h4>
+<div class="outline-text-4" id="text-orgheadline3">
+<p>
+运行期间的格式如下
+</p>
+<div class="org-src-container">
+
+<pre class="src src-text">Threads: 1: [_r] [24.8% done] [ 13509/  8334 kb/s] [eta 00h:01m:31s]
+</pre>
+</div>
+<p>
+第一组括号表示线程状态，具体如下表。
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<tbody>
+<tr>
+<td class="org-left">P</td>
+<td class="org-left">Setup but not started.</td>
+</tr>
+
+<tr>
+<td class="org-left">C</td>
+<td class="org-left">Thread created.</td>
+</tr>
+
+<tr>
+<td class="org-left">I</td>
+<td class="org-left">Initialized, waiting.</td>
+</tr>
+
+<tr>
+<td class="org-left">R</td>
+<td class="org-left">Running, doing sequential reads.</td>
+</tr>
+
+<tr>
+<td class="org-left">r</td>
+<td class="org-left">Running, doing random reads.</td>
+</tr>
+
+<tr>
+<td class="org-left">W</td>
+<td class="org-left">Running, doing sequential writes.</td>
+</tr>
+
+<tr>
+<td class="org-left">w</td>
+<td class="org-left">Running, doing random writes.</td>
+</tr>
+
+<tr>
+<td class="org-left">M</td>
+<td class="org-left">Running, doing mixed sequential reads/writes.</td>
+</tr>
+
+<tr>
+<td class="org-left">m</td>
+<td class="org-left">Running, doing mixed random reads/writes.</td>
+</tr>
+
+<tr>
+<td class="org-left">F</td>
+<td class="org-left">Running, currently waiting for fsync(2).</td>
+</tr>
+
+<tr>
+<td class="org-left">V</td>
+<td class="org-left">Running, verifying written data.</td>
+</tr>
+
+<tr>
+<td class="org-left">E</td>
+<td class="org-left">Exited, not reaped by main thread.</td>
+</tr>
+
+<tr>
+<td class="org-left">-</td>
+<td class="org-left">Exited, thread reaped.</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+运行结束之后会打印每个job的状态，主要参数如下。
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<tbody>
+<tr>
+<td class="org-left">io</td>
+<td class="org-left">总传输量</td>
+</tr>
+
+<tr>
+<td class="org-left">bw</td>
+<td class="org-left">带宽</td>
+</tr>
+
+<tr>
+<td class="org-left">iops</td>
+<td class="org-left">IO操作数</td>
+</tr>
+
+<tr>
+<td class="org-left">runt</td>
+<td class="org-left">运行时间</td>
+</tr>
+
+<tr>
+<td class="org-left">clat</td>
+<td class="org-left">完成传输时间，提交之后完成之前</td>
+</tr>
+
+<tr>
+<td class="org-left">lat</td>
+<td class="org-left">总传输时间</td>
+</tr>
+
+<tr>
+<td class="org-left">cpu</td>
+<td class="org-left">CPU使用统计</td>
+</tr>
+
+<tr>
+<td class="org-left">IO depth</td>
+<td class="org-left">IO分布</td>
+</tr>
+
+<tr>
+<td class="org-left">IO issued</td>
+<td class="org-left">发送的读写请求数目</td>
+</tr>
+
+<tr>
+<td class="org-left">aggrb</td>
+<td class="org-left">综合传输速度</td>
+</tr>
+
+<tr>
+<td class="org-left">minb</td>
+<td class="org-left">最小传输速度</td>
+</tr>
+
+<tr>
+<td class="org-left">maxb</td>
+<td class="org-left">最大传输速度</td>
+</tr>
+
+<tr>
+<td class="org-left">mint/maxt</td>
+<td class="org-left">传输时间</td>
+</tr>
+
+<tr>
+<td class="org-left">ios</td>
+<td class="org-left">总IO数目</td>
+</tr>
+
+<tr>
+<td class="org-left">merge</td>
+<td class="org-left">IO调度器合并的数目</td>
+</tr>
+
+<tr>
+<td class="org-left">ticks</td>
+<td class="org-left">磁盘busy的ticks数目</td>
+</tr>
+
+<tr>
+<td class="org-left">io_queue</td>
+<td class="org-left">在磁盘队列等待的总时间</td>
+</tr>
+
+<tr>
+<td class="org-left">util</td>
+<td class="org-left">磁盘利用率</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>

@@ -1,0 +1,790 @@
+---
+title: MTD设备简介
+categories: linux
+tags: mtd jffs2 ubifs
+author: 敬叶
+---
+<dl class="post-meta">
+<dt class="post-meta">2015-09-22</dt><dd>敬叶 初稿</dd>
+</dl>
+<hr><br>
+<div id="table-of-contents"><h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#orgheadline1">基本概念</a>
+<ul>
+<li><a href="#orgheadline5">内核中的MTD</a>
+<ul>
+<li><a href="#orgheadline2">内核配置</a></li>
+<li><a href="#orgheadline3">分区映射</a></li>
+<li><a href="#orgheadline4">设备节点</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline6">MTD工具箱</a>
+<ul>
+<li><a href="#orgheadline7">移植mtd-utils</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#orgheadline16">jffs2文件系统</a>
+<ul>
+<li><a href="#orgheadline8">基本概念</a></li>
+<li><a href="#orgheadline12">基本用法</a>
+<ul>
+<li><a href="#orgheadline9">创建镜像</a></li>
+<li><a href="#orgheadline10">写入镜像</a></li>
+<li><a href="#orgheadline11">挂载</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline15">常用命令</a>
+<ul>
+<li><a href="#orgheadline13">mkfs.jffs2</a></li>
+<li><a href="#orgheadline14">sumtool</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#orgheadline21">UBIFS文件系统</a>
+<ul>
+<li><a href="#orgheadline17">基本概念</a></li>
+<li><a href="#orgheadline20">基本用法</a>
+<ul>
+<li><a href="#orgheadline18">内核配置</a></li>
+<li><a href="#orgheadline19">挂载使用</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#orgheadline22">参考资料</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline1" class="outline-2">
+<h2 id="orgheadline1">基本概念</h2>
+<div class="outline-text-2" id="text-orgheadline1">
+<!--abstract-begin-->
+
+<p>
+闪存的好处是无噪音，寻址快，低功耗。但是也有缺点，对于同一个block必须在每次写入前对整个block进行擦除，因此称之为erase block。并且闪存的擦除次数是有限的，最多也就百万次，为了增加闪存寿命，就必须要使得每个地方均匀擦除，防止个别地方擦除次数太多。
+NOR flash允许随机逐字节访问，因此CPU可以直接从NOR flash执行代码，对于bootloader来说非常好，不必复制到内存就能执行。而目前市面最流行的是NAND flash，因为价格更低，但是需要专门的控制器访问，所以不能直接从flash执行代码，有时候flash中有坏块，可以通过硬件或软件来识别和去除坏块。目前有两种NAND flash，一种仿真块设备接口，包含一个硬件FTL来维护erase block，像USB flash、EMMC、SSD属于此类，这样有助于降低OS的软件复杂度。另一种是裸flash，操作系统访问flash控制器，直接管理block，这种情况下就可以计算一个块的擦除次数。
+Linux内核实现了一个MTD子系统，对访问flash设备提供了一个通用接口。
+</p>
+
+<!--abstract-end-->
+
+<p>
+MTD在Linux内核中的结构如下图所示。
+</p>
+
+
+<div class="figure">
+<p><img src="/resource/linux/fig/mtd-intro/mtd-architecture.png" alt="mtd-architecture.png" />
+</p>
+</div>
+
+<p>
+MTD设备需要分区，并且是采用硬编码的方式。相比于普通块设备，
+Linux没有提供对MTD整个设备进行访问的接口。分区信息不会保存到flash中，其block可能会在某个时刻坏掉，所以flash不能用来存放重要信息。
+</p>
+
+<p>
+NAND flash和NOR flash主要区别如下图所示：
+<img src="/resource/linux/fig/mtd-utils/nand-nor-flash-cmp.png" alt="nand-nor-flash-cmp.png" />
+</p>
+
+<p>
+常用缩写如下：
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<tbody>
+<tr>
+<td class="org-left">MTD</td>
+<td class="org-left">Memory Technology Device</td>
+</tr>
+
+<tr>
+<td class="org-left">DOC</td>
+<td class="org-left">DiskOnChip</td>
+</tr>
+
+<tr>
+<td class="org-left">FTL</td>
+<td class="org-left">Flash Translation Layer</td>
+</tr>
+
+<tr>
+<td class="org-left">NFTL</td>
+<td class="org-left">NAND Flash Translation Layer</td>
+</tr>
+
+<tr>
+<td class="org-left">SSD</td>
+<td class="org-left">Solid State Disks</td>
+</tr>
+
+<tr>
+<td class="org-left">JFFS2</td>
+<td class="org-left">Journaling Flash File System version 2</td>
+</tr>
+
+<tr>
+<td class="org-left">EBS</td>
+<td class="org-left">Erase Block Summary</td>
+</tr>
+
+<tr>
+<td class="org-left">UBI</td>
+<td class="org-left">Unsorted Block Images</td>
+</tr>
+
+<tr>
+<td class="org-left">wear-leveling</td>
+<td class="org-left">均衡损耗</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="outline-container-orgheadline5" class="outline-3">
+<h3 id="orgheadline5">内核中的MTD</h3>
+<div class="outline-text-3" id="text-orgheadline5">
+</div><div id="outline-container-orgheadline2" class="outline-4">
+<h4 id="orgheadline2">内核配置</h4>
+<div class="outline-text-4" id="text-orgheadline2">
+<dl class="org-dl">
+<dt>CONFIG_MTD</dt><dd>核心功能，一般来说是必须要支持的。</dd>
+<dt>CONFIG_MTD_PARTITIONS</dt><dd>支持分区。</dd>
+<dt>CONFIG_MTD_CHAR</dt><dd>支持<code>/dev/mtdX</code>和<code>/dev/mtdrX</code>。</dd>
+<dt>CONFIG_MTD_BLOCK</dt><dd>支持<code>dev/mtdblockX</code>。</dd>
+<dt>CONFIG_MTD_BLOCK_RO</dt><dd>支持只读<code>/dev/mtdblockX</code>。</dd>
+<dt>CONFIG_MTD_MTDRAM</dt><dd>用RAM来测试驱动。</dd>
+<dt>CONFIG_MTD_BLOCK2MTD</dt><dd>用block设备转换为MTD设备。</dd>
+<dt>CONFIG_FTL</dt><dd>支持<code>/dev/ftlSX</code>。</dd>
+<dt>CONFIG_NFTL</dt><dd>支持<code>/dev/nftlSX</code>。</dd>
+<dt>CONFIG_NFTL_RW</dt><dd>支持对NFTL格式化的设备写入。</dd>
+<dt>CONFIG_BLK_DEV_LOOP</dt><dd>支持loopback设备。</dd>
+</dl>
+
+<p>
+在内核中，MTD_BLOCK和MTD_BLOCK_RO只有一个可以构建到内核中，毕竟二者互斥，当然可以都编译成模块。
+</p>
+
+<dl class="org-dl">
+<dt>CONFIG_JFFS2_FS</dt><dd>支持JFFS2.</dd>
+<dt>CONFIG_JFFS2_LZO</dt><dd>支持LZO压缩。</dd>
+</dl>
+</div>
+</div>
+
+<div id="outline-container-orgheadline3" class="outline-4">
+<h4 id="orgheadline3">分区映射</h4>
+<div class="outline-text-4" id="text-orgheadline3">
+<p>
+不同于DOC设备，CFI flash不能使用fdisk/pdisk，因为分区信息通常不会保存到CFI设备中，而是直接编码到映射驱动中，在驱动初始化的时候注册到MTD子系统。分区映射的代码如下所示。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">static</span> <span style="color: #800;">struct</span> <span style="color: #800;">mtd_partition</span> <span style="color: #048;">tqm8xxl_fs_partitions</span>[] = {
+    {
+    name:       <span style="color: #800;">"cramfs"</span>,               <span style="color: #666;">// </span><span style="color: #666;">&#26041;&#20415;&#35782;&#21035;</span>
+    offset:     0x00000000,             <span style="color: #666;">// </span><span style="color: #666;">&#36215;&#22987;&#22320;&#22336;</span>
+    size:       0x00200000,             <span style="color: #666;">// </span><span style="color: #666;">&#20998;&#21306;&#22823;&#23567;</span>
+    mask_flags: MTD_WRITEABLE,          <span style="color: #666;">// </span><span style="color: #666;">force writable</span>
+    },
+    {
+    name:       <span style="color: #800;">"jffs2"</span>,
+    offset:     0x00200000,
+    size:       0x00200000,
+    }
+};
+</pre>
+</div>
+
+<p>
+相邻分区直接连着即可，没必要对齐。我们可以通过如下命令查看相关信息。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #666;"># </span><span style="color: #666;">cat /proc/mtd</span>
+</pre>
+</div>
+<pre class="example">
+dev:    size   erasesize  name
+mtd0: 00240000 00001000 "boot"
+mtd1: 001c0000 00001000 "rootfs"
+mtd2: 00100000 00001000 "jffs2"
+</pre>
+<p>
+分区边界必须以erasesize对齐，erasesize的单位是字节。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline4" class="outline-4">
+<h4 id="orgheadline4">设备节点</h4>
+<div class="outline-text-4" id="text-orgheadline4">
+<p>
+在dev目录下面可以创建5种类型的MTD设备，如下表所示。
+</p>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-right" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">dev entry</th>
+<th scope="col" class="org-left">type</th>
+<th scope="col" class="org-right">major num</th>
+<th scope="col" class="org-left">minor range</th>
+<th scope="col" class="org-left">naming scheme</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">mtdX</td>
+<td class="org-left">char</td>
+<td class="org-right">90</td>
+<td class="org-left">[0, 32, 2]</td>
+<td class="org-left">\(X = \frac{minor}{2}\)</td>
+</tr>
+
+<tr>
+<td class="org-left">mtdrX</td>
+<td class="org-left">char</td>
+<td class="org-right">90</td>
+<td class="org-left">[1, 33, 2]</td>
+<td class="org-left">\(X = \frac{(minor - 1)}{2}\)</td>
+</tr>
+
+<tr>
+<td class="org-left">mtdblockX</td>
+<td class="org-left">block</td>
+<td class="org-right">31</td>
+<td class="org-left">[0, 16, 1]</td>
+<td class="org-left">\(X = minor\)</td>
+</tr>
+
+<tr>
+<td class="org-left">ftlSX</td>
+<td class="org-left">block</td>
+<td class="org-right">44</td>
+<td class="org-left">[0, 255, 16]</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+
+<tr>
+<td class="org-left">nftlSX</td>
+<td class="org-left">block</td>
+<td class="org-right">93</td>
+<td class="org-left">[0, 255, 16]</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+</tbody>
+</table>
+<dl class="org-dl">
+<dt>SX</dt><dd><p>
+       S = set(eg: a, b, &#x2026;)
+</p>
+
+<p>
+X = minor - 16(set - 1)
+</p></dd>
+<dt>mtdX</dt><dd>每一个分区可以作为独立设备对待。</dd>
+<dt>mtdrX</dt><dd>等同于对应mtdX的只读设备。</dd>
+<dt>mtdblockX</dt><dd>等同于对应mtdX的块设备。</dd>
+<dt>nftlSX</dt><dd>每一个集合可以作为独立设备对待，而每一个集合中的项则视为一个分区，第一个集合项视作整个设备。如nftlb3就是第2个集合的第3个分区。</dd>
+</dl>
+
+<p>
+当然在实际中不需要全部都创建，但是有时候还是需要手动去创建一些节点。可以使用如下脚本来创建字符和块设备节点。
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #048;">num</span>=3
+<span style="color: #800;">for</span> i<span style="color: #800;"> in</span> $(<span style="font-weight: bold;">seq</span> 0 $<span style="color: #048;">num</span>)
+<span style="color: #800;">do</span>
+    mknod mtd$<span style="color: #048;">i</span> c 90 $(<span style="font-weight: bold;">expr</span> $<span style="color: #048;">i</span> + $<span style="color: #048;">i</span>)
+    mknod mtdblock$<span style="color: #048;">i</span> b 31 $<span style="color: #048;">i</span>
+<span style="color: #800;">done</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline6" class="outline-3">
+<h3 id="orgheadline6">MTD工具箱</h3>
+<div class="outline-text-3" id="text-orgheadline6">
+<p>
+MTD功能不同于其它子系统，因此需要特殊的工具对其进行操作。大多数工具作用于/dev/mtdX设备，也就是通过字符设备操作。
+</p>
+
+<dl class="org-dl">
+<dt>mtdinfo</dt><dd>获取MTD设备的详细信息。</dd>
+<dt>flash_eraseall</dt><dd>完全擦除指定的MTD设备。</dd>
+<dt>flashcp</dt><dd>写入NOR flash。</dd>
+<dt>nandwrite</dt><dd>写入NAND flash。</dd>
+</dl>
+<p>
+在使用设备之前，要对设备进行擦除，可以使用如下命令。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">flash_eraseall -j /dev/mtd2             <span style="color: #666;"># </span><span style="color: #666;">&#25830;&#38500;&#24182;&#26684;&#24335;&#21270;&#20026;JFFS2</span>
+mount -t jffs2 /dev/mtdblock2 /mnt/flash
+</pre>
+</div>
+<p>
+然后可以在挂载点进行读写。
+</p>
+
+<p>
+而设备也只允许在擦除之后写入一次，也就是每次要想写入新的数据，就必须要擦除一次。擦除之后的写入可以用多种方式进行，如下所示。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">cat /tmp/initrd.bin &gt; /dev/mtd2
+dd <span style="color: #048;">of</span>=/dev/mtd2 <span style="color: #048;">if</span>=/tmp/ppcboot.img
+nandwrite -p /dev/mtd2 rootfs.jffs2
+dd <span style="color: #048;">if</span>=/dev/mtd2 <span style="color: #048;">of</span>=/tmp/ppcboot.img
+</pre>
+</div>
+<p>
+可以通过mkfs.jffs2准备JFFS2文件，由于写入的数据一般不会占满整个分区，所以读回来的数据就会包含额外的不相关数据。
+</p>
+</div>
+
+<div id="outline-container-orgheadline7" class="outline-4">
+<h4 id="orgheadline7">移植mtd-utils</h4>
+<div class="outline-text-4" id="text-orgheadline7">
+<ul class="org-ul">
+<li>zlib:<code>git clone https://gitshell.com/micky/zlib/</code></li>
+<li>lzo: 下载<a href="http://www.oberhumer.com/opensource/lzo/download/">地址</a></li>
+</ul>
+
+<p>
+Makefile实际上包括两个文件，一个是Makefile，一个是common.mk，在Makefile中会去包含common.mk文件。首先配置CROSS参数，使用指定编译环境，该参数在common.mk中。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-makefile"><span style="color: #048;">CROSS</span>=rsdk-linux-
+</pre>
+</div>
+
+<p>
+设置编译选项，绕过编译错误，直接写到Makefile开头部分即可。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-makefile"><span style="color: #048;">WITHOUT_XATTR</span>=1
+</pre>
+</div>
+<dl class="org-dl">
+<dt>WITHOUT_XATTR=1</dt><dd>如果不指定该选项，在编译mkfs.jffs2的时候会报错。</dd>
+</dl>
+<div class="org-src-container">
+
+<pre class="src src-text">mkfs.jffs2.c:71:21: error: sys/acl.h: No such file or directory
+mkfs.jffs2.c: In function 'formalize_posix_acl':
+mkfs.jffs2.c:1025: error: 'ACL_USER_OBJ' undeclared (first use in this function)
+mkfs.jffs2.c:1025: error: (Each undeclared identifier is reported only once
+mkfs.jffs2.c:1025: error: for each function it appears in.)
+mkfs.jffs2.c:1026: error: 'ACL_GROUP_OBJ' undeclared (first use in this function)
+mkfs.jffs2.c:1027: error: 'ACL_MASK' undeclared (first use in this function)
+mkfs.jffs2.c:1028: error: 'ACL_OTHER' undeclared (first use in this function)
+mkfs.jffs2.c:1034: error: 'ACL_USER' undeclared (first use in this function)
+mkfs.jffs2.c:1035: error: 'ACL_GROUP' undeclared (first use in this function)
+</pre>
+</div>
+<p>
+如果想要使用XATTR那么就可能需要添加libacl-dev。
+</p>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline16" class="outline-2">
+<h2 id="orgheadline16">jffs2文件系统</h2>
+<div class="outline-text-2" id="text-orgheadline16">
+</div><div id="outline-container-orgheadline8" class="outline-3">
+<h3 id="orgheadline8">基本概念</h3>
+<div class="outline-text-3" id="text-orgheadline8">
+<p>
+JFFS2是日志结构文件系统，由Axis Communications AB设计，
+JFFS2针对NOR flash设计，虽然也可以用到NAND flash上面，但是不够优化，而YAFFS2则是针对NAND flash设计。
+JFFS2在2001年加入到linux内核中。
+</p>
+
+<p>
+使用JFFS2主要有如下好处：可以永久写入到flash、优化flash内存、提供损耗均衡、支持压缩、使用时不必从flash复制到内存。
+JFFS2文件系统实现了坏块探测和管理，并且即使在断电和系统崩溃也能保持一致状态。
+</p>
+
+<p>
+每个文件被视为一个node，包括元数据和数据，每个node关联一个version，将最新version的节点写入到其它空闲位置，这让写入变得简洁，但是导致读取很复杂，每次读取都要搜索最新版本的node。
+JFFS2的block有三种状态，clean/dirty/free，在后台有一个垃圾收集器，将dirty变为free，其做法是在dirty block中找到valid node，复制到valid block或者free block，然后将dirty block变为free block。为了提高性能，最近使用的文件就会在内存中建立映射，为了建立这样的映射，在mount的时候需要扫描所有的node，这样就使得mount很慢，如果启动时要挂载JFFS2文件系统，就会导致启动很慢。如果配置选项<code>CONFIG_JFFS2_SUMMARY</code>，就可以将映射保存到设备中，可以减少mount时间。
+</p>
+
+<p>
+JFFS2的主要优点如下：
+</p>
+<ul class="org-ul">
+<li>支持NAND flash，尽管性能不算好。</li>
+<li>支持硬链接。</li>
+<li>支持压缩，有4种压缩算法：zlib、rubin、rtime、lzo。</li>
+</ul>
+
+<p>
+JFFS2的主要缺点如下：
+</p>
+<ul class="org-ul">
+<li>挂载的时候需要扫描所有节点，通过EBS可以提高性能，EBS存储到每个block的尾部，每次写入的时候更新。每次挂载的时候只需要扫描EBS，而不用读取整个block。</li>
+<li>写入许多小的数据块会导致负压缩率。</li>
+<li>没有办法准确获取剩余空间，因为这取决于压缩率和写入序列。</li>
+<li>读写性能差，因为读取的时候需要解压缩，写入的时候需要压缩。</li>
+<li>垃圾收集线程占用CPU资源不说还会阻塞对文件系统的访问。</li>
+</ul>
+
+<p>
+目前至少有三种文件系统被设计用来替代JFFS2，分别是logfs、ubifs、yaffs。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline12" class="outline-3">
+<h3 id="orgheadline12">基本用法</h3>
+<div class="outline-text-3" id="text-orgheadline12">
+</div><div id="outline-container-orgheadline9" class="outline-4">
+<h4 id="orgheadline9">创建镜像</h4>
+<div class="outline-text-4" id="text-orgheadline9">
+<p>
+不论用那种方法创建镜像都必须指定一个目录，如果想创建ramdisk.gz的镜像，可以用如下方式为ramdisk.gz生成目录ram，然后就能够利用ram目录来制作镜像。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">mkdir ram
+gunzip ramdisk.gz
+mount ramdisk ram -o loop
+</pre>
+</div>
+
+<p>
+利用mtd-utils可以将JFFS2 image直接写入到bootloader。制作JFFS2镜像：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">mkfs.jffs2 -r &lt;dir&gt; -e &lt;erase_block_size&gt; <span style="color: #800;">\</span>
+           -s &lt;page_size&gt; [-p] [-n] <span style="color: #800;">\</span>
+           -o &lt;output_file&gt;
+</pre>
+</div>
+<dl class="org-dl">
+<dt>-r</dt><dd>指定用于创建镜像的目录</dd>
+<dt>-e</dt><dd>单位是KiB，最小是8KiB</dd>
+<dt>-n</dt><dd><b>如果是为NAND flash就要使用该选项</b></dd>
+</dl>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">mkfs.jffs2 -r jffs2 -p 0x100000 -e 0x1000 -b -o jffs2.bin
+</pre>
+</div>
+
+<p>
+如果想进一步优化镜像，加快挂载速度，可以使用sumtool命令。
+</p>
+
+<p>
+另外可以使用tarball建立镜像。进入到用于创建镜像的目录，执行如下命令。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">tar czf jffs2.tar.gz ram/*
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline10" class="outline-4">
+<h4 id="orgheadline10">写入镜像</h4>
+<div class="outline-text-4" id="text-orgheadline10">
+<div class="org-src-container">
+
+<pre class="src src-sh">dd <span style="color: #048;">if</span>=filesystem.jffs2 <span style="color: #048;">of</span>=/dev/mtdblock0
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline11" class="outline-4">
+<h4 id="orgheadline11">挂载</h4>
+<div class="outline-text-4" id="text-orgheadline11">
+<div class="org-src-container">
+
+<pre class="src src-sh">mount -t jffs2 /tmp/mtdblock0 /media/jffs2
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline15" class="outline-3">
+<h3 id="orgheadline15">常用命令</h3>
+<div class="outline-text-3" id="text-orgheadline15">
+</div><div id="outline-container-orgheadline13" class="outline-4">
+<h4 id="orgheadline13">mkfs.jffs2</h4>
+<div class="outline-text-4" id="text-orgheadline13">
+<div class="org-src-container">
+
+<pre class="src src-sh">mkfs.jffs2 [ -p,--pad[=SIZE] ] [ -r,-d,--root directory ]
+           [ -s,--page <span style="color: #048;">size</span>=SIZE ] [ -e,--eraseblock=SIZE ]
+           [ -c,--cleanmarker=SIZE ] [-n,--no-cleanmarkers ]
+           [ -o,--output image.jffs2 ] [ -l,--little-endian]
+           [ -b,--big-endian ] [ -D,--devtable=FILE ]
+           [ -f,--faketime ] [-q,--squash ]
+           [ -U,--squash-uids ] [ -P,--squash-perms ]
+           [ --with-xattr] [ --with-selinux ]
+           [ --with-posix-acl ] [ -m,--compression-mode=MODE]
+           [ -x,--disable-compressor=NAME ]
+           [ -X,--enable-compressor=NAME ]
+           [ -y,--compressor-priority=PRIORITY:NAME ]
+           [ -L,--list-compressors ] [-t,--test-compression ]
+           [ -h,--help ] [ -v,--verbose ] [ -V,--version ]
+           [ -i,--incremental image.jffs2 ]
+</pre>
+</div>
+<dl class="org-dl">
+<dt>-p,&#x2013;pad[=SIZE]</dt><dd>如果没有指定SIZE，就填充到最后一个erase block size，如果指定了SIZE就填充到指定大小。使用0xFF作为填充值。要指定填充大小必须使用<code>--pad</code>，使用<code>-p</code>不接受参数，所以默认填充到64KB大小。</dd>
+<dt>-r,-d,&#x2013;root directory</dt><dd>指定用于制作镜像的源目录，默认使用当前目录。</dd>
+<dt>-s,&#x2013;page size=SIZE</dt><dd>默认是4KiB，一个data节点的最大大小。</dd>
+<dt>-e, &#x2013;eraseblock=SIZE</dt><dd>默认是64KiB，如果指定值小于4096，那么默认单位是KB。这个值应当和目标MTD device的erase block size大小相等，否则就不会工作在最优模式。</dd>
+<dt>-n, &#x2013;no-cleanmarkers</dt><dd>不在每个block的开头写入CLEANMARKER节点，对NAND flash很有用。</dd>
+<dt>-o, &#x2013;output=FILE</dt><dd>指定输出文件。</dd>
+<dt>-l, &#x2013;little-endian</dt><dd></dd>
+
+<dt>-b, &#x2013;big-endian</dt><dd>默认和host的大小端相同，所有有些情况需要明确指定。</dd>
+</dl>
+</div>
+</div>
+<div id="outline-container-orgheadline14" class="outline-4">
+<h4 id="orgheadline14">sumtool</h4>
+<div class="outline-text-4" id="text-orgheadline14">
+<div class="org-src-container">
+
+<pre class="src src-sh">Usage: sumtool [OPTIONS] -i inputfile -o outputfile
+
+&#23558;JFFS2&#38236;&#20687;&#36716;&#25442;&#20026;&#27010;&#25324;JFFS2&#38236;&#20687;&#65292;&#22914;&#26524;&#20869;&#26680;&#25903;&#25345;&#27010;&#25324;&#21151;&#33021;&#23601;&#33021;&#21152;&#24555;&#25346;&#36733;&#36895;&#24230;&#12290;
+
+Options:
+  -e, --eraseblock=SIZE     default: 64KiB (16KiB on NAND)
+  -c, --cleanmarker=SIZE    size of cleanmarker,
+                            default: 12 (16 bytes on NAND)
+  -n, --no-cleanmarkers     not add cleanmarker
+  -o, --output=FILE         output to FILE
+  -i, --input=FILE          input from FILE
+  -b, --bigendian           image is big endian
+  -l  --littleendian        image is little endian
+  -h, --help                display this help text
+  -v, --verbose             verbose operation
+  -V, --version             display version information
+  -p, --pad                 pad with 0xFF to the end
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline21" class="outline-2">
+<h2 id="orgheadline21">UBIFS文件系统</h2>
+<div class="outline-text-2" id="text-orgheadline21">
+</div><div id="outline-container-orgheadline17" class="outline-3">
+<h3 id="orgheadline17">基本概念</h3>
+<div class="outline-text-3" id="text-orgheadline17">
+<p>
+在flash上面除了cramfs、jffs2、yaffs2之外，还有ubifs，它们都是基于文件系统+mtd+flash设备的架构。
+ubifs是在linux-2.6.27之后加入的。
+flash具有先擦除再写入、坏块、有限读写次数等特性，目前管理flash的方法主要有：
+</p>
+<ul class="org-ul">
+<li>采用MTD+FTL／NFTL＋传统文件系统，如：FAT、ext2等。通过软件的方式来实现日志管理、坏块管理、损益均衡等技术。存在效率核知识产权等局限。</li>
+<li>采用硬件翻译层+传统文件系统，如：SD卡、U盘等。成本较高。</li>
+<li>用MTD+FLASH专用文件系统，如JFFS1／2，YAFFS1/2等。提高了flash的管理能力，并得到广泛应用，也存在技术瓶颈，如内存消耗大，对flash容量、文件系统大小、访问模式等线性依赖，损益均衡能力差。</li>
+</ul>
+
+<p>
+ubifs是一个新兴的应用于mtd上的有效的文件系统。可以有效的组织flash的坏块和负载平衡，同时提高访问速度，减小内存消耗，具有日志的功能，是JFFS2的后续增强版。相比于JFFS2和YAFFS2的最大的特点是支持写缓存和剩余空间计算。
+</p>
+
+<p>
+MTD device代表物理设备，包括好块和坏块，Ubi device代表逻辑设备，对用户而言只有好块，
+Ubi device提供了对坏块的管理，并且对物理块进行了新的组织。即使用户串行读写，到Ubi device的时候就会进行新的映射，目的在于负载均衡。
+</p>
+
+<p>
+MTD初始化的时候将同一类型的flash划分为一个MTD device，接下来从内核启动参数或默认分区表中获得分区信息，最后将每个分区作为一个MTD device添加到mtd_table中，查看<code>/proc/mtd</code>实际上就是查看mtd_table中的信息。每个MTD device可以attach到一个Ubi device，每个Ubi device可以创建很多Ubi volume，每个Ubi volume又被作为一个MTD device保存到mtd_table中。
+MTD的type分为：nor、nand、ram、rom、ubivolume。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline20" class="outline-3">
+<h3 id="orgheadline20">基本用法</h3>
+<div class="outline-text-3" id="text-orgheadline20">
+</div><div id="outline-container-orgheadline18" class="outline-4">
+<h4 id="orgheadline18">内核配置</h4>
+<div class="outline-text-4" id="text-orgheadline18">
+<p>
+Device Drivers
+  &#x2014;&gt;Memory Technology Device (MTD) support
+  &#x2014;&gt;UBI - Unsorted block images
+  &#x2014;&gt;Enable UBI
+</p>
+
+<p>
+File systems
+  &#x2014;&gt;Miscellaneous filesystems
+  &#x2014;&gt;UBIFS file system support
+</p>
+
+<p>
+分区表设置，以uboot内核启动参数为例：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-text">Bootargs=console=ttyS0,115200n8
+ubi.mtd=4 root=ubi0:rtfs rootfstype=ubifs rw
+mtdparts=mtd_nand:200M(boot),300M(cfg),400M(other),500M(rootfs),-(left)
+</pre>
+</div>
+<dl class="org-dl">
+<dt>console</dt><dd>串口参数</dd>
+<dt>ubi.mtd=4</dt><dd>系统的根文件系统在第4个MTD上，系统把mtd4 attach到ubi0。</dd>
+<dt>root=ubi0:rtfs</dt><dd>根文件系统在ubi0中叫rtfs的volumne上。</dd>
+<dt>rootfstype=ubifs</dt><dd>指示rootfs文件系统的类型为ubifs。</dd>
+</dl>
+<p>
+最后是分区表的定义，格式为：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-text">mtd_id:[-]size[@offset](name)[mask_flags],...
+</pre>
+</div>
+<dl class="org-dl">
+<dt>-</dt><dd>表示剩余所有空间</dd>
+<dt>size</dt><dd>分区大小</dd>
+<dt>offset</dt><dd>分区的起始偏移量</dd>
+<dt>(name)</dt><dd>物理分区的名字</dd>
+<dt>mask_flags</dt><dd>分区的读写属性</dd>
+</dl>
+</div>
+</div>
+
+<div id="outline-container-orgheadline19" class="outline-4">
+<h4 id="orgheadline19">挂载使用</h4>
+<div class="outline-text-4" id="text-orgheadline19">
+<div class="org-src-container">
+
+<pre class="src src-sh">flash_eraseall /dev/mtd4
+ubiattach /dev/ubi_ctrl -m 4
+ubimkvol /dev/ubi0 -N rootfs -s 100MiB  <span style="color: #666;"># </span><span style="color: #666;">ubi0_0&#31561;&#20215;&#20110;ubi0:rootfs</span>
+mount -t ubifs ubi0_0 /mnt/ubi
+mount -t ubifs ubi0:rootfs /mnt/ubi
+</pre>
+</div>
+
+<p>
+制作ubifs镜像需要确定如下参数：
+</p>
+<ul class="org-ul">
+<li>MTD partition size，可以从<code>/proc/mtd</code>查看。</li>
+<li>flash physical eraseblock size，可以从<code>/proc/mtd</code>查看。</li>
+<li>minimum flash input/output unit size，NOR flash通常是一个字节，
+NAND flash是一个页面。</li>
+<li>sub-page size(for NAND flashes)，从flash手册查看。</li>
+<li>logical eraseblock size，对于有子页的NAND flash来说，等于物理擦除块大小 - 一页的大小。</li>
+</ul>
+
+<p>
+这些参数也可以通过工具从内核得到，如<code>mtdinfo -u</code>。也可以通过ubi和mtd连接时产生的信息得到。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">modprobe ubi <span style="color: #048;">mtd</span>=4
+</pre>
+</div>
+<div class="org-src-container">
+
+<pre class="src src-sh">ubiattach /dev/ubi_ctrl -m 4
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">mkfs.ubifs -r rootfs -m 2048 -e 129024 -c 812 -o ubifs.img
+ubinize -o ubi.img -m 2048 -p 128KiB -s 512 /home/lht/omap3530/tools/ubinize.cfg
+</pre>
+</div>
+<dl class="org-dl">
+<dt>-r</dt><dd>指定文件系统内容的位置</dd>
+<dt>-m</dt><dd>页面大小</dd>
+<dt>-e</dt><dd>逻辑擦除块大小</dd>
+<dt>-p</dt><dd>物理擦除块大小</dd>
+<dt>-c</dt><dd>最大逻辑擦除块数量</dd>
+<dt>-c</dt><dd>最小硬件输入/输出页面大小</dd>
+</dl>
+
+<p>
+ubinize.cfg的内容如下：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-conf">[<span style="color: #800;">ubifs</span>]
+    <span style="color: #048;">mode</span>=ubi
+    <span style="color: #048;">image</span>=ubifs.img
+    <span style="color: #048;">vol_id</span>=0
+    <span style="color: #048;">vol_size</span>=100MiB
+    <span style="color: #048;">vol_type</span>=dynamic
+    <span style="color: #048;">vol_name</span>=rootfs
+    <span style="color: #048;">vol_flags</span>=autoresize
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline22" class="outline-2">
+<h2 id="orgheadline22">参考资料</h2>
+<div class="outline-text-2" id="text-orgheadline22">
+<ul class="org-ul">
+<li><a href="http://wiki.dave.eu/index.php/Memory_Tecnology_Device_%28MTD%29">Memory Tecnology Device (MTD)</a></li>
+<li><a href="http://free-electrons.com/blog/managing-flash-storage-with-linux/">Managing flash storage with Linux</a></li>
+<li><a href="http://processors.wiki.ti.com/index.php/Create_a_JFFS2_Target_Image">Create a JFFS2 Target Image</a></li>
+<li><a href="http://wiki.maemo.org/Modifying_the_root_image">Modifying the root image(MTD/JFFS2)</a></li>
+<li><a href="http://www.linux-mtd.infradead.org/doc/ubifs.html">UBIFS - UBI File-System</a></li>
+</ul>
+</div>
+</div>

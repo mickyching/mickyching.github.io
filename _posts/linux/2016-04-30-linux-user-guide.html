@@ -1,0 +1,258 @@
+---
+title: Linux用户指南
+categories: linux
+tags: linux
+author: 敬叶
+---
+<dl class="post-meta">
+<dt class="post-meta">2016-04-30</dt><dd>敬叶 初稿</dd>
+</dl>
+<hr><br>
+<div id="table-of-contents"><h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#orgheadline12">基本安装与配置</a>
+<ul>
+<li><a href="#orgheadline11">Ubuntu系统安装与配置</a>
+<ul>
+<li><a href="#orgheadline1">软件源配置</a></li>
+<li><a href="#orgheadline2">grub配置</a></li>
+<li><a href="#orgheadline3">fstab配置</a></li>
+<li><a href="#orgheadline4">输入法配置</a></li>
+<li><a href="#orgheadline5">hosts设置</a></li>
+<li><a href="#orgheadline6">chrome浏览器配置</a>
+<ul>
+<li><a href="#orgheadline7">flash插件</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline8"><del>过期信息</del></a>
+<ul>
+<li><a href="#orgheadline9"><del>给nautilus添加右键打开终端选项</del></a></li>
+<li><a href="#orgheadline10"><del>安装jekyll</del></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#orgheadline15">常用工具简介</a>
+<ul>
+<li><a href="#orgheadline14">分区工具</a>
+<ul>
+<li><a href="#orgheadline13">修改分区名称</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline12" class="outline-2">
+<h2 id="orgheadline12">基本安装与配置</h2>
+<div class="outline-text-2" id="text-orgheadline12">
+</div><div id="outline-container-orgheadline11" class="outline-3">
+<h3 id="orgheadline11">Ubuntu系统安装与配置</h3>
+<div class="outline-text-3" id="text-orgheadline11">
+</div><div id="outline-container-orgheadline1" class="outline-4">
+<h4 id="orgheadline1">软件源配置</h4>
+<div class="outline-text-4" id="text-orgheadline1">
+<ul class="org-ul">
+<li><a href="https://lug.ustc.edu.cn/repogen/">https://lug.ustc.edu.cn/repogen/</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline2" class="outline-4">
+<h4 id="orgheadline2">grub配置</h4>
+<div class="outline-text-4" id="text-orgheadline2">
+<ul class="org-ul">
+<li><a href="https://help.ubuntu.com/community/Grub2/Setup">Grub2/Setup</a></li>
+</ul>
+
+<p>
+如果要让启动菜单不包括其他磁盘的系统信息，可以使用如下配置。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #666;"># </span><span style="color: #666;">file: /etc/default/grub</span>
+<span style="color: #048;">GRUB_DISABLE_OS_PROBER</span>=true
+</pre>
+</div>
+
+<p>
+配置完成之后运行命令更新grub配置。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">sudo update-grub
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline3" class="outline-4">
+<h4 id="orgheadline3">fstab配置</h4>
+<div class="outline-text-4" id="text-orgheadline3">
+<p>
+如果要让系统启动之后自动挂载磁盘，可以加入如下配置。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #666;"># </span><span style="color: #666;">file: /etc/fstab</span>
+<span style="color: #048;">UUID</span>=ab1b3396-4d52-4baf-9c0c-b497d30d8df2 /repo           ext4    defaults        0       2
+<span style="color: #048;">UUID</span>=1c4e18b9-9b9b-4ef5-8e90-b06da97e16e9 /data           ext4    defaults        0       2
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline4" class="outline-4">
+<h4 id="orgheadline4">输入法配置</h4>
+<div class="outline-text-4" id="text-orgheadline4">
+<p>
+安装fcitx需要卸载ibus输入法，卸载ibus输入法时注意不要卸载ibus，因为卸载ibus会导致整个unity桌面环境被卸载。
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">sudo apt-get purge ibus-gtk ibus-gtk3 ibus-table
+sudo apt-get install fcitx fcitx-googlepinyin
+</pre>
+</div>
+<p>
+安装完fcitx之后需要运行如下命令选择输入法。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">im-config
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline5" class="outline-4">
+<h4 id="orgheadline5">hosts设置</h4>
+<div class="outline-text-4" id="text-orgheadline5">
+<ul class="org-ul">
+<li><a href="https://github.com/racaljk/hosts">https://github.com/racaljk/hosts</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline6" class="outline-4">
+<h4 id="orgheadline6">chrome浏览器配置</h4>
+<div class="outline-text-4" id="text-orgheadline6">
+<p>
+常用简单设置和链接如下：
+</p>
+<ul class="org-ul">
+<li>设置字体：chrome://settings/fonts</li>
+<li>如果要同步chrome书签和插件，在配置选项中登录谷歌帐号即可</li>
+</ul>
+</div>
+
+<div id="outline-container-orgheadline7" class="outline-5">
+<h5 id="orgheadline7">flash插件</h5>
+<div class="outline-text-5" id="text-orgheadline7">
+<p>
+由于谷歌的开源浏览器将不再支持Netscape浏览器插件API，Adobe公司的Flash将无法正常工作。用户可以使用Pepper Flash Player，这是谷歌浏览器上一款替代Adobe Flash的插件。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">sudo apt-get install pepperflashplugin-nonfree
+sudo update-pepperflashplugin-nonfree --install
+</pre>
+</div>
+<p>
+如果是ubuntu早期版本，需添加源：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">sudo add-apt-repository ppa:skunk/pepper-flash
+sudo apt-get update
+sudo apt-get install pepflashplugin-installer
+sudo update-pepperflashplugin-nonfree --install
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline8" class="outline-4">
+<h4 id="orgheadline8"><del>过期信息</del></h4>
+<div class="outline-text-4" id="text-orgheadline8">
+<p>
+过期信息主要用于老版本，新版本16.04之后已经不再有相关问题。
+</p>
+</div>
+
+<div id="outline-container-orgheadline9" class="outline-5">
+<h5 id="orgheadline9"><del>给nautilus添加右键打开终端选项</del></h5>
+<div class="outline-text-5" id="text-orgheadline9">
+<div class="org-src-container">
+
+<pre class="src src-sh">sudo apt-get install nautilus-open-terminal
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline10" class="outline-5">
+<h5 id="orgheadline10"><del>安装jekyll</del></h5>
+<div class="outline-text-5" id="text-orgheadline10">
+<ul class="org-ul">
+<li><a href="http://blog.csdn.net/cschengvdn/article/details/42425271">http://blog.csdn.net/cschengvdn/article/details/42425271</a></li>
+<li><a href="http://www.linuxidc.com/Linux/2014-09/106771.htm">http://www.linuxidc.com/Linux/2014-09/106771.htm</a></li>
+</ul>
+
+<p>
+如果用<code>apt-get</code>安装jekyll失败，则可以用gem安装，首先需要修改gem源。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">gem sources -l
+gem sources --remove https://rubygems.org/
+gem sources -a https://ruby.taobao.org/
+</pre>
+</div>
+
+<p>
+然后利用gem安装：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">sudo apt-get install ruby1.9.1-dev
+sudo gem install jekyll v 2.5.3
+sudo gem install therubyracer
+sudo apt-get install curl
+curl --silent --location https://deb.nodesource.com/setup_0.12 | sudo bash -
+sudo apt-get install --yes nodejs build-essential
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline15" class="outline-2">
+<h2 id="orgheadline15">常用工具简介</h2>
+<div class="outline-text-2" id="text-orgheadline15">
+</div><div id="outline-container-orgheadline14" class="outline-3">
+<h3 id="orgheadline14">分区工具</h3>
+<div class="outline-text-3" id="text-orgheadline14">
+</div><div id="outline-container-orgheadline13" class="outline-4">
+<h4 id="orgheadline13">修改分区名称</h4>
+<div class="outline-text-4" id="text-orgheadline13">
+<div class="org-src-container">
+
+<pre class="src src-sh">dosfslabel &lt;dev&gt; &lt;label&gt;                <span style="color: #666;"># </span><span style="color: #666;">fat</span>
+e2label &lt;dev&gt; &lt;label&gt;                   <span style="color: #666;"># </span><span style="color: #666;">ext</span>
+ntfslabel &lt;dev&gt; &lt;label&gt;                 <span style="color: #666;"># </span><span style="color: #666;">ntfsprogs: ntfs</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>

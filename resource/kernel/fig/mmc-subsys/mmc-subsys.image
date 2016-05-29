@@ -1,0 +1,209 @@
+
+* plantUML
+
+** data-struct.png
+#+BEGIN_SRC plantuml :file data-struct.png
+  mmc_bus_ops "1" --* "1" mmc_host
+  mmc_ios "1" --* "1" mmc_host
+  mmc_host_ops "1" -l-* "1" mmc_host
+  mmc_card "0..1" <-l-> "1" mmc_host
+  mmc_host <-- mmc_request
+  mmc_host --> mmc_async_req
+  mmc_async_req -l-> mmc_request
+  mmc_request --> mmc_command
+  mmc_request --> mmc_data
+
+  mmc_part "1..*" --* "1" mmc_card
+  mmc_card <-l- mmc_queue
+  request_queue <-- mmc_queue
+  mmc_queue "1" *-- "2" mmc_queue_req
+  mmc_queue -l-* "1" mmc_blk_data
+  gendisk <-- mmc_blk_data
+  mmc_async_req "1" -* "1" mmc_queue_req
+  mmc_queue_req -> request
+  mmc_queue_req "1" *-- "1" mmc_blk_request
+  mmc_queue_req --> scatterlist
+  mmc_request --* mmc_blk_request
+  mmc_blk_request *-- mmc_command
+  mmc_blk_request *-- mmc_data
+#+END_SRC
+
+#+RESULTS:
+[[file:data-struct.png]]
+
+** attr-groups.png
+#+BEGIN_SRC plantuml :file attr-groups.png
+"type_show" as (show)
+"DEVICE_ATTR_RO(type)" as (attr)
+"dev_attr_type" as (dev)
+show --> attr
+attr --> dev
+"mmc_dev_attrs[]" as (attrs)
+"ATTRIBUTE_GROUPS(mmc_dev)" as (ags)
+"mmc_dev_group" as (g)
+"mmc_dev_groups" as (gs)
+attrs --> ags
+ags --> g
+ags --> gs
+#+END_SRC
+
+#+RESULTS:
+[[file:attr-groups.png]]
+
+** card-insert-irq.png
+#+BEGIN_SRC plantuml :file card-insert-irq.png
+[*] --> IRQ
+IRQ : card inserted and exist enough time
+IRQ -> DETECT
+DETECT : schedule card detect work
+DETECT --> INIT
+INIT: start card init process
+#+END_SRC
+
+#+RESULTS:
+[[file:card-insert-irq.png]]
+
+** sdio-init.png
+#+BEGIN_SRC plantuml :file sdio-init.png
+start
+if (CMD5) then (Y)
+:OCR;
+#LightBlue:18V;
+:RCA SELECT;
+:CCCR CIS;
+
+if (UHS) then (Y)
+#LightBlue:TUNING;
+else (N)
+:HS;
+endif
+
+else (N)
+endif
+stop
+#+END_SRC
+
+#+RESULTS:
+[[file:sdio-init.png]]
+
+** sdio-combo-init.png
+#+BEGIN_SRC plantuml :file sdio-combo-init.png
+start
+if (CMD5) then (Y)
+:OCR CID;
+#LightBlue:18V;
+:RCA CSD SELECT;
+:CCCR CIS SETUP_SD;
+
+if (UHS) then (Y)
+#LightBlue:TUNING;
+else (N)
+:HS;
+endif
+
+else (N)
+endif
+stop
+#+END_SRC
+
+#+RESULTS:
+[[file:sdio-combo-init.png]]
+
+** sd-init.png
+#+BEGIN_SRC plantuml :file sd-init.png
+start
+if (ACMD41) then (Y)
+:RESET OCR;
+#LightBlue:18V;
+:CID RCA CSD DSR SELECT;
+:SCR SSR SWITCH RO;
+
+if (UHS) then (Y)
+#LightBlue:TUNING;
+else (N)
+:HS;
+endif
+
+else (N)
+endif
+stop
+#+END_SRC
+
+#+RESULTS:
+[[file:sd-init.png]]
+
+** mmc-blk-probe.png
+#+BEGIN_SRC plantuml :file mmc-blk-probe.png
+[*] --> match
+match : match always return 1
+match --> probe
+probe : init disk & queue
+probe : register mmc_request_fn
+probe : register issue_fn
+probe : add disk
+#+END_SRC
+
+#+RESULTS:
+[[file:mmc-blk-probe.png]]
+
+** mmc-request-fn.png
+#+BEGIN_SRC plantuml :file mmc-request-fn.png
+  [*] --> mmc_request_fn
+  mmc_request_fn --> mmc_queue_thread : wakeup
+  state mmc_queue_thread {
+  blk_fetch_request --> issue_fn
+  issue_fn --> blk_fetch_request
+  blk_fetch_request --> schedule
+  }
+#+END_SRC
+
+#+RESULTS:
+[[file:mmc-request-fn.png]]
+
+** mmc-blk-issue-rq.png
+#+BEGIN_SRC plantuml :file mmc-issue-rq.png
+  [*] --> mmc_blk_issue_rq
+  mmc_blk_issue_rq --> mmc_blk_issue_rw_rq
+  state mmc_blk_issue_rw_rq {
+  mmc_blk_rw_rq_prep --> mmc_start_req
+  }
+  mmc_blk_issue_rq --> mmc_blk_issue_discard_rq
+  mmc_blk_issue_rq --> mmc_blk_issue_flush
+#+END_SRC
+
+#+RESULTS:
+[[file:mmc-issue-rq.png]]
+
+** mmc-send-cmd.png
+#+BEGIN_SRC plantuml :file mmc-send-cmd.png
+start
+:mmc_wait_for_cmd;
+:mmc_wait_for_req;
+:__mmc_start_req;
+fork
+:mmc_wait_for_req_done;
+fork again
+:mmc_start_reqeust;
+end fork
+stop
+#+END_SRC
+
+#+RESULTS:
+[[file:mmc-send-cmd.png]]
+
+** mmc-send-data.png
+#+BEGIN_SRC plantuml :file mmc-send-data.png
+start
+:mmc_start_req;
+:mmc_wait_for_data_req_done;
+:__mmc_start_data_req;
+fork
+:mmc_wait_data_done;
+fork again
+:mmc_start_request;
+end fork
+stop
+#+END_SRC
+
+#+RESULTS:
+[[file:mmc-send-data.png]]

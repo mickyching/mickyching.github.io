@@ -1,0 +1,153 @@
+---
+title: Cmake Practice
+categories: tools
+tags: cmake
+author: 敬叶
+---
+<dl class="post-meta">
+<dt class="post-meta">2015-07-30</dt><dd>敬叶 初稿</dd>
+</dl>
+<hr><br>
+<div id="table-of-contents"><h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#orgheadline1">简介</a>
+<ul>
+<li><a href="#orgheadline4">基本语法元素</a>
+<ul>
+<li><a href="#orgheadline2">常用指令</a></li>
+<li><a href="#orgheadline3">安装指令</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline1" class="outline-2">
+<h2 id="orgheadline1">简介</h2>
+<div class="outline-text-2" id="text-orgheadline1">
+<!--abstract-begin-->
+
+<p>
+对于比较大的项目手动去编写很多makefile是不合理的，
+Autotools是一种自动产生Makefile的工具集，我毕业设计就是用的这套工具，整体感觉还是比较繁琐。Cmake出现要晚一点，在效率和使用上都要好些。当然Cmake只能用来构建C++/Java。
+</p>
+
+<!--abstract-end-->
+</div>
+
+<div id="outline-container-orgheadline4" class="outline-3">
+<h3 id="orgheadline4">基本语法元素</h3>
+<div class="outline-text-3" id="text-orgheadline4">
+</div><div id="outline-container-orgheadline2" class="outline-4">
+<h4 id="orgheadline2">常用指令</h4>
+<div class="outline-text-4" id="text-orgheadline2">
+<div class="org-src-container">
+
+<pre class="src src-makefile">PROJECT(sample [CXX] [C] [Java])
+
+SET(VAR [VALUE] [CACHE TYPE DOCSTRING [FORCE]])
+SET(SRC_FILES sample.cpp)
+SET(EXECUTABLE_OUTPUT_PATH ${<span style="color: #048;">PROJECT_BINARY_DIR</span>}/bin) <span style="color: #666;"># </span><span style="color: #666;">build/bin</span>
+SET(LIBRARY_OUTPUT_PATH ${<span style="color: #048;">PROJECT_BINARY_DIR</span>}/lib)    <span style="color: #666;"># </span><span style="color: #666;">build/lib</span>
+
+ADD_SUBDIRECTORY(source_dir [binary_dir] [EXCLUDE_FROM_ALL])
+ADD_SUBDIRECTORY(src bin)
+
+MESSAGE([SEND_ERROR | STATUS | FATAL_ERROR] <span style="color: #800;">"message to display"</span> ...)
+MESSAGE(STATUS <span style="color: #800;">"This is SOURCE dir "</span>${<span style="color: #048;">PROJECT_SOURCE_DIR</span>})
+MESSAGE(STATUS <span style="color: #800;">"This is BINARY dir "</span>${<span style="color: #048;">PROJECT_BINARY_DIR</span>})
+
+INCLUDE_DIRECTORIES([AFTER|BEFORE] [SYSTEM] dir1 dir2 ...)
+LINK_DIRECTORIES(directory1 directory2 ...)
+TARGET_LINK_LIBRARIES(target library1
+        &lt;debug | optimized&gt; library2
+        ...)
+ADD_EXECUTABLE(sample ${<span style="color: #048;">SRC_FILES</span>})
+
+ADD_LIBRARY(libname [SHARED|STATIC|MODULE] [EXCLUDE_FROM_ALL]
+        source1 source2 ... sourceN)
+ADD_LIBRARY(hello SHARED ${<span style="color: #048;">SRC_FILES</span>})
+
+SET_TARGET_PROPERTIES(target1 target2 ...
+        PROPERTIES prop1 value1
+                prop2 value2 ...)
+
+<span style="color: #666;"># </span><span style="color: #666;">&#36825;&#31181;&#26041;&#27861;&#29992;&#26469;&#22788;&#29702;TARGE&#19981;&#33021;&#37325;&#21517;&#65292;&#20294;&#26159;&#21448;&#24819;&#36755;&#20986;&#21516;&#21517;&#30340;&#25991;&#20214;</span>
+SET_TARGET_PROPERTIES(hello_static PROPERTIES OUTPUT_NAME <span style="color: #800;">"hello"</span>)
+SET_TARGET_PROPERTIES(hello PROPERTIES CLEAN_DIRECT_OUTPUT 1)
+SET_TARGET_PROPERTIES(hello_static PROPERTIES CLEAN_DIRECT_OUTPUT 1)
+SET_TARGET_PROPERTIES(hello PROPERTIES VERSION 1.2 SOVERSION 1)
+
+ADD_DEFINITIONS(-DENABLE_DEBUG -DABC)
+SET(CMAKE_C_FLAGS <span style="color: #800;">"-O3 -xSSE3 -restrict -lpthread -lX11 -ldrm"</span>)
+SET(CMAKE_CXX_FLAGS <span style="color: #800;">"-O3 -xSSE3 -restrict -lpthread -lX11 -ldrm"</span>)
+ADD_DEPENDENCIES(target-name depend-target1 depend-target2 ...)
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline3" class="outline-4">
+<h4 id="orgheadline3">安装指令</h4>
+<div class="outline-text-4" id="text-orgheadline3">
+<p>
+安装指令比较复杂，安装前缀CMAKE_INSTALL_PREFIX默认值为<code>/usr/local</code>。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-makefile">INSTALL(TARGETS targets...
+        [[ARCHIVE|LIBRARY|RUNTIME]
+                [DESTINATION &lt;dir&gt;]
+                [PERMISSIONS permissions...]
+                [CONFIGURATIONS [Debug|Release|...]]
+                [COMPONENT &lt;component&gt;]
+                [OPTIONAL]]
+        [...])
+INSTALL(TARGETS myrun mylib mystaticlib
+        RUNTIME DESTINATION bin         <span style="color: #666;"># </span><span style="color: #666;">${</span><span style="color: #048;">CMAKE_INSTALL_PREFIX</span><span style="color: #666;">}/bin</span>
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION libstatic
+        )
+
+INSTALL(FILES files... DESTINATION &lt;dir&gt;
+        [PERMISSIONS permissions...]
+        [CONFIGURATIONS [Debug|Release|...]]
+        [COMPONENT &lt;component&gt;]
+        [RENAME &lt;name&gt;]
+        [OPTIONAL])
+INSTALL(FILES hello.h DESTINATION include/hello)
+
+INSTALL(PROGRAMS files... DESTINATION &lt;dir&gt;
+        [PERMISSIONS permissions...]
+        [CONFIGURATIONS [Debug|Release|...]]
+        [COMPONENT &lt;component&gt;]
+        [RENAME &lt;name&gt;]
+        [OPTIONAL])
+
+INSTALL(DIRECTORY dirs... DESTINATION &lt;dir&gt;
+        [FILE_PERMISSIONS permissions...]
+        [DIRECTORY_PERMISSIONS permissions...]
+        [USE_SOURCE_PERMISSIONS]
+        [CONFIGURATIONS [Debug|Release|...]]
+        [COMPONENT &lt;component&gt;]
+        [[PATTERN &lt;pattern&gt; | REGEX &lt;regex&gt;]
+                [EXCLUDE]
+                [PERMISSIONS permissions...]]
+        [...])
+<span style="color: #666;"># </span><span style="color: #666;">Note: if dirs with / means move content, no / means move dir</span>
+INSTALL(DIRECTORY icons scripts/ DESTINATION share/myproj
+        PATTERN <span style="color: #800;">"CVS"</span> EXCLUDE
+        PATTERN <span style="color: #800;">"scripts/*"</span>
+        PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
+                GROUP_EXECUTE GROUP_READ)
+
+INSTALL([[SCRIPT &lt;file&gt;] [CODE &lt;code&gt;]] [...])
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>

@@ -1,0 +1,615 @@
+---
+title: Linux MMC Subsystem
+categories: kernel
+tags: linux kernel mmc
+author: 敬叶
+---
+<dl class="post-meta">
+<dt class="post-meta">2015-07-03</dt><dd>敬叶 初稿</dd>
+</dl>
+<hr><br>
+<div id="table-of-contents"><h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#orgheadline1">简介</a>
+<ul>
+<li><a href="#orgheadline2">数据结构</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline19">MMC结构视图</a>
+<ul>
+<li><a href="#orgheadline6">MMC总线</a>
+<ul>
+<li><a href="#orgheadline3">MMC总线类型</a></li>
+<li><a href="#orgheadline4">设备属性（组）</a></li>
+<li><a href="#orgheadline5">总线操作</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline7">MMC设备</a>
+<ul>
+<li><a href="#orgheadline8">SDIO初始化</a></li>
+<li><a href="#orgheadline9">SD初始化</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline13">MMC驱动</a>
+<ul>
+<li><a href="#orgheadline10">块设备驱动</a></li>
+<li><a href="#orgheadline11">电源管理</a></li>
+<li><a href="#orgheadline12">块设备驱动探测</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline16">MMC请求处理</a>
+<ul>
+<li><a href="#orgheadline14">命令传输</a></li>
+<li><a href="#orgheadline15">数据传输</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline17">MMC主机控制器</a></li>
+<li><a href="#orgheadline18">MMC测试驱动</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline22">参考资料</a>
+<ul>
+<li><a href="#orgheadline20">书籍演示</a></li>
+<li><a href="#orgheadline21">网络博客</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline1" class="outline-2">
+<h2 id="orgheadline1">简介</h2>
+<div class="outline-text-2" id="text-orgheadline1">
+<!--abstract-begin-->
+
+<p>
+本文参考linux-4.2内核源代码进行讲述，侧重介绍软件结构，简要介绍协议。在介绍MMC子系统之前，先看一下MMC子系统在内核中的位置。
+Linux内核系统的分层结构如下图所示。
+</p>
+
+<div class="org-center">
+
+<div class="figure">
+<p><img src="/resource/kernel/fig/mmc-subsys/mmc-in-linux.png" alt="mmc-in-linux.png" />
+</p>
+</div>
+</div>
+
+<!--abstract-end-->
+
+<p>
+进一步的讲，MMC也是分为三个层次的，MMC的分层结构如下图所示。
+</p>
+
+<div class="org-center">
+
+<div class="figure">
+<p><img src="/resource/kernel/fig/mmc-subsys/mmc-driver-frame.png" alt="mmc-driver-frame.png" />
+</p>
+</div>
+</div>
+
+<p>
+从MMC的Makefile可以看到，MMC将三个层次分别放到三个目录中。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-makefile"><span style="color: #048;">obj-$(</span><span style="color: #048;">CONFIG_MMC</span><span style="color: #048;">)</span>               += core/
+<span style="color: #048;">obj-$(</span><span style="color: #048;">CONFIG_MMC</span><span style="color: #048;">)</span>               += card/
+obj-$(<span style="color: #048;">subst</span> m,y,$(<span style="color: #048;">CONFIG_MMC</span>))  += host/
+</pre>
+</div>
+
+<dl class="org-dl">
+<dt>core</dt><dd>核心层完成协议部分功能</dd>
+<dt>card</dt><dd>卡层提供块设备驱动</dd>
+<dt>host</dt><dd>主机层由各控制器厂商提供特定代码</dd>
+</dl>
+
+<p>
+核心层主要包括如下一些文件，每个目标文件对应一个源文件。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-makefile"><span style="color: #048;">obj-$(</span><span style="color: #048;">CONFIG_MMC</span><span style="color: #048;">)</span>       += mmc_core.o
+<span style="color: #048;">mmc_core-y</span> := core.o bus.o host.o mmc.o mmc_ops.o sd.o  \
+           sd_ops.o sdio.o sdio_ops.o sdio_bus.o        \
+           sdio_cis.o sdio_io.o sdio_irq.o quirks.o     \
+           slot-gpio.o
+</pre>
+</div>
+<dl class="org-dl">
+<dt>mmc_core</dt><dd>最终生成mmc_core.ko模块</dd>
+<dt>core.c</dt><dd>传输中间件，上传下达</dd>
+<dt>bus.c</dt><dd>注册mmc_bus_type</dd>
+<dt>host.c</dt><dd>通用host接口，供厂商使用</dd>
+</dl>
+
+<p>
+卡层主要包括如下一些文件，从中可以看出主要还是块设备驱动，关键任务是完成请求队列的处理和请求的发送。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-makefile"><span style="color: #048;">obj-$(</span><span style="color: #048;">CONFIG_MMC_BLOCK</span><span style="color: #048;">)</span>         += mmc_block.o
+<span style="color: #048;">mmc_block-objs</span>                  := block.o queue.o
+<span style="color: #048;">obj-$(</span><span style="color: #048;">CONFIG_MMC_TEST</span><span style="color: #048;">)</span>          += mmc_test.o
+
+<span style="color: #048;">obj-$(</span><span style="color: #048;">CONFIG_SDIO_UART</span><span style="color: #048;">)</span>         += sdio_uart.o
+</pre>
+</div>
+<dl class="org-dl">
+<dt>mmc_block</dt><dd>最终生成mmc_block.ko模块</dd>
+<dt>block.c</dt><dd>块设备驱动</dd>
+<dt>queue.c</dt><dd>块设备请求队列</dd>
+</dl>
+
+<p>
+主机层包括许多厂商的主机控制器驱动，基本上一个模块就对应一个厂商的控制器。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-makefile"><span style="color: #048;">obj-$(</span><span style="color: #048;">CONFIG_MMC_SDHCI</span><span style="color: #048;">)</span>         += sdhci.o
+<span style="color: #048;">obj-$(</span><span style="color: #048;">CONFIG_MMC_SDHCI_PCI</span><span style="color: #048;">)</span>     += sdhci-pci.o
+...
+</pre>
+</div>
+<dl class="org-dl">
+<dt>sdhci.c</dt><dd>SDHCI(SD Host Controller Interface)</dd>
+</dl>
+</div>
+
+<div id="outline-container-orgheadline2" class="outline-3">
+<h3 id="orgheadline2">数据结构</h3>
+<div class="outline-text-3" id="text-orgheadline2">
+<p>
+最关键的数据结构是mmc_host、mmc_card和mmc_blk_data，分别表征了控制器，卡对象和块设备数据。请求由通用块层将用户的操作传递下来，向卡对象发送出去，最后由控制器来完成实际的硬件控制。
+</p>
+
+<div class="org-center">
+
+<div class="figure">
+<p><img src="/resource/kernel/fig/mmc-subsys/data-struct.png" alt="data-struct.png" />
+</p>
+</div>
+</div>
+
+<dl class="org-dl">
+<dt>mmc_host_ops</dt><dd>由各厂商提供的操作，如设置MMC总线参数、命令/数据请求处理、电压切换等等。这部分参数和厂商控制器相关，因此由各厂商的驱动来设定。</dd>
+<dt>mmc_ios</dt><dd>负责MMC总线上的参数设定，如时钟、模式、电源开关、时序、电压等。这部份参数有核心层来控制，通过调用mmc_set_ios来设定参数。</dd>
+<dt>mmc_bus_ops</dt><dd>MMC总线状态控制，主要包括电源控制、移除卡和探测卡的动作。这部分参数由具体卡的驱动来设定，如MMC、SD和SDIO各有一套设定。</dd>
+<dt>mmc_host</dt><dd>表示一个MMC控制器的数据结构，MMC控制器相关的操作，围绕该结构展开。</dd>
+
+<dt>mmc_card</dt><dd>描述卡的信息，除了这里提到的分区信息，还包括卡的特征参数，如CID、CSD、SCR、SSR、CCCR等等，特征参数相关的参数最好参考规范去读。</dd>
+<dt>mmc_part</dt><dd>需要注意的是这个地方的part是指物理分区，只有MMC卡才有这个概念。</dd>
+
+<dt>mmc_blk_data</dt><dd>描述磁盘设备的块信息，每个卡槽对应一个mmc_blk_data，这是描述卡数据传输的核心数据结构。</dd>
+<dt>mmc_queue</dt><dd>MMC管理的请求队列，基于request_queue实现了一个异步传输机制。</dd>
+<dt>mmc_queue_req</dt><dd>mmc_queue借助mmc_queue_req来实现异步传输，两个请求，一个表示前一个请求，一个表示当前请求。发送当前请求的时候必须要等待上一个请求完成。</dd>
+<dt>mmc_async_req</dt><dd>本质上它不过是一组指针，由mmc_request来封装，更方便访问请求中的一些数据。也就是说借助于mmc_request，我们可以方便的获取mmc_command和mmc_data。</dd>
+<dt>mmc_blk_request</dt><dd>这才是真正用于存放数据的数据结构，里面进一步封装了mmc_request、mmc_command和mmc_data，命令包括三个类型，SBC、CMD和STOP。</dd>
+</dl>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline19" class="outline-2">
+<h2 id="orgheadline19">MMC结构视图</h2>
+<div class="outline-text-2" id="text-orgheadline19">
+</div><div id="outline-container-orgheadline6" class="outline-3">
+<h3 id="orgheadline6">MMC总线</h3>
+<div class="outline-text-3" id="text-orgheadline6">
+</div><div id="outline-container-orgheadline3" class="outline-4">
+<h4 id="orgheadline3">MMC总线类型</h4>
+<div class="outline-text-4" id="text-orgheadline3">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">static</span> <span style="color: #800;">struct</span> <span style="color: #800;">bus_type</span> <span style="color: #048;">mmc_bus_type</span> = {
+    .name           = <span style="color: #800;">"mmc"</span>,
+    .dev_groups     = mmc_dev_groups,
+    .match          = mmc_bus_match,
+    .uevent         = mmc_bus_uevent,
+    .probe          = mmc_bus_probe,
+    .remove         = mmc_bus_remove,
+    .shutdown       = mmc_bus_shutdown,
+    .pm             = &amp;mmc_bus_pm_ops,
+};
+</pre>
+</div>
+
+<p>
+一旦注册就能看到目录<code>/sys/bus/mmc</code>，也就是说mmc表示的是总线的名字。比较有趣的是probe和remove两个函数，最早是有的，后来在Linux内核中对总线和驱动的概念做了一些优化，总线上的回调和驱动的回调不能同时指定，否则内核会提出警告。再后来又被加上去了，并且将mmc_driver也改成了device_driver。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline4" class="outline-4">
+<h4 id="orgheadline4">设备属性（组）</h4>
+<div class="outline-text-4" id="text-orgheadline4">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">static</span> <span style="color: #800;">ssize_t</span> <span style="color: #048; font-weight: bold;">type_show</span>(<span style="color: #800;">struct</span> <span style="color: #800;">device</span> *<span style="color: #048;">dev</span>,
+                         <span style="color: #800;">struct</span> <span style="color: #800;">device_attribute</span> *<span style="color: #048;">attr</span>,
+                         <span style="color: #800;">char</span> *<span style="color: #048;">buf</span>);
+<span style="color: #800;">static</span> <span style="color: #048; font-weight: bold;">DEVICE_ATTR_RO</span>(type);            <span style="color: #666;">// </span><span style="color: #666;">&#21019;&#24314;dev_attr_type&#23646;&#24615;</span>
+
+<span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">DEVICE_ATTR_RO</span>(<span style="color: #048;">_name</span>)                                   \
+    <span style="color: #800;">struct</span> <span style="color: #800;">device_attribute</span> <span style="color: #048;">dev_attr_</span>##_name = __ATTR_RO(_name)
+<span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">__ATTR_RO</span>(<span style="color: #048;">_name</span>) {                                    \
+    .attr = { .name = __stringify(_name), .mode = S_IRUGO },  \
+    .show = _name##_show,                                     \
+}
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">static</span> <span style="color: #800;">struct</span> <span style="color: #800;">attribute</span> *<span style="color: #048;">mmc_dev_attrs</span>[] = {
+    &amp;dev_attr_type.attr,                <span style="color: #666;">// </span><span style="color: #666;">&#21019;&#24314;&#23646;&#24615;&#25968;&#32452;</span>
+    <span style="color: #800;">NULL</span>,
+};
+ATTRIBUTE_GROUPS(mmc_dev);
+
+<span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">ATTRIBUTE_GROUPS</span>(<span style="color: #048;">_name</span>)                                 \
+    <span style="color: #800;">static</span> <span style="color: #800;">const</span> <span style="color: #800;">struct</span> <span style="color: #800;">attribute_group</span> <span style="color: #048;">_name</span>##_group = {       \
+        .attrs = _name##_attrs,                                 \
+    };                                                          \
+    __ATTRIBUTE_GROUPS(_name)
+<span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">__ATTRIBUTE_GROUPS</span>(<span style="color: #048;">_name</span>)                               \
+    <span style="color: #800;">static</span> <span style="color: #800;">const</span> <span style="color: #800;">struct</span> <span style="color: #800;">attribute_group</span> *<span style="color: #048;">_name</span>##_groups[] = {   \
+        &amp;_name##_group,                                         \
+        <span style="color: #800;">NULL</span>,                                                   \
+    }
+</pre>
+</div>
+
+<div class="org-center">
+
+<div class="figure">
+<p><img src="/resource/kernel/fig/mmc-subsys/attr-groups.png" alt="attr-groups.png" />
+</p>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline5" class="outline-4">
+<h4 id="orgheadline5">总线操作</h4>
+<div class="outline-text-4" id="text-orgheadline5">
+<p>
+设备和驱动的匹配由mmc_bus_match来完成，该函数始终返回1，因此一个driver匹配所有的mmc设备。
+</p>
+
+<p>
+uevent操作主要用于添加环境变量，包括MMC_TYPE、MMC_NAME、MODALIAS。该回调函数在添加卡的时候会调用。
+</p>
+
+<p>
+关机动作包含了两个部分的工作，一个是driver-&gt;shutdown用于停止块设备请求队列，一个是host-&gt;bus_type-&gt;shutdown，由具体类型的卡驱动来指定如何动作，一般来说就是suspend卡，而suspend卡就是给卡断电。
+</p>
+
+<p>
+电源操作包括mmc总线suspend/resume，以及RPM的suspend/resume。它们和shutdown一样都是转交给MMC驱动来处理。
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline7" class="outline-3">
+<h3 id="orgheadline7">MMC设备</h3>
+<div class="outline-text-3" id="text-orgheadline7">
+<p>
+假定主机控制器已经准备好，那么插入卡的时候就会添加一个卡设备。添加卡的基本思路是：卡插到控制器，控制器产生一个中断，控制器驱动处理中断，调用mmc_rescan初始化卡，添加卡设备，扫描会尝试多个频率，由400kHz降低到100kHz，而对应卡的类型则是先尝试认SDIO，再认SD、MMC卡。
+</p>
+
+
+<div class="org-center">
+
+<div class="figure">
+<p><img src="/resource/kernel/fig/mmc-subsys/card-insert-irq.png" alt="card-insert-irq.png" />
+</p>
+</div>
+</div>
+
+<p>
+如果运气好认卡成功了，就会添加卡设备，有<code>mmc_add_card</code>来添加。
+</p>
+</div>
+
+<div id="outline-container-orgheadline8" class="outline-4">
+<h4 id="orgheadline8">SDIO初始化</h4>
+<div class="outline-text-4" id="text-orgheadline8">
+<p>
+如果插入的是单纯的SDIO卡，主要初始化流程如下图所示。
+</p>
+
+<div class="org-center">
+
+<div class="figure">
+<p><img src="/resource/kernel/fig/mmc-subsys/sdio-init.png" alt="sdio-init.png" />
+</p>
+</div>
+</div>
+
+<dl class="org-dl">
+<dt>CMD5(OCR)</dt><dd>IO_SEND_OP_COND，发送CMD5就是为了获取OCR，用于确定这张卡是不是SDIO卡，如果不是就退出。</dd>
+<dt>OCR</dt><dd>如果在认识到SDIO之后会在发一次CMD5，这一次是为了设置OCR，也就是让卡和控制器的OCR匹配起来，找到其公共区间来设定。</dd>
+<dt>18V</dt><dd>检查OCR是否支持<code>R4_18V_PRESENT</code>，如果支持就会切电压。</dd>
+<dt>RCA</dt><dd>获取相对地址。</dd>
+<dt>SELECT</dt><dd>发送CMD7选中卡。</dd>
+<dt>CCCR</dt><dd>Card Common Control Registers，通过CMD52来传输。</dd>
+<dt>CIS</dt><dd>Card Information Structure，提供卡信息。</dd>
+<dt>UHS</dt><dd>检查是否支持UHS主要是看是否可以切到18V电压。如果是UHS卡主要需要进行TUNING过程，不论是UHS还是HS都是要设置MMC总线模式为4bits。</dd>
+</dl>
+
+<p>
+实际上有可能插入的是单纯的SDIO卡，而是COMBO卡，也就是包含存储功能。这样就会在初始化SDIO的过程中插入SD部分的初始化。下图中粉红色的部分就是SD部分的初始化，详细解释请参考SD初始化。
+</p>
+
+<div class="org-center">
+
+<div class="figure">
+<p><img src="/resource/kernel/fig/mmc-subsys/sdio-combo-init.png" alt="sdio-combo-init.png" />
+</p>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline9" class="outline-4">
+<h4 id="orgheadline9">SD初始化</h4>
+<div class="outline-text-4" id="text-orgheadline9">
+<p>
+SD初始化的主要工作由<code>mmc_sd_init_card</code>来完成，如下图所示。
+</p>
+
+<div class="org-center">
+
+<div class="figure">
+<p><img src="/resource/kernel/fig/mmc-subsys/sd-init.png" alt="sd-init.png" />
+</p>
+</div>
+</div>
+
+<dl class="org-dl">
+<dt>RESET</dt><dd>即CMD0，发送复位命令。</dd>
+<dt>OCR</dt><dd>即CMD8，设置检查操作电压。</dd>
+<dt>18V</dt><dd>即ACMD41，如果支持切换到18V就会去切电压。</dd>
+<dt>CID</dt><dd>Card IDentification，获取卡ID信息。</dd>
+<dt>RCA</dt><dd>卡相对地址。</dd>
+<dt>CSD</dt><dd>Card Specification Data，卡规范相关的数据，CMD9。</dd>
+<dt>DSR</dt><dd>Driver Stage Register，驱动级别寄存器，即CMD4。</dd>
+<dt>SELECT</dt><dd>选卡，即CMD7。</dd>
+<dt>SCR</dt><dd>SD Configuration Register，SD卡配置寄存器，即ACMD51。</dd>
+<dt>SSR</dt><dd>SD Status Register，卡状态寄存器，即ACMD13。</dd>
+<dt>SWITCH</dt><dd>读取switch信息。</dd>
+<dt>RO</dt><dd>判断卡是否为只读卡。</dd>
+<dt>UHS</dt><dd>判别是不是UHS卡，主要是看是否支持18V电压。如果支持就需要TUNING。不论是UHS模式还是HS模式都要设置MMC总线为4bits。</dd>
+
+<dt>mmc_sd_init_card</dt><dd>初始化SD卡，包含从RESET到UHS部分的代码。</dd>
+<dt>mmc_sd_get_cid</dt><dd>包含从RESET到CID部分的流程。</dd>
+<dt>mmc_sd_setup_card</dt><dd>包含从SCR到RO部分的流程。</dd>
+</dl>
+
+<p>
+初始化的过程中会分配一个mmc_card结构来表示卡设备，其中会加入很多属性，这里以SD卡为例：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp">MMC_DEV_ATTR(scr, <span style="color: #800;">"%08x%08x\n"</span>, card-&gt;raw_scr[0], card-&gt;raw_scr[1]);
+MMC_DEV_ATTR(date, <span style="color: #800;">"%02d/%04d\n"</span>, card-&gt;cid.month, card-&gt;cid.year);
+...
+
+<span style="color: #800;">static</span> <span style="color: #800;">struct</span> <span style="color: #800;">attribute</span> *sd_std_attrs[] = {
+    &amp;dev_attr_csd.attr,
+    &amp;dev_attr_scr.attr,
+    &amp;dev_attr_date.attr,
+    ...
+    <span style="color: #800;">NULL</span>,
+};
+ATTRIBUTE_GROUPS(sd_std);
+
+<span style="color: #800;">struct</span> <span style="color: #800;">device_type</span> <span style="color: #048;">sd_type</span> = {
+    .groups = sd_std_groups,
+};
+</pre>
+</div>
+<p>
+设备初始化的时候设定：<code>card-&gt;dev.type = sd_type</code>。
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline13" class="outline-3">
+<h3 id="orgheadline13">MMC驱动</h3>
+<div class="outline-text-3" id="text-orgheadline13">
+</div><div id="outline-container-orgheadline10" class="outline-4">
+<h4 id="orgheadline10">块设备驱动</h4>
+<div class="outline-text-4" id="text-orgheadline10">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">static</span> <span style="color: #800;">struct</span> <span style="color: #800;">device_driver</span> <span style="color: #048;">mmc_driver</span> = {
+    .name           = <span style="color: #800;">"mmcblk"</span>,
+    .pm             = &amp;mmc_blk_pm_ops,
+    .probe          = mmc_blk_probe,
+    .remove         = mmc_blk_remove,
+    .shutdown       = mmc_blk_shutdown,
+};
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline11" class="outline-4">
+<h4 id="orgheadline11">电源管理</h4>
+<div class="outline-text-4" id="text-orgheadline11">
+<p>
+mmc_blk_pm_ops仅包括两个电源管理功能，即suspend/resume，
+suspend就是停止块设备请求队列。
+shutdown和suspend的功能相同。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline12" class="outline-4">
+<h4 id="orgheadline12">块设备驱动探测</h4>
+<div class="outline-text-4" id="text-orgheadline12">
+<p>
+很显然在添加好MMC设备时，就会进行设备和驱动匹配，此时就会执行probe动作。
+probe会初始化disk、queue，注册块设备请求队列主函数mmc_request_fn，注册内核线程mmc_queue_thread，队列回调issue_fn(mmc_blk_issue_rq)，最后添加disk。
+</p>
+
+<div class="org-center">
+
+<div class="figure">
+<p><img src="/resource/kernel/fig/mmc-subsys/mmc-blk-probe.png" alt="mmc-blk-probe.png" />
+</p>
+</div>
+</div>
+
+<p>
+mmc_request_fn的主要任务就是唤醒线程mmc_queue_thread，而线程负责从请求队列提取一个块设备请求，通过issue_fn发送出去。而issue_fn则相当于一个分支器。
+</p>
+
+<div class="org-center">
+
+<div class="figure">
+<p><img src="/resource/kernel/fig/mmc-subsys/mmc-request-fn.png" alt="mmc-request-fn.png" />
+</p>
+</div>
+</div>
+
+<div class="org-center">
+
+<div class="figure">
+<p><img src="/resource/kernel/fig/mmc-subsys/mmc-issue-rq.png" alt="mmc-issue-rq.png" />
+</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline16" class="outline-3">
+<h3 id="orgheadline16">MMC请求处理</h3>
+<div class="outline-text-3" id="text-orgheadline16">
+</div><div id="outline-container-orgheadline14" class="outline-4">
+<h4 id="orgheadline14">命令传输</h4>
+<div class="outline-text-4" id="text-orgheadline14">
+<div class="org-center">
+
+<div class="figure">
+<p><img src="/resource/kernel/fig/mmc-subsys/mmc-send-cmd.png" alt="mmc-send-cmd.png" />
+</p>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline15" class="outline-4">
+<h4 id="orgheadline15">数据传输</h4>
+<div class="outline-text-4" id="text-orgheadline15">
+<div class="org-center">
+
+<div class="figure">
+<p><img src="/resource/kernel/fig/mmc-subsys/mmc-send-data.png" alt="mmc-send-data.png" />
+</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline17" class="outline-3">
+<h3 id="orgheadline17">MMC主机控制器</h3>
+<div class="outline-text-3" id="text-orgheadline17">
+<p>
+主机控制器本身需要一个driver来控制，至于是什么类型的driver由具体的平台而定，可以是PCI驱动，也可以是平台驱动等等。在probe主机的时候就需要添加mmc host，添加的方法比较简单，直接利用core/host.c中提供的接口即可。
+</p>
+
+<p>
+要能够实现一个完整的MMC/SD卡控制器，需要去设定mmc_host_ops中的回调函数，包括请求处理，MMC总线参数设定，切电压、tuning等。
+</p>
+
+<p>
+要实现对主机控制器控制，最基本的需要能够读写寄存器，DMA数据传输。寄存器的控制通过ioremap来映射总线地址，之后即可借助ioread/iowrite来操作。
+</p>
+
+<p>
+DMA传输则是通过dma_alloc_coherent来分配一致映射，有DMA描述表来控制DMA传输，因此驱动的主要工作就是创建描述表，把描述表地址写入到控制寄存器。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline18" class="outline-3">
+<h3 id="orgheadline18">MMC测试驱动</h3>
+<div class="outline-text-3" id="text-orgheadline18">
+<p>
+测试驱动和块设备驱动二者只会有一个可以可卡设备匹配，因此如果要编译到内核，只能选择一个。挂载好测试驱动之后，如果插卡就可以通过如下命令查看可以测试的用例。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #800;">cd</span> /sys/kernel/debug/mmc0/mmc0:1234
+cat testlist
+</pre>
+</div>
+<div class="org-src-container">
+
+<pre class="src src-text">1:      Basic write (no data verification)
+2:      Basic read (no data verification)
+3:      Basic write (with data verification)
+4:      Basic read (with data verification)
+5:      Multi-block write
+6:      Multi-block read
+7:      Power of two block writes
+8:      Power of two block reads
+9:      Weird sized block writes
+10:     Weird sized block reads
+11:     Badly aligned write
+12:     Badly aligned read
+13:     Badly aligned multi-block write
+14:     Badly aligned multi-block read
+15:     Correct xfer_size at write (start failure)
+16:     Correct xfer_size at read (start failure)
+17:     Correct xfer_size at write (midway failure)
+18:     Correct xfer_size at read (midway failure)
+......
+</pre>
+</div>
+<p>
+可以通过执行如下命令来启动测试用例。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #800;">echo</span> 1 &gt; test                           <span style="color: #666;"># </span><span style="color: #666;">test case 1</span>
+<span style="color: #048;">i</span>=0; <span style="color: #800;">while</span> [ $<span style="color: #048;">i</span> -lt 45 ]; <span style="color: #800;">do </span><span style="color: #800;">echo</span> $<span style="color: #048;">i</span> &gt; test; <span style="color: #800;">let</span> <span style="color: #048;">i</span>+=1; <span style="color: #800;">done</span> <span style="color: #666;"># </span><span style="color: #666;">test 1..45</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline22" class="outline-2">
+<h2 id="orgheadline22">参考资料</h2>
+<div class="outline-text-2" id="text-orgheadline22">
+</div><div id="outline-container-orgheadline20" class="outline-3">
+<h3 id="orgheadline20">书籍演示</h3>
+<div class="outline-text-3" id="text-orgheadline20">
+<ul class="org-ul">
+<li><a href="http://free-electrons.com/doc/block_drivers.pdf">Block device drivers</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline21" class="outline-3">
+<h3 id="orgheadline21">网络博客</h3>
+<div class="outline-text-3" id="text-orgheadline21">
+<ul class="org-ul">
+<li><a href="http://www.cnblogs.com/cslunatic/p/3678045.html">Linux SD/MMC/SDIO驱动分析</a></li>
+<li><a href="http://blog.chinaunix.net/uid-22174347-id-1786945.html">嵌入式Linux之我行——S3C2440上MMC/SD卡驱动实例开发讲解(一)</a></li>
+<li><a href="http://blog.chinaunix.net/uid-22174347-id-1786946.html">嵌入式Linux之我行——S3C2440上MMC/SD卡驱动实例开发讲解(二)</a></li>
+</ul>
+</div>
+</div>
+</div>

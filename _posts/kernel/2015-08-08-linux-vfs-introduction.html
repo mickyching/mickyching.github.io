@@ -1,0 +1,387 @@
+---
+title: Linux虚拟文件系统简介
+categories: kernel
+tags: linux kernel vfs
+author: 敬叶
+---
+<dl class="post-meta">
+<dt class="post-meta">2015-08-08</dt><dd>敬叶 初稿</dd>
+</dl>
+<hr><br>
+<div id="table-of-contents"><h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#orgheadline1">基本概念</a>
+<ul>
+<li><a href="#orgheadline7">VFS核心要素</a>
+<ul>
+<li><a href="#orgheadline2">file_system_type</a></li>
+<li><a href="#orgheadline3">super_block</a></li>
+<li><a href="#orgheadline4">inode</a></li>
+<li><a href="#orgheadline5">file</a></li>
+<li><a href="#orgheadline6">dentry</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline10">注册与注销文件系统</a>
+<ul>
+<li><a href="#orgheadline8">注册文件系统</a></li>
+<li><a href="#orgheadline9">注销文件系统</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline13">装载与卸载文件系统</a>
+<ul>
+<li><a href="#orgheadline11">装载文件系统</a></li>
+<li><a href="#orgheadline12">卸载文件系统</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline15">常见文件系统</a>
+<ul>
+<li><a href="#orgheadline14">pipefs</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline1" class="outline-2">
+<h2 id="orgheadline1">基本概念</h2>
+<div class="outline-text-2" id="text-orgheadline1">
+<!--abstract-begin-->
+<p>
+Linux支持多种文件系统，为了让应用程序能够对所有系统不加区分的操作，提供了一个抽象层，这个抽象层介于应用程序和具体的文件系统之间，就像一个开关一样将用户请求转换到具体文件系统系统去，让具体文件系统去实现对应的操作，最后再将结果返回给用户。所以VFS就叫做虚拟文件系统开关，确切的也可称之为虚拟文件系统转换，不过我认为开关比较形象。
+</p>
+
+<p>
+另一方面，VFS是Linux所有子系统中的一员，其他还有子系统如IPC, SCHED, MM, NET等，它们只会和VFS打交道，而不会去针对具体的文件系统直接操作。也就是说不仅用户空间接受VFS服务，内核空间也接受VFS服务。
+</p>
+<!--abstract-end-->
+</div>
+
+<div id="outline-container-orgheadline7" class="outline-3">
+<h3 id="orgheadline7">VFS核心要素</h3>
+<div class="outline-text-3" id="text-orgheadline7">
+</div><div id="outline-container-orgheadline2" class="outline-4">
+<h4 id="orgheadline2">file_system_type</h4>
+<div class="outline-text-4" id="text-orgheadline2">
+<p>
+文件系统类型用于在VFS中注册具体的文件系统，文件系统类型最关键的要提供两个操作，挂载和卸载，对应到file_system_type就是成员函数指针mount()/kill_sb()。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline3" class="outline-4">
+<h4 id="orgheadline3">super_block</h4>
+<div class="outline-text-4" id="text-orgheadline3">
+<p>
+文件系统可以视为所有节点的集合，在数据结构上我们习惯称之为超级块。文件系统都有一个根节点，我们叫root.
+其他的节点都是通过root向下查找而来，查找的手段都是通过文件名匹配。
+struct super_block/struct super_operations实现一个超级块对象。
+</p>
+
+<p>
+每个超级块实例对应一个挂载的文件系统，如果已经挂载，就是活动超级块，当然一个超级块可以挂载到多个地方。
+</p>
+
+<p>
+每个文件系统有一组特征是作用到所有节点上的，比如READ_ONLY文件系统的所有节点都是只读的，还有block_size，即每个块所占用的大小。
+</p>
+
+<p>
+文件系统和设备是息息相关的，所以文件系统必须有一个唯一的设备号。有些文件系统是nodev的，也就是不需要真实的设备。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline4" class="outline-4">
+<h4 id="orgheadline4">inode</h4>
+<div class="outline-text-4" id="text-orgheadline4">
+<p>
+在这里我们简称索引节点为节点。节点代表文件系统中一个基本对象，具体的说就是普通文件/目录/符号链接等。
+struct inode/struct inode_operations构成一个节点对象。
+</p>
+
+<p>
+索引节点和文件容易混淆，inode和file的设计目的是不一样的，
+inode主要提供了对文件节点创建、命名、删除等操作，而file则关注文件中数据的读写。
+</p>
+
+<p>
+inode的数据可以分为两个部分，一个是文件状态信息，一个是保存的数据，状态信息我们叫元数据。目录也是用inode表示，只不其内容由一对对编号和名字组成。
+</p>
+
+<p>
+符号链接和硬链接都是由inode表示，符号链接的inode数据段包含一个路径字符串，指向链接的地址。多个硬链接实际是由同一个inode表示，只不过inode中有一个计数器，记住了总共有多少个硬链接。硬链接不能是目录，因为每个目录由一个inode表示，如果多个目录指向同一个inode，那么从该目录向上查找就会发现由多个parent，这会破坏目录树的结构，更糟糕的是如果把一个目录和它的子目录硬链接会发生什么？进入这个目录就意味着直接进入其子目录，进入子目录又进一步进入孙目录，产生死循环。不过Linux提供了一个mount选项，用于在虚拟文件系统层支持绑定两个已经存在的目录，前提是他们已经存在。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">mount --bind /dir1 /dir1/dir2
+</pre>
+</div>
+<p>
+在Linux上的作用就是把<code>dir1</code>挂载到<code>dir2</code>上，进入<code>dir2</code>将看到<code>dir1</code>的东西，但是<code>dir2</code>原来的东西就被隐藏了，这样从逻辑上就能够完成父目录和子目录的绑定，如<code>dir1</code>是父目录，在进入<code>dir2</code>时就将看到<code>dir1</code>的内容，此时也能看到<code>dir2</code>，全路径为<code>/dir1/dir2/dir2</code>，到这里就能看到<code>dir2</code>的内容了，因为能够区分出二者不同，一个是挂载点，一个不是，所以允许出现这样的绑定方式。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline5" class="outline-4">
+<h4 id="orgheadline5">file</h4>
+<div class="outline-text-4" id="text-orgheadline5">
+<p>
+在UNIX中我们认为所有的东西都可以看作文件，如字符设备、块设备、管道、套接字、终端等。既然是文件，就可以打开、关闭、读写、IO控制等。
+struct file/struct file_operations构成一个文件对象。
+</p>
+
+<p>
+文件对象用于描述怎样与一个打开的文件交互，文件对象是文件被打开的时候创建的，文件对象在磁盘上没有对应的映像。定义file是为了让进程对文件的记录是私有的，父子进程对文件共享。由于一个文件可以被多个进程打开，所以文件指针要放在file中而不是inode中。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline6" class="outline-4">
+<h4 id="orgheadline6">dentry</h4>
+<div class="outline-text-4" id="text-orgheadline6">
+<p>
+名字查找是VFS当中非常复杂的一个部分。前面说了查找inode是通过名字匹配来实现的，但是并不是每个文件系统都能够快速的实现名字到inode的转换，于是VFS实现了dcache，
+dcache的存在为快速名字查找提供了可靠的保障。
+VFS处理了所有文件路径名的管理操作，在底层文件系统能够看到他们之前，将其转换为dcache的入口。唯一的例外是符号链接，VFS不加改动的传递给底层文件系统，由底层文件系统对其解释。
+</p>
+
+<p>
+dcache称之为高速目录缓存，由许多dentry组成，每个dentry对应到系统中的一个文件名。当前活动的文件名字和最近使用的文件名字都缓存在dcache中。
+</p>
+
+<p>
+每个dentry的父节点必须在dcache中，dentry还记载了文件系统的装载关系。只要在dcache中存在一个目录项，那么相应的索引节点就在索引节点高速缓存。反过来，如果索引节点在索引节点高速缓存，那么它一定引用dcache中的一个dentry.
+</p>
+
+<p>
+也就是可以理解为dcache的存在就是为了加速文件名字到具体inode的转换，
+VFS三个字母中的S-switch和这个功能息息相关。
+</p>
+
+<p>
+dcache是一个树状结构，每个dcache节点对应一个目录，也就是指定名称的inode。一个inode可以和树中的多个dcache节点联系，因为硬链接可以在多个地方指向同一个节点。
+</p>
+
+<p>
+每一个dcache节点用struct dentry来表示，我们习惯称dentry为目录项，请注意和目录区别，目录不过是inode的一种形式。
+struct dentry/struct dentry_operations实现一个目录项对象。
+</p>
+
+<p>
+一个打开的文件一定会指向dentry，而一个dentry又会指向inode，所以dentry可以看作是file到inode的switch.
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline10" class="outline-3">
+<h3 id="orgheadline10">注册与注销文件系统</h3>
+<div class="outline-text-3" id="text-orgheadline10">
+</div><div id="outline-container-orgheadline8" class="outline-4">
+<h4 id="orgheadline8">注册文件系统</h4>
+<div class="outline-text-4" id="text-orgheadline8">
+<p>
+如果文件系统没有注册，那么自然就无法使用。而文件系统注册可以有两种方式，一种是将文件系统编译到内核里，这样系统启动就会自动完成注册，一种是将文件系统编译成模块，在模块载入的时候注册。当文件系统编译到内核时，在start_kernel()就会调用注册函数，如rootfs、proc等，而永远不会调用注销函数。当文件编译为模块时，在模块的init()函数中就会调用注册函数，在模块的exit()函数中会调用注销函数。
+</p>
+
+<p>
+注册文件系统并不复杂，所以我们可以直接看源代码。但是要理解原理需要先理解数据结构。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">struct</span> <span style="color: #800;">file_system_type</span> {
+    <span style="color: #800;">const</span> <span style="color: #800;">char</span> *<span style="color: #048;">name</span>;                   <span style="color: #666;">// </span><span style="color: #666;">&#25991;&#20214;&#31995;&#32479;&#30340;&#21517;&#23383;&#65306;rootfs, ext2...</span>
+    <span style="color: #800;">int</span> <span style="color: #048;">fs_flags</span>;                       <span style="color: #666;">// </span><span style="color: #666;">&#25991;&#20214;&#31995;&#32479;&#29305;&#24449;</span>
+<span style="color: #800;">#define</span> <span style="color: #048;">FS_REQUIRES_DEV</span>         1       <span style="color: #666;">// </span><span style="color: #666;">&#38656;&#35201;&#20855;&#20307;&#30340;&#35774;&#22791;&#65292;&#19981;&#26159;&#20223;&#30495;&#30340;&#25991;&#20214;&#31995;&#32479;&#12290;</span>
+<span style="color: #800;">#define</span> <span style="color: #048;">FS_BINARY_MOUNTDATA</span>     2       <span style="color: #666;">// </span><span style="color: #666;">&#25346;&#36733;&#25968;&#25454;&#20026;&#20108;&#36827;&#21046;</span>
+<span style="color: #800;">#define</span> <span style="color: #048;">FS_HAS_SUBTYPE</span>          4       <span style="color: #666;">// </span><span style="color: #666;">&#20855;&#26377;&#23376;&#25991;&#20214;&#31995;&#32479;</span>
+<span style="color: #800;">#define</span> <span style="color: #048;">FS_USERNS_MOUNT</span>         8       <span style="color: #666;">// </span><span style="color: #666;">can be mounted by userns root</span>
+<span style="color: #800;">#define</span> <span style="color: #048;">FS_USERNS_DEV_MOUNT</span>     16      <span style="color: #666;">// </span><span style="color: #666;">userns mount not imply MNT_NODEV</span>
+<span style="color: #800;">#define</span> <span style="color: #048;">FS_RENAME_DOES_D_MOVE</span>   32768   <span style="color: #666;">// </span><span style="color: #666;">rename&#30340;&#26102;&#20505;&#30001;FS&#25191;&#34892;d_move()</span>
+
+    <span style="color: #666;">// </span><span style="color: #666;">&#25346;&#36733;&#25991;&#20214;&#31995;&#32479;</span>
+    <span style="color: #666;">// </span><span style="color: #666;">@dev_path: &#25991;&#20214;&#31995;&#32479;&#38656;&#35201;&#19968;&#20010;&#35774;&#22791;&#36335;&#24452;&#65292;&#20197;&#20415;&#26681;&#25454;&#35774;&#22791;&#36335;&#24452;&#25214;&#21040;&#22359;&#35774;&#22791;&#12290;</span>
+    <span style="color: #666;">// </span><span style="color: #666;">@data: &#23454;&#38469;&#26159;&#20256;&#36882;&#32473;mount&#30340;&#36873;&#39033;&#65292;&#20063;&#23601;&#26159;&#23383;&#31526;&#20018;&#12290;</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">dentry</span> *(*<span style="color: #048; font-weight: bold;">mount</span>) (<span style="color: #800;">struct</span> <span style="color: #800;">file_system_type</span> *<span style="color: #048;">fs_type</span>, <span style="color: #800;">int</span> <span style="color: #048;">flags</span>,
+                             <span style="color: #800;">const</span> <span style="color: #800;">char</span> *<span style="color: #048;">dev_path</span>, <span style="color: #800;">void</span> *<span style="color: #048;">data</span>);
+    <span style="color: #666;">// </span><span style="color: #666;">&#21368;&#36733;&#25991;&#20214;&#31995;&#32479;</span>
+    <span style="color: #800;">void</span> (*<span style="color: #048; font-weight: bold;">kill_sb</span>) (<span style="color: #800;">struct</span> <span style="color: #800;">super_block</span> *<span style="color: #048;">sb</span>);
+
+    <span style="color: #666;">// </span><span style="color: #666;">&#19968;&#33324;&#37117;&#26159;&#35774;&#32622;&#20026;THIS_MODULE&#65292;&#23545;&#24212;&#21040;&#20855;&#20307;&#25991;&#20214;&#31995;&#32479;&#30340;&#27169;&#22359;&#12290;</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">module</span> *<span style="color: #048;">owner</span>;
+    <span style="color: #666;">// </span><span style="color: #666;">&#29992;&#26469;&#25351;&#21521;&#19979;&#19968;&#20010;&#25991;&#20214;&#31995;&#32479;&#31867;&#22411;&#65292;&#31995;&#32479;&#20013;&#25152;&#26377;&#25991;&#20214;&#31995;&#32479;&#31867;&#22411;&#20250;&#24418;&#25104;&#19968;&#20010;&#21333;&#21521;&#38142;&#34920;&#65292;</span>
+    <span style="color: #666;">// </span><span style="color: #666;">&#22312;&#27880;&#20876;&#30340;&#26102;&#20505;&#20250;&#25214;&#21040;&#26368;&#21518;&#19968;&#20010;&#25991;&#20214;&#31995;&#32479;&#65292;&#24182;&#23558;&#20854;next&#25351;&#21521;&#26032;&#27880;&#20876;&#30340;&#25991;&#20214;&#31995;&#32479;&#12290;</span>
+    <span style="color: #666;">// </span><span style="color: #666;">&#38142;&#34920;&#22836;&#65306;static struct file_system_type *file_systems;</span>
+    <span style="color: #666;">// </span><span style="color: #666;">&#20445;&#25252;&#38145;&#65306;static DEFINE_RWLOCK(file_systems_lock);</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">file_system_type</span> *<span style="color: #048;">next</span>;
+    <span style="color: #666;">// </span><span style="color: #666;">&#35813;&#25991;&#20214;&#31995;&#32479;&#25152;&#26377;&#30340;super_block&#23454;&#20363;&#38142;&#34920;&#22836;&#33410;&#28857;&#12290;</span>
+    <span style="color: #666;">// </span><span style="color: #666;">&#38142;&#34920;&#28857;&#65306;sb-&gt;s_instances</span>
+    <span style="color: #666;">// </span><span style="color: #666;">&#20445;&#25252;&#38145;&#65306;DEFINE_SPINLOCK(sb_lock)</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">hlist_head</span> <span style="color: #048;">fs_supers</span>;
+
+    <span style="color: #800;">struct</span> <span style="color: #800;">lock_class_key</span> <span style="color: #048;">s_lock_key</span>;       <span style="color: #666;">// </span><span style="color: #666;">&#26410;&#20351;&#29992;&#65292;&#23558;&#26469;&#21487;&#33021;&#34987;&#21024;&#38500;</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">lock_class_key</span> <span style="color: #048;">s_umount_key</span>;     <span style="color: #666;">// </span><span style="color: #666;">sb-&gt;s_umount</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">lock_class_key</span> <span style="color: #048;">s_vfs_rename_key</span>; <span style="color: #666;">// </span><span style="color: #666;">sb-&gt;s_vfs_rename_mutex</span>
+    <span style="color: #666;">// </span><span style="color: #666;">sb-&gt;s_writers.lock_map[SB_FREEZE_LEVELS]</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">lock_class_key</span> <span style="color: #048;">s_writers_key</span>[SB_FREEZE_LEVELS];
+
+    <span style="color: #800;">struct</span> <span style="color: #800;">lock_class_key</span> <span style="color: #048;">i_lock_key</span>;       <span style="color: #666;">// </span><span style="color: #666;">inode-&gt;i_lock</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">lock_class_key</span> <span style="color: #048;">i_mutex_key</span>;      <span style="color: #666;">// </span><span style="color: #666;">inode-&gt;i_mutex</span>
+    <span style="color: #666;">// </span><span style="color: #666;">&#38024;&#23545;inode&#26159;&#30446;&#24405;&#30340;&#24773;&#20917;</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">lock_class_key</span> <span style="color: #048;">i_mutex_dir_key</span>;  <span style="color: #666;">// </span><span style="color: #666;">inode-&gt;i_mutex</span>
+};
+</pre>
+</div>
+
+<p>
+思路上非常简单，如果找到同名字的文件系统就说明已经注册了，返回-EBUSY。反之find_filesystem()会获取到最后一个文件系统的next指针，将其指向新的文件系统就完成注册了。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">register_filesystem</span>(<span style="color: #800;">struct</span> <span style="color: #800;">file_system_type</span> *<span style="color: #048;">fs</span>)
+{
+    <span style="color: #800;">int</span> <span style="color: #048;">res</span> = 0;
+    <span style="color: #800;">struct</span> <span style="color: #800;">file_system_type</span> **<span style="color: #048;">p</span>;
+
+    BUG_ON(strchr(fs-&gt;name, <span style="color: #800;">'.'</span>));
+    <span style="color: #800;">if</span> (fs-&gt;next)
+        <span style="color: #800;">return</span> -EBUSY;
+    write_lock(&amp;file_systems_lock);
+    p = find_filesystem(fs-&gt;name, strlen(fs-&gt;name));
+    <span style="color: #800;">if</span> (*p)
+        res = -EBUSY;
+    <span style="color: #800;">else</span>
+        *p = fs;
+    write_unlock(&amp;file_systems_lock);
+    <span style="color: #800;">return</span> res;
+}
+</pre>
+</div>
+
+<p>
+不妨看一下find_filesystem()的实现。所有的文件系统类型形成一个链表，链表头存放在一个叫file_system的全局变量中。所以不需要特殊的参数来传递链表头。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">static</span> <span style="color: #800;">struct</span> <span style="color: #800;">file_system_type</span> **<span style="color: #048; font-weight: bold;">find_filesystem</span>(<span style="color: #800;">const</span> <span style="color: #800;">char</span> *<span style="color: #048;">name</span>, <span style="color: #800;">unsigned</span> <span style="color: #048;">len</span>)
+{
+    <span style="color: #800;">struct</span> <span style="color: #800;">file_system_type</span> **<span style="color: #048;">p</span>;
+    <span style="color: #800;">for</span> (p = &amp;file_systems; *p; p = &amp;(*p)-&gt;next)
+        <span style="color: #800;">if</span> (strlen((*p)-&gt;name) == len &amp;&amp;
+            strncmp((*p)-&gt;name, name, len) == 0)
+            <span style="color: #800;">break</span>;
+    <span style="color: #800;">return</span> p;
+}
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline9" class="outline-4">
+<h4 id="orgheadline9">注销文件系统</h4>
+<div class="outline-text-4" id="text-orgheadline9">
+<p>
+注销文件系统的代码也比较简单，直接看源代码。这里tmp作为一个指针的指针，它会向后移动，假设这里移动到了fs，这时*tmp和fs指向同一位置，需要注意的是tmp实际上是上一个节点的next地址，因此*tmp = fs-&gt;next实际上是改变上一个节点next的指向，也就是让其跳过fs。接下来由于fs已经被file_system链表所抛弃，我们必须将fs-&gt;next清空。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">unregister_filesystem</span>(<span style="color: #800;">struct</span> <span style="color: #800;">file_system_type</span> *<span style="color: #048;">fs</span>)
+{
+    <span style="color: #800;">struct</span> <span style="color: #800;">file_system_type</span> **<span style="color: #048;">tmp</span>;
+
+    write_lock(&amp;file_systems_lock);
+    tmp = &amp;file_systems;
+    <span style="color: #800;">while</span> (*tmp) {
+        <span style="color: #800;">if</span> (fs == *tmp) {
+            *tmp = fs-&gt;next;
+            fs-&gt;next = <span style="color: #800;">NULL</span>;
+            write_unlock(&amp;file_systems_lock);
+            synchronize_rcu();
+            <span style="color: #800;">return</span> 0;
+        }
+        tmp = &amp;(*tmp)-&gt;next;
+    }
+    write_unlock(&amp;file_systems_lock);
+
+    <span style="color: #800;">return</span> -EINVAL;
+}
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline13" class="outline-3">
+<h3 id="orgheadline13">装载与卸载文件系统</h3>
+<div class="outline-text-3" id="text-orgheadline13">
+</div><div id="outline-container-orgheadline11" class="outline-4">
+<h4 id="orgheadline11">装载文件系统</h4>
+<div class="outline-text-4" id="text-orgheadline11">
+<p>
+装载文件系统是用户通过mount命令来实现的，当然也可以将配置写道/etc/fstab中。装载文件系统至少应该提供三个信息：文件系统名称、设备节点、挂载点。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">mount -t vfat /dev/sdb /media/usb
+</pre>
+</div>
+
+<ul class="org-ul">
+<li>VFS会根据提供的文件系统类型vfat去查找file_systems链表，如果找到说明已经注册，如果没找到会尝试加载模块，如果成功注册就可以开始执行挂载操作。</li>
+<li>查看设备节点是否存在，设备节点是否已经被安装了。</li>
+<li>查看挂载点是否存在，挂载点是否已经被其它文件系统挂载占用。</li>
+<li>为文件系统分配超级块。</li>
+<li>读取文件系统设备中的信息填充超级块。</li>
+</ul>
+
+<p>
+一个文件系统可以在多个地方安装，毕竟我们可以根据路径名来找到文件系统，但是即便如此，一个文件系统还是只有一个超级块。
+</p>
+
+<p>
+反过来多个文件系统可以安装到一个地方，只不过后面的文件系统会覆盖之前的文件系统。一旦被覆盖那么进程就不能访问到之前的文件系统，如果在安装后一个系统之前，已经有进程在访问之前的文件系统，那么它可以继续访问。当后一个文件系统卸载之后，之前的文件系统就会显示出来。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline12" class="outline-4">
+<h4 id="orgheadline12">卸载文件系统</h4>
+<div class="outline-text-4" id="text-orgheadline12">
+<ul class="org-ul">
+<li>检查文件系统是否正在被使用。</li>
+<li>同步文件系统。</li>
+<li>释放超级块。</li>
+</ul>
+</div>
+</div>
+</div>
+<div id="outline-container-orgheadline15" class="outline-3">
+<h3 id="orgheadline15">常见文件系统</h3>
+<div class="outline-text-3" id="text-orgheadline15">
+</div><div id="outline-container-orgheadline14" class="outline-4">
+<h4 id="orgheadline14">pipefs</h4>
+<div class="outline-text-4" id="text-orgheadline14">
+<p>
+在Linux中管道是只存在于内存中的特殊文件，一个管道实际就是一个索引节点，但是包含两个或多个file对象，一个用于读，一个用于写。管道的缓冲区通常为一页大小，如果多个进程要的写入是小于一页的，那么写入就是原子的，如果写入大于一页，就会将写入进行分割，因而会出现多个进程交叉写入。命名管道有对应的磁盘索引节点，可以被任何进程打开使用。
+</p>
+
+<p>
+对于<code>ls | more</code>大致执行流程为：
+</p>
+<ol class="org-ol">
+<li>shell fork() 一个进程A</li>
+<li>A调用pipe()创建管道，得到fd1和fd2</li>
+<li>A调用两次fork()产生两个子进程A1和A2
+<ol class="org-ol">
+<li>A1调用<code>dup2(fd2, 1)</code>将写文件描述符定向到标准输出，然后用<code>execv()</code>执行ls</li>
+<li>A2调用<code>dup2(fd1, 0)</code>将读文件描述符定向到标准输入，然后用<code>execv()</code>执行more</li>
+</ol></li>
+<li>A关闭fd1和fd2</li>
+</ol>
+</div>
+</div>
+</div>
+</div>

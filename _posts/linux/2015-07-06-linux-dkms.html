@@ -1,0 +1,208 @@
+---
+title: Linux DKMS
+categories: linux
+tags: linux dkms
+author: 敬叶
+---
+<dl class="post-meta">
+<dt class="post-meta">2015-07-06</dt><dd>敬叶 初稿</dd>
+</dl>
+<hr><br>
+<div id="table-of-contents"><h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#orgheadline9">DKMS简介</a>
+<ul>
+<li><a href="#orgheadline1">DKMS on Ubuntu</a>
+<ul>
+<li><a href="#orgheadline2">编写dkms.conf</a></li>
+<li><a href="#orgheadline3">添加模块</a></li>
+<li><a href="#orgheadline4">删除模块</a></li>
+<li><a href="#orgheadline5">制作deb包</a></li>
+<li><a href="#orgheadline6">路径</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline8">DKMS on RHEL</a>
+<ul>
+<li><a href="#orgheadline7">安装dkms环境</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#orgheadline10">参考资料</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline9" class="outline-2">
+<h2 id="orgheadline9">DKMS简介</h2>
+<div class="outline-text-2" id="text-orgheadline9">
+</div><div id="outline-container-orgheadline1" class="outline-3">
+<h3 id="orgheadline1">DKMS on Ubuntu</h3>
+<div class="outline-text-3" id="text-orgheadline1">
+<!--abstract-begin-->
+
+<p>
+DKMS全称是Dynamic Kernel Module Support，它可以帮我们维护内核外的驱动程序，在内核版本变动之后可以自动重新生成新的模块。在使用dkms之前首先需要确保系统中已经安装了DKMS，在Ubuntu下可以执行下面这个命令安装。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">sudo apt-get install dkms
+</pre>
+</div>
+
+<!--abstract-end-->
+
+<p>
+DKMS要求我们的代码目录必须以<code>&lt;module&gt;-&lt;version&gt;</code>的格式命名，主要命令如下所示。
+</p>
+<dl class="org-dl">
+<dt>status</dt><dd>查看管理状态</dd>
+<dt>add</dt><dd>添加模块</dd>
+<dt>build</dt><dd>编译模块</dd>
+<dt>install</dt><dd>安装模块</dd>
+<dt>uninstall</dt><dd>卸载模块</dd>
+<dt>remove</dt><dd>删除模块</dd>
+</dl>
+</div>
+
+<div id="outline-container-orgheadline2" class="outline-4">
+<h4 id="orgheadline2">编写dkms.conf</h4>
+<div class="outline-text-4" id="text-orgheadline2">
+<p>
+要使用DKMS管理模块，需要在源代码下面包含dkms.conf文件，在源代码根目录下面创建并配置dkms.conf，以hello-0.1为例。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #048;">PACKAGE_NAME</span>=<span style="color: #800;">"hello"</span>
+<span style="color: #048;">PACKAGE_VERSION</span>=<span style="color: #800;">"0.1"</span>
+<span style="color: #048;">AUTOINSTALL</span>=<span style="color: #800;">"yes"</span>
+
+<span style="color: #048;">CLEAN</span>=<span style="color: #800;">"make clean"</span>
+
+<span style="color: #048;">BUILT_MODULE_NAME</span>[0]=<span style="color: #800;">"hello"</span>
+<span style="color: #048;">DEST_MODULE_LOCATION</span>[0]=<span style="color: #800;">"/updates"</span>
+<span style="color: #048;">MAKE</span>[0]=<span style="color: #800;">"make all KVERSION=$kernelver"</span>
+</pre>
+</div>
+
+<dl class="org-dl">
+<dt>PACKGE_NAME</dt><dd>用于指示整个包的模块，必须要设定。必须要有编译的模块和这个参数同名，否则将提示找不到二进制包，所以可以指定为编译的任何一个模块名。</dd>
+<dt>AUTOINSTALL</dt><dd>当更改kernel的时候会自动更新模块</dd>
+<dt>BUILT_MODULE_NAME[0]</dt><dd>当有多个模块时，可以按序号设定每个模块的参数，注意模块名后面不需要加后缀。</dd>
+</dl>
+</div>
+</div>
+
+<div id="outline-container-orgheadline3" class="outline-4">
+<h4 id="orgheadline3">添加模块</h4>
+<div class="outline-text-4" id="text-orgheadline3">
+<p>
+首先将代码命名为<code>module-version</code>格式并复制到<code>/usr/src/</code>下面，执行如下命令添加源代码到dkms。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">sudo dkms add hello/0.1
+</pre>
+</div>
+
+<p>
+接下来可以执行如下命令编译和安装。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">sudo dkms build hello/0.1
+sudo dkms install hello/0.1
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline4" class="outline-4">
+<h4 id="orgheadline4">删除模块</h4>
+<div class="outline-text-4" id="text-orgheadline4">
+<p>
+如果不需要使用模块，可以用如下命令删除。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">sudo dkms remove hello/0.1 --all
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline5" class="outline-4">
+<h4 id="orgheadline5">制作deb包</h4>
+<div class="outline-text-4" id="text-orgheadline5">
+<p>
+使用DKMS更为常见的用法是制作deb包，用户可以直接从deb包安装，制作deb包需要安装如下工具。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">sudo apt-get install dh-make libdigest-md5-file-perl
+</pre>
+</div>
+
+<p>
+制作deb包的命令如下。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">sudo dkms mkdeb hello/0.1
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline6" class="outline-4">
+<h4 id="orgheadline6">路径</h4>
+<div class="outline-text-4" id="text-orgheadline6">
+<p>
+假定我们的源码目录为sample-1.4.1。
+</p>
+<dl class="org-dl">
+<dt>源代码目录</dt><dd>sample-1.4.1</dd>
+<dt>备份源代码目录</dt><dd>/usr/src/sample-1.4.1</dd>
+<dt>源码包路径</dt><dd>/var/lib/dkms/sample/1.4.1/tarball/sample-1.4.1.dkms.tar.gz</dd>
+<dt>安装包路径</dt><dd>/var/lib/dkms/sample/1.4.1/deb&#x2026;</dd>
+</dl>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline8" class="outline-3">
+<h3 id="orgheadline8">DKMS on RHEL</h3>
+<div class="outline-text-3" id="text-orgheadline8">
+</div><div id="outline-container-orgheadline7" class="outline-4">
+<h4 id="orgheadline7">安装dkms环境</h4>
+<div class="outline-text-4" id="text-orgheadline7">
+<ol class="org-ol">
+<li>下载并安装dkms：<a href="http://rpmfind.net/linux/rpm2html/search.php?query=dkms">RPM resource dkms</a></li>
+<li><p>
+如果要用rpmbuild需要安装rpm-build
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">yum install rpm-build
+</pre>
+</div></li>
+</ol>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline10" class="outline-2">
+<h2 id="orgheadline10">参考资料</h2>
+<div class="outline-text-2" id="text-orgheadline10">
+<ul class="org-ul">
+<li><a href="http://linux.dell.com/dkms/manpage.html">DKMS manpage</a>
+<ul class="org-ul">
+<li>也可以在Linux下执行<code>man dkms</code>查看</li>
+</ul></li>
+<li><a href="https://wiki.kubuntu.org/Kernel/Dev/DKMSPackaging">DKMS packaging</a></li>
+<li><a href="http://wiki.centos.org/HowTos/BuildingKernelModules">CentOS: Build Your Own Kernel Modules</a></li>
+</ul>
+</div>
+</div>

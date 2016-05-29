@@ -1,0 +1,478 @@
+---
+title: 设计模式
+categories: language
+tags: design-pattern
+author: 敬叶
+---
+<dl class="post-meta">
+<dt class="post-meta">2015-07-23</dt><dd>敬叶 初稿</dd>
+</dl>
+<hr><br>
+<div id="table-of-contents"><h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#orgheadline34">设计模式</a>
+<ul>
+<li><a href="#orgheadline6">创建模式</a>
+<ul>
+<li><a href="#orgheadline1">抽象工厂模式 Abstract Factory(Business Pattern)</a></li>
+<li><a href="#orgheadline2">工厂方法 Factory Method</a></li>
+<li><a href="#orgheadline3">原型模式 Prototype</a></li>
+<li><a href="#orgheadline4">单例模式 Singleton</a></li>
+<li><a href="#orgheadline5">建造者模式 Builder</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline14">结构模式</a>
+<ul>
+<li><a href="#orgheadline7">适配器模式 Adapter</a></li>
+<li><a href="#orgheadline8">桥接模式 Bridge</a></li>
+<li><a href="#orgheadline9">装饰模式 Decorator</a></li>
+<li><a href="#orgheadline10">外观模式 Facade</a></li>
+<li><a href="#orgheadline11">组合模式 Composite</a></li>
+<li><a href="#orgheadline12">代理模式 Proxy</a></li>
+<li><a href="#orgheadline13">享元模式 Flyweight</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline26">行为模式</a>
+<ul>
+<li><a href="#orgheadline15">职责链模式 Chain of Responsibility</a></li>
+<li><a href="#orgheadline16">策略模式 Strategy</a></li>
+<li><a href="#orgheadline17">模板方法 Template Method</a></li>
+<li><a href="#orgheadline18">观察者模式 Observer</a></li>
+<li><a href="#orgheadline19">状态模式 State</a></li>
+<li><a href="#orgheadline20">备忘录模式 Memento</a></li>
+<li><a href="#orgheadline21">迭代器模式 Iterator</a></li>
+<li><a href="#orgheadline22">命令模式 Command</a></li>
+<li><a href="#orgheadline23">中介者模式 Mediator</a></li>
+<li><a href="#orgheadline24">解释器模式 Interpretor</a></li>
+<li><a href="#orgheadline25">访问者模式 Vistor</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline33">设计原则</a>
+<ul>
+<li><a href="#orgheadline27">单一职责 Single Responsibility Principle</a></li>
+<li><a href="#orgheadline28">里氏替换原则 Liskov Substitution Principle</a></li>
+<li><a href="#orgheadline29">接口隔离原则 Interface-Segregation Principles</a></li>
+<li><a href="#orgheadline30">开放封闭 Open Closed Principle</a></li>
+<li><a href="#orgheadline31">依赖倒转 Dependency Inversion Principle</a></li>
+<li><a href="#orgheadline32">迪米特法则 Law of emeter</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#orgheadline36">UML类图</a>
+<ul>
+<li><a href="#orgheadline35">基本关系</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline37">参考资料</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline34" class="outline-2">
+<h2 id="orgheadline34">设计模式</h2>
+<div class="outline-text-2" id="text-orgheadline34">
+</div><div id="outline-container-orgheadline6" class="outline-3">
+<h3 id="orgheadline6">创建模式</h3>
+<div class="outline-text-3" id="text-orgheadline6">
+</div><div id="outline-container-orgheadline1" class="outline-4">
+<h4 id="orgheadline1">抽象工厂模式 Abstract Factory(Business Pattern)</h4>
+<div class="outline-text-4" id="text-orgheadline1">
+<!--abstract-begin-->
+<p>
+将可以基本元件定义为一组可以复用的类，要产生不同的元件，就可以用一个工厂函数来产生这些元件。这个函数就叫做工厂，这样的行为就叫做工厂模式。这样做的好处是元件可以随意替换，而不用对整体进行修改。
+</p>
+
+<p>
+抽象工厂提供创建一系列相关对象的接口。所谓抽象就是把一类对象抽象为一组，用一个工厂就能产生这一组中的对象。
+</p>
+<!--abstract-end-->
+</div>
+</div>
+
+<div id="outline-container-orgheadline2" class="outline-4">
+<h4 id="orgheadline2">工厂方法 Factory Method</h4>
+<div class="outline-text-4" id="text-orgheadline2">
+<p>
+工厂模式用一个工厂来产生基本对象，产生的过程其实是需要判断的，也就是根据请求来产生需要的对象。为了能够减少工厂的分支判断，将判断的任务交给子类来做，不同的子类产生不同的对象，就像有了不同的工厂一样。
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">factory</span> <span style="color: #048;">fa</span> = <span style="color: #800;">new</span> <span style="color: #800;">factory_a</span>();
+<span style="color: #800;">toy</span> <span style="color: #048;">a</span> = fa.create_toy();
+
+<span style="color: #800;">factory</span> <span style="color: #048;">fb</span> = <span style="color: #800;">new</span> <span style="color: #800;">factory_b</span>();
+<span style="color: #800;">toy</span> <span style="color: #048;">b</span> = fb.create_toy();
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline3" class="outline-4">
+<h4 id="orgheadline3">原型模式 Prototype</h4>
+<div class="outline-text-4" id="text-orgheadline3">
+<p>
+用原型指定创建对象的一个种类，通过复制原型创建新对象。这样可以避免从头创建对象。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline4" class="outline-4">
+<h4 id="orgheadline4">单例模式 Singleton</h4>
+<div class="outline-text-4" id="text-orgheadline4">
+<p>
+保证一个类仅有一个实例，并提供一个访问它的全局访问点。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline5" class="outline-4">
+<h4 id="orgheadline5">建造者模式 Builder</h4>
+<div class="outline-text-4" id="text-orgheadline5">
+<p>
+建造者模式针对过程是固定的，但是外观不同，需要什么样的外观，只需要调整参数，而不需要修改建造流程，也叫生成器模式。
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline14" class="outline-3">
+<h3 id="orgheadline14">结构模式</h3>
+<div class="outline-text-3" id="text-orgheadline14">
+</div><div id="outline-container-orgheadline7" class="outline-4">
+<h4 id="orgheadline7">适配器模式 Adapter</h4>
+<div class="outline-text-4" id="text-orgheadline7">
+<p>
+将一个类的接口转换为用户希望的另一类接口。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline8" class="outline-4">
+<h4 id="orgheadline8">桥接模式 Bridge</h4>
+<div class="outline-text-4" id="text-orgheadline8">
+<p>
+将抽象部分和实现部分分离，使得它们可以独立的变化。尽量使用合成/聚合，而不要使用继承。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline9" class="outline-4">
+<h4 id="orgheadline9">装饰模式 Decorator</h4>
+<div class="outline-text-4" id="text-orgheadline9">
+<p>
+装饰模式是动态的给对象添加额外职责，这种情况是处理在特定情况下要用的功能。也就是需要什么就添加什么，而把要添加的东西作为一个类，叫装饰类。利用装饰类可以避免让一个类变得臃肿，核心功能有基准类提供，装饰功能由装饰类提供。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline10" class="outline-4">
+<h4 id="orgheadline10">外观模式 Facade</h4>
+<div class="outline-text-4" id="text-orgheadline10">
+<p>
+为子系统的一组接口提供一个一致的界面。和依赖倒转很相似。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline11" class="outline-4">
+<h4 id="orgheadline11">组合模式 Composite</h4>
+<div class="outline-text-4" id="text-orgheadline11">
+<p>
+将对象组合成树形结构以表示部分-整体的层次。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline12" class="outline-4">
+<h4 id="orgheadline12">代理模式 Proxy</h4>
+<div class="outline-text-4" id="text-orgheadline12">
+<p>
+为其它对象提供一种代理，以控制对某个对象的访问。如远程代理，虚拟代理，安全代理。远程代理就是服务器/客户端模型。虚拟代理即用虚拟信息代替真实数据，如访问大HTML文件，文字可以很快看到，而图片则需要缓慢下载，在下载之前只能看到虚拟代理提供的路径。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline13" class="outline-4">
+<h4 id="orgheadline13">享元模式 Flyweight</h4>
+<div class="outline-text-4" id="text-orgheadline13">
+<p>
+利用共享技术支持大量细粒度的对象。
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline26" class="outline-3">
+<h3 id="orgheadline26">行为模式</h3>
+<div class="outline-text-3" id="text-orgheadline26">
+</div><div id="outline-container-orgheadline15" class="outline-4">
+<h4 id="orgheadline15">职责链模式 Chain of Responsibility</h4>
+<div class="outline-text-4" id="text-orgheadline15">
+<p>
+使多个对象都有机会处理请求，避免请求发送者和接收者的耦合关系，将对象连成一条链，沿着链传递请求，直到有一个对象处理它。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline16" class="outline-4">
+<h4 id="orgheadline16">策略模式 Strategy</h4>
+<div class="outline-text-4" id="text-orgheadline16">
+<p>
+所谓策略，其实就是要做什么样的算法，而策略模式，就是将相同的算法归类到一起，形成一个策略类。如果有多种策略，那么很自然的需要什么样的策略就使用什么样的策略类。
+</p>
+
+<p>
+策略类可以视作是简单工厂模式的扩展，简单工厂模式只生产最简单的复用对象，而策略模式就是比简单的复用对象稍复杂一点。事实上简单工厂模式也可以借助策略类来产生对象，只不过在必要的时候（如策略参数较多时）需要设定策略的部分参数。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline17" class="outline-4">
+<h4 id="orgheadline17">模板方法 Template Method</h4>
+<div class="outline-text-4" id="text-orgheadline17">
+<p>
+重复代码是容易出错而且难以修改的典型，模板方法的精髓就是去除重复。对于类的设计就是将相同的部分移到基类。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline18" class="outline-4">
+<h4 id="orgheadline18">观察者模式 Observer</h4>
+<div class="outline-text-4" id="text-orgheadline18">
+<p>
+让多个观察者对象监听某一个主题对象，当主题对象状态更变的时候，通知所有观察者对象，使得它们可以及时更新自己的状态。
+</p>
+
+<p>
+将系统分割成一系列相互协作的类会增加维护一致性的代价，观察者模式通过一个对象的更变，通知所有对象来解除过度耦合。这使得耦合双方依赖于抽象，而不是具体。
+</p>
+
+<p>
+光有通知还不够，要根据各自的情况和被观察者的状态作出正确的反应还需要对应的操作，称之为委托，所谓委托其实就是一个handler，当然需要保证所有对象具有相同的委托原型。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline19" class="outline-4">
+<h4 id="orgheadline19">状态模式 State</h4>
+<div class="outline-text-4" id="text-orgheadline19">
+<p>
+状态模式用于控制一个对象状态转换的条件表达式过于复杂的情况，将条件判别转移到不同状态下的类中，简化判断逻辑。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline20" class="outline-4">
+<h4 id="orgheadline20">备忘录模式 Memento</h4>
+<div class="outline-text-4" id="text-orgheadline20">
+<p>
+获取一个对象的状态，在这个对象之外保存状态，以后就可以恢复。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline21" class="outline-4">
+<h4 id="orgheadline21">迭代器模式 Iterator</h4>
+<div class="outline-text-4" id="text-orgheadline21">
+<p>
+提供一种方法顺序访问一个聚合对象的各个元素，又不暴露对象的内部表示。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline22" class="outline-4">
+<h4 id="orgheadline22">命令模式 Command</h4>
+<div class="outline-text-4" id="text-orgheadline22">
+<p>
+将一个请求封装为一个对象，从而可以用不同的请求对客户参数化，对请求排队或记录请求日志，以支持可撤销的操作。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline23" class="outline-4">
+<h4 id="orgheadline23">中介者模式 Mediator</h4>
+<div class="outline-text-4" id="text-orgheadline23">
+<p>
+用一个中介对象来封装一系列对象的交互。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline24" class="outline-4">
+<h4 id="orgheadline24">解释器模式 Interpretor</h4>
+<div class="outline-text-4" id="text-orgheadline24">
+<p>
+给定一个语言，定义它文法的一个表示，并定义一个解释器，解释器使用该表示来解释语言中的句子。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline25" class="outline-4">
+<h4 id="orgheadline25">访问者模式 Vistor</h4>
+<div class="outline-text-4" id="text-orgheadline25">
+<p>
+表示一个作用于某对象结构中各元素的操作，可以可以在不改变各元素的类的前提下定义作用这些元素的新操作。
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline33" class="outline-3">
+<h3 id="orgheadline33">设计原则</h3>
+<div class="outline-text-3" id="text-orgheadline33">
+</div><div id="outline-container-orgheadline27" class="outline-4">
+<h4 id="orgheadline27">单一职责 Single Responsibility Principle</h4>
+<div class="outline-text-4" id="text-orgheadline27">
+<p>
+比方在写游戏时，界面和游戏算法应该分开，界面的职责用于显示图像，算法的职责处理输入。不论是单一职责，还是工厂模式，都是要设计基准对象，其目的就是减小耦合。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline28" class="outline-4">
+<h4 id="orgheadline28">里氏替换原则 Liskov Substitution Principle</h4>
+<div class="outline-text-4" id="text-orgheadline28">
+<p>
+简单的将就是基类可以出现的地方，子类就可以出现。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline29" class="outline-4">
+<h4 id="orgheadline29">接口隔离原则 Interface-Segregation Principles</h4>
+<div class="outline-text-4" id="text-orgheadline29">
+<p>
+使用多个专门的接口，而不是一个单一总接口，让客户可以不去依赖它不需要的接口。简单的说就是将一个大的接口细分为小的接口。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline30" class="outline-4">
+<h4 id="orgheadline30">开放封闭 Open Closed Principle</h4>
+<div class="outline-text-4" id="text-orgheadline30">
+<p>
+从软件开发角度来看，要容易维护并且减少问题的方法就是多扩展少修改。对于同一个算法，基准情况走通用路径，特殊情况单独写一个算法来处理，这样就不会因为要处理特殊情况而影响通用情况。所以设计的时候就要仔细考虑基准情况，让基准作为一个单独的类，即便需要修改，也不必去修改基准类，而是去添加新的类。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline31" class="outline-4">
+<h4 id="orgheadline31">依赖倒转 Dependency Inversion Principle</h4>
+<div class="outline-text-4" id="text-orgheadline31">
+<p>
+道理很简单，根据接口编程，不要根据实现编程。高层不应该依赖低层，而应该依赖接口，抽象不应该依赖细节，细节应该依赖抽象。
+</p>
+
+<p>
+例如访问数据库的函数作为库函数，高层去直接调用这些函数就会出问题，当做新业务时，如果高层都是一样的，就是换了数据库或别的信息存储方式，就没法去复用高层模块了。所以在高层和低层之间需要加一个接口层，高层调用接口层。
+</p>
+
+<p>
+这种根据接口来编程的方式是非常普遍的做法，低层抽象出一套接口给高层使用，高层调用一套固定的接口，这样低层换了的时候，只要还能提供一套相同的接口就能使用同样的高层。如Linux的VFS，不论是插入的是什么样的文件系统，用户都是采用相同的方式来处理文件，而中间层的工作就是由VFS来提供。依赖倒转是面向对象的经典原则，C语言虽然不是面向对象语言，VFS却用C实现了面向对象的一个经典案例。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline32" class="outline-4">
+<h4 id="orgheadline32">迪米特法则 Law of emeter</h4>
+<div class="outline-text-4" id="text-orgheadline32">
+<p>
+如果两个类不彼此直接通信，那么就不要直接相互作用，如果一个类需要调用另一个类的某个方法的话，可以通过第三者转发。和依赖倒转很相似。
+</p>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline36" class="outline-2">
+<h2 id="orgheadline36">UML类图</h2>
+<div class="outline-text-2" id="text-orgheadline36">
+</div><div id="outline-container-orgheadline35" class="outline-3">
+<h3 id="orgheadline35">基本关系</h3>
+<div class="outline-text-3" id="text-orgheadline35">
+<p>
+泛化关系（继承关系和实现关系）：表示is a关系，即继承或实现。具体的说包括类与类的继承，接口与接口的继承，类对接口的实现（也叫实现关系）。用空心箭头表示，箭头指向被继承类。如果是继承用实线，如果是实现则要用虚线。
+</p>
+<div class="org-center">
+
+<div class="figure">
+<p><img src="/resource/language/fig/design-pattern/uml-generalization.png" alt="uml-generalization.png" />
+</p>
+</div>
+</div>
+
+<p>
+依赖关系：表示use a关系，一个类使用另一个类，这种关系具有偶然性，临时性，是非常弱的一种关系。如A是B的局部变量或成员函数的参数。用大于箭头表示，箭头指向被使用类。并且注意是用虚线连接。
+</p>
+<div class="org-center">
+
+<div class="figure">
+<p><img src="/resource/language/fig/design-pattern/uml-dependency.jpg" alt="uml-dependency.jpg" />
+</p>
+</div>
+</div>
+
+<p>
+关联关系：是reference a关系，这是一种双方平等、稳定的长期的关系。可以是单向也可以是双向引用。用大于箭头表示，箭头指向被引用类，实线连接。
+</p>
+<div class="org-center">
+
+<div class="figure">
+<p><img src="/resource/language/fig/design-pattern/uml-association.jpg" alt="uml-association.jpg" />
+</p>
+</div>
+</div>
+
+<p>
+聚合关系：是has a关系，是整体和部分的关系。但是这个整体和部分是可以分离的。聚合比关联关系更强，所以在箭头发出端多了一个空菱形。
+</p>
+<div class="org-center">
+
+<div class="figure">
+<p><img src="/resource/language/fig/design-pattern/uml-aggregation.jpg" alt="uml-aggregation.jpg" />
+</p>
+</div>
+</div>
+
+<p>
+组合关系：是contains a关系，整体和部分是不可分离的。组合关系比聚合关系更强，所以将空菱形变为实心菱形。
+</p>
+<div class="org-center">
+
+<div class="figure">
+<p><img src="/resource/language/fig/design-pattern/uml-composition.jpg" alt="uml-composition.jpg" />
+</p>
+</div>
+</div>
+
+<p>
+多重关系：通常在关联、聚合、组合中使用，代表有多少个关联对象存在。使用数字..星号（数字）表示。
+</p>
+
+<p>
+下图表达一个比较复杂的UML示例：
+</p>
+<div class="org-center">
+
+<div class="figure">
+<p><img src="/resource/language/fig/design-pattern/uml-example.jpg" alt="uml-example.jpg" />
+</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline37" class="outline-2">
+<h2 id="orgheadline37">参考资料</h2>
+<div class="outline-text-2" id="text-orgheadline37">
+<ul class="org-ul">
+<li><a href="http://coolshell.cn/articles/8961.html">从面向对象的设计模式看软件设计</a></li>
+<li><a href="http://blog.csdn.net/lovelion/article/details/7536532">面向对象设计原则概述</a></li>
+<li><a href="http://blog.csdn.net/lovelion/article/category/738450">设计模式文章列表（刘伟）</a></li>
+</ul>
+</div>
+</div>

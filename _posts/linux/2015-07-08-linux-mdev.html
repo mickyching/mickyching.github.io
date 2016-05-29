@@ -1,0 +1,839 @@
+---
+title: Linux Mdev
+categories: linux
+tags: linux uevent mdev
+author: 敬叶
+---
+<dl class="post-meta">
+<dt class="post-meta">2015-07-08</dt><dd>敬叶 初稿</dd>
+</dl>
+<hr><br>
+<div id="table-of-contents"><h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#orgheadline10">基本概念</a>
+<ul>
+<li><a href="#orgheadline1">简介</a></li>
+<li><a href="#orgheadline2">编译配置</a></li>
+<li><a href="#orgheadline3">初始化脚本</a></li>
+<li><a href="#orgheadline4">配置文件</a>
+<ul>
+<li><a href="#orgheadline5">路径控制命令</a></li>
+<li><a href="#orgheadline6">外部命令</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline7">固件</a></li>
+<li><a href="#orgheadline8">顺序插拔</a></li>
+<li><a href="#orgheadline9">热插拔配置</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline11">源代码分析</a>
+<ul>
+<li><a href="#orgheadline14">消息打印</a>
+<ul>
+<li><a href="#orgheadline12">分级打印</a></li>
+<li><a href="#orgheadline13">消息打印函数</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline15">数据结构</a></li>
+<li><a href="#orgheadline16">基本操作</a></li>
+<li><a href="#orgheadline19">复杂操作</a>
+<ul>
+<li><a href="#orgheadline17">recursive_action</a></li>
+<li><a href="#orgheadline18">make_device</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline20">主函数</a>
+<ul>
+<li><a href="#orgheadline21">分配/初始化变量</a></li>
+<li><a href="#orgheadline22">扫描sysfs</a></li>
+<li><a href="#orgheadline23">处理热插拔事件</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#orgheadline24">参考资料</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline10" class="outline-2">
+<h2 id="orgheadline10">基本概念</h2>
+<div class="outline-text-2" id="text-orgheadline10">
+</div><div id="outline-container-orgheadline1" class="outline-3">
+<h3 id="orgheadline1">简介</h3>
+<div class="outline-text-3" id="text-orgheadline1">
+<!--abstract-begin-->
+
+<p>
+mdev官方的叫法是mini udev in busybox，mdev实际只是busybox的一个符号链接。执行mdev -s时会扫描/sys/class和/sys/block中的所有目录，如果目录中有名为dev的文件，就从中读取设备号，并利用设备号在/dev下面创建节点。
+</p>
+
+<p>
+启动时需要设置热插拔处理程序为mdev，当有热插拔事件产生时，内核调用mdev。
+mdev通过环境变量ACTION和DEVPATH确定热插拔事件和影响目录，接着查看目录下是否有dev文件，并利用其信息创建/dev节点。如果ACTION为add，就会创建设备节点，如果为remove则删除设备节点。
+</p>
+<!--abstract-end-->
+
+<p>
+mdev通过判断路径字符串第6个字符串是否为c来判断是字符设备还是块设备，如path = "<i>sys/class</i>&#x2026;"第6个字符为c，就被判断为字符设备，
+path = "<i>sys/devices</i>&#x2026;"会被判断为块设备。所以写驱动只应当在/sys/class和/sys/block中创建设备属性文件。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline2" class="outline-3">
+<h3 id="orgheadline2">编译配置</h3>
+<div class="outline-text-3" id="text-orgheadline2">
+<p>
+在busybox配置中加上mdev支持，此外如果要使用自动挂载功能，需要利用额外的脚本，也就是可能还需要其他常用工具，如grep、mount、sh等。
+</p>
+
+<p>
+另外在内核配置上面也要添加文件系统支持，包括语言支持，既然要用到mdev也需要热插拔支持。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline3" class="outline-3">
+<h3 id="orgheadline3">初始化脚本</h3>
+<div class="outline-text-3" id="text-orgheadline3">
+<p>
+mdev有两个用途，一个是初始化扫描，一个是动态更新。
+mdev关键需要sysfs的支持，也就是必须要有/sys目录。在扫描的时候mdev会扫描/sys/class/&#x2026;/dev文件，dev文件是包含设备号的文件，其所在的目录一般就对应为相关设备的属性目录。至于动态更新，需要在内核支持热插拔，当发现有插拔事件的时候，内核会发出通知，并调用hotplug程序，一般PC上是udev，嵌入式平台是mdev，通过写入如下文件来指定热插拔程序为mdev。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #800;">echo</span> /bin/mdev &gt; /proc/sys/kernel/hotplug
+</pre>
+</div>
+<p>
+内核在调用热插拔处理程序的时候会传递一系列环境变量，在写mdev的配置文件时，也可以利用这里环境变量。
+</p>
+
+<p>
+在嵌入式平台，要支持mdev，首先要做的是配置系统启动设置，包括挂载必要的文件系统，以及设置hotplug程序。如下是一段典型的初始化脚本。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">mount -t proc proc /proc                <span style="color: #666;"># </span><span style="color: #666;">&#29992;&#20110;&#35774;&#23450;hotplug&#30340;&#25991;&#20214;&#31995;&#32479;</span>
+mount -t sysfs sysfs /sys               <span style="color: #666;"># </span><span style="color: #666;">&#29992;&#20110;mdev&#25195;&#25551;&#30340;&#25991;&#20214;&#31995;&#32479;</span>
+mount -t tmpfs -o <span style="color: #048;">size</span>=64k,<span style="color: #048;">mode</span>=0755 tmpfs /media <span style="color: #666;"># </span><span style="color: #666;">&#29992;&#20110;&#25346;&#36733;&#30913;&#30424;&#35774;&#22791;</span>
+mount -t tmpfs -o <span style="color: #048;">size</span>=64k,<span style="color: #048;">mode</span>=0755 tmpfs /dev   <span style="color: #666;"># </span><span style="color: #666;">&#29992;&#20110;&#21019;&#24314;&#35774;&#22791;&#33410;&#28857;</span>
+<span style="color: #800;">echo</span> /bin/mdev &gt; /proc/sys/kernel/hotplug         <span style="color: #666;"># </span><span style="color: #666;">&#35774;&#23450;hotplug&#31243;&#24207;</span>
+mdev -s                                           <span style="color: #666;"># </span><span style="color: #666;">&#21551;&#21160;&#25195;&#25551;</span>
+</pre>
+</div>
+
+<p>
+如果文件系统在flash外运行，还需要先创建/dev/pts节点，再执行mdev的初始化脚本。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">mkdir /dev/pts
+mount -t devpts devpts /dev/pts
+</pre>
+</div>
+
+<p>
+也可以不通过procfs来设置hotplug程序，通过如下命令实现。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">sysctl -w kernel.hotplug=/sbin/mdev
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline4" class="outline-3">
+<h3 id="orgheadline4">配置文件</h3>
+<div class="outline-text-3" id="text-orgheadline4">
+<p>
+配置文件位于/etc/mdev.conf，语法分为四个部分。第1部分是匹配规则，也就是匹配到对应的设备，第2部分是用户ID和组ID，第3部分是权限，最后一部分是命令。
+</p>
+
+<p>
+文件格式如下：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">[-][envmatch]&lt;device_regex&gt;        &lt;uid&gt;:&lt;gid&gt; &lt;permissions&gt; [cmd]
+[-][envmatch]@&lt;maj[,min1[-min2]]&gt;  &lt;uid&gt;:&lt;gid&gt; &lt;permissions&gt; [cmd]
+[-][envmatch]$<span style="color: #048;">envvar</span>=&lt;regex&gt;       &lt;uid&gt;:&lt;gid&gt; &lt;permissions&gt; [cmd]
+[-][envmatch]subsystem/regex       &lt;uid&gt;:&lt;gid&gt; &lt;permissions&gt; [cmd]
+</pre>
+</div>
+<dl class="org-dl">
+<dt>-</dt><dd>不要在匹配到该行就停止搜索</dd>
+<dt>uid/gid</dt><dd>可以是数字也可以是名字</dd>
+</dl>
+
+<p>
+其中"$envvar=&lt;regex&gt;"在热插拔设备需要模块载入时非常有用，因为此时没有驱动，也就不会存在/sys/class/&#x2026;/dev文件，但是$MODALIAS会设置，表示需要的模块。可以使用如下规则，在需要模块的时候自动导入模块。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">$<span style="color: #048;">MODALIAS</span>=.* 0:0 660 @modprobe <span style="color: #800;">"$MODALIAS"</span>
+</pre>
+</div>
+<p>
+当/sys/class/&#x2026;/dev出现的时候又会产生另一个热插拔事件给mdev处理。
+</p>
+
+<p>
+命令分两种，一种是控制设备节点生成路径，一种是执行外部shell命令，两者可以同时使用。
+</p>
+</div>
+
+<div id="outline-container-orgheadline5" class="outline-4">
+<h4 id="orgheadline5">路径控制命令</h4>
+<div class="outline-text-4" id="text-orgheadline5">
+<p>
+路径控制的命令格式为
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">[=&gt;!]path
+</pre>
+</div>
+<dl class="org-dl">
+<dt>=</dt><dd>仅仅移动路径，如果要移动到一个目录下面，在path后面一定要有一个斜杠"/"。</dd>
+<dt>&gt;</dt><dd>移动路径，并在dev下面创建一个符号链接</dd>
+<dt>!</dt><dd>禁止创建设备节点</dd>
+<dt>%1..%9</dt><dd>如果用了正则表达式，那么用该符号引用匹配到的表达式，一个小括号作为一组，依次用%1..%9表示。</dd>
+</dl>
+
+<p>
+简单示例如下。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">hda 0:0 660 =drives/                    <span style="color: #666;"># </span><span style="color: #666;">&#23558;hda&#31227;&#21160;&#21040;drives&#30446;&#24405;</span>
+hdb 0:0 660 =cdrom                      <span style="color: #666;"># </span><span style="color: #666;">&#23558;hdb&#21629;&#21517;&#20026;cdrom</span>
+tty[a-z] 0:0 660 !                      <span style="color: #666;"># </span><span style="color: #666;">&#21033;&#29992;!&#38459;&#27490;&#21019;&#24314;&#35774;&#22791;&#33410;&#28857;</span>
+([hs]d[a-z])            root:disk       660 &gt;disk/%1/0
+([hs]d[a-z])([0-9]+)    root:disk       660 &gt;disk/%1/%2
+<span style="color: #048; font-weight: bold;">mmcblk</span>([0-9]+)          root:disk       660 &gt;disk/mmc/%1/0
+<span style="color: #048; font-weight: bold;">mmcblk</span>([0-9]+)p([0-9]+) root:disk       660 &gt;disk/mmc/%1/%2
+(tun|tap)               root:network    660 &gt;net/%1
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline6" class="outline-4">
+<h4 id="orgheadline6">外部命令</h4>
+<div class="outline-text-4" id="text-orgheadline6">
+<p>
+要执行外部命令，需要在特殊符号后面加上要执行的命令，特殊符号用于指示执行的时间。命令是通过system系统调用执行的，因此要确保有安装sh。命令会获取到两个环境变量，$SUBSYSTEM和$MDEV，$SUBSYSTEM表示设备所在的子系统，
+$MDEV为设备名字，如hda。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">[@|$|*]&lt;command&gt;
+</pre>
+</div>
+<dl class="org-dl">
+<dt>@</dt><dd>在创建设备节点之后运行</dd>
+<dt>$</dt><dd>在移除设备节点之前运行</dd>
+<dt>*</dt><dd>在创建设备节点之后，移除设备节点之前运行</dd>
+</dl>
+
+<p>
+hotplug将stdout、stderr和stdin连接到/dev/null，因此在执行mdev的时候是看不到输出的。
+</p>
+
+<p>
+配置举例：
+</p>
+<p class="verse">
+- <a href="/resource/linux/src/mdev/eg0-mdev.conf">eg0-mdev.conf</a> <a href="https://github.com/slashbeast/mdev-like-a-boss">@github</a><br  />
+- <a href="/resource/linux/src/mdev/eg1-mdev.conf">eg1-mdev.conf</a> <a href="http://www.snafu.priv.at/interests/debian/mdev.html">@snafu</a><br  />
+- <a href="http://cross-lfs.org/view/clfs-embedded/arm/bootscripts/mdev.html">clfs mdev.conf</a><br  />
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline7" class="outline-3">
+<h3 id="orgheadline7">固件</h3>
+<div class="outline-text-3" id="text-orgheadline7">
+<p>
+所有的firmware需要放到/lib/firmware，运行的时候，内核调用mdev，并传递文件名，文件名是在源代码中直接指定的。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline8" class="outline-3">
+<h3 id="orgheadline8">顺序插拔</h3>
+<div class="outline-text-3" id="text-orgheadline8">
+<p>
+内核并不会将热插拔事件顺序化，仅仅增加SEQNUM环境变量的值，
+mdev可能会按照不同的顺序处理热插拔事件。
+</p>
+
+<p>
+如果发现了/dev/mdev.seq那么就会和SEQNUM比较，有两秒钟的比较时间，如果不相同，会按照通常方式运行，并写入SEQNUM + 1。想要激活这个特性非常简单，执行如下命令。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #800;">echo</span> &gt; /dev/mdev.seq
+</pre>
+</div>
+<p>
+就会会插入一个换行符，但是mdev足够聪明，它不会在这种情况下去等待两秒钟。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline9" class="outline-3">
+<h3 id="orgheadline9">热插拔配置</h3>
+<div class="outline-text-3" id="text-orgheadline9">
+<p>
+插拔自动挂载需要先写一个脚本，假定脚本为<a href="/resource/linux/src/mdev/automounter.sh">/lib/mdev/automounter.sh</a>，并且要确保文件有可执行权限，内容如下。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #666;">#</span><span style="color: #666;">!/bin/</span><span style="color: #800;">sh</span>
+
+<span style="color: #048;">destdir</span>=/media
+
+<span style="color: #048; font-weight: bold;">do_umount</span>()
+{
+        <span style="color: #800;">if</span> grep -qs <span style="color: #800;">"^/dev/$1 "</span> /proc/mounts ; <span style="color: #800;">then</span>
+                umount <span style="color: #800;">"${destdir}/$1"</span>;
+        <span style="color: #800;">fi</span>
+
+        [ -d <span style="color: #800;">"${destdir}/$1"</span> ] &amp;&amp; rmdir <span style="color: #800;">"${destdir}/$1"</span>
+}
+
+<span style="color: #048; font-weight: bold;">do_mount</span>()
+{
+        mkdir -p <span style="color: #800;">"${destdir}/$1"</span> || <span style="color: #800;">exit</span> 1
+
+        <span style="color: #800;">if</span> <span style="color: #c00;">!</span> mount -t auto <span style="color: #800;">"/dev/$1"</span> <span style="color: #800;">"${destdir}/$1"</span>; <span style="color: #800;">then</span>
+                rmdir <span style="color: #800;">"${destdir}/$1"</span>
+                <span style="color: #800;">exit</span> 1
+        <span style="color: #800;">fi</span>
+}
+
+<span style="color: #800;">case</span> <span style="color: #800;">"${ACTION}"</span><span style="color: #800;"> in</span>
+add|<span style="color: #800;">""</span>)
+        do_umount ${<span style="color: #048;">MDEV</span>}
+        do_mount ${<span style="color: #048;">MDEV</span>}
+        ;;
+remove)
+        do_umount ${<span style="color: #048;">MDEV</span>}
+        ;;
+<span style="color: #800;">esac</span>
+</pre>
+</div>
+
+<p>
+接着根据automounter.sh配置mdev.conf文件。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">sd[a-z]           0:0     660
+mmcblk[0-9]       0:0     660
+sd[a-z][0-9]      0:0     660 */lib/mdev/automounter.sh
+mmcblk[0-9]p[0-9] 0:0     660 */lib/mdev/automounter.sh
+</pre>
+</div>
+
+<p>
+此外还要修改一下/media目录文件系统类型，因为打算用它创建动态挂在点，所以最好将它用tmpfs从Flash移动到RAM中。可以通过上面提到的方法，写入到启动脚本，可以编辑/etc/fstab。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">tmpfs         /media  tmpfs   defaults        0       0
+</pre>
+</div>
+
+<p>
+如果存在/dev/mdev.log文件，调试信息将自动添加到该文件。
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline11" class="outline-2">
+<h2 id="orgheadline11">源代码分析</h2>
+<div class="outline-text-2" id="text-orgheadline11">
+<ul class="org-ul">
+<li>版本：<a href="http://git.busybox.net/busybox/tree/?h=1_22_stable">1.22.0</a>
+<ul class="org-ul">
+<li><a href="http://git.busybox.net/busybox/tree/util-linux/mdev.c?h=1_22_stable">mdev.c</a></li>
+</ul></li>
+</ul>
+</div>
+
+<div id="outline-container-orgheadline14" class="outline-3">
+<h3 id="orgheadline14">消息打印</h3>
+<div class="outline-text-3" id="text-orgheadline14">
+</div><div id="outline-container-orgheadline12" class="outline-4">
+<h4 id="orgheadline12">分级打印</h4>
+<div class="outline-text-4" id="text-orgheadline12">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">#if</span> DEBUG_LVL &gt;= 1
+<span style="color: #800;"># define</span> <span style="color: #048; font-weight: bold;">dbg1</span>(...) <span style="color: #800;">do</span> { <span style="color: #800;">if</span> (G.verbose) bb_error_msg(__VA_ARGS__); } <span style="color: #800;">while</span>(0)
+<span style="color: #800;">#else</span>
+<span style="color: #800;"># define</span> <span style="color: #048; font-weight: bold;">dbg1</span>(...) ((<span style="color: #800;">void</span>)0)
+<span style="color: #800;">#endif</span>
+<span style="color: #800;">#if</span> DEBUG_LVL &gt;= 2
+<span style="color: #800;"># define</span> <span style="color: #048; font-weight: bold;">dbg2</span>(...) <span style="color: #800;">do</span> { <span style="color: #800;">if</span> (G.verbose &gt;= 2) bb_error_msg(__VA_ARGS__); } <span style="color: #800;">while</span>(0)
+<span style="color: #800;">#else</span>
+<span style="color: #800;"># define</span> <span style="color: #048; font-weight: bold;">dbg2</span>(...) ((<span style="color: #800;">void</span>)0)
+<span style="color: #800;">#endif</span>
+<span style="color: #800;">#if</span> DEBUG_LVL &gt;= 3
+<span style="color: #800;"># define</span> <span style="color: #048; font-weight: bold;">dbg3</span>(...) <span style="color: #800;">do</span> { <span style="color: #800;">if</span> (G.verbose &gt;= 3) bb_error_msg(__VA_ARGS__); } <span style="color: #800;">while</span>(0)
+<span style="color: #800;">#else</span>
+<span style="color: #800;"># define</span> <span style="color: #048; font-weight: bold;">dbg3</span>(...) ((<span style="color: #800;">void</span>)0)
+<span style="color: #800;">#endif</span>
+</pre>
+</div>
+<p>
+这段代码无非是定义了不同级别的打印。但是还是有些细节需要说明的。
+</p>
+<dl class="org-dl">
+<dt>&#x2026;</dt><dd>省略号用于传递可变参数，__VA_ARGS__用于解析可变参数。</dd>
+<dt>G</dt><dd>在busybox的代码中，对G的定义随处可见，大多数源代码中都有一个叫G的宏，在mdev.c中定义如下。</dd>
+</dl>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">#define</span> <span style="color: #048;">G</span> (*(<span style="color: #800;">struct</span> <span style="color: #800;">globals</span>*)&amp;bb_common_bufsiz1)
+</pre>
+</div>
+<p>
+很明显，这里的G就是一块全局的内存，只不过把它当作globals来使用。至于globals，和G的思路差不多，就是每个程序将其最重要的数据结构定义为globals，所以globals也是随处可见的。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #666;">// </span><span style="color: #666;">&lt;platform.h&gt;</span>
+<span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">ALIGNED</span>(<span style="color: #048;">m</span>) <span style="color: #800;">__attribute__</span> ((<span style="color: #800;">__aligned__</span>(<span style="color: #048;">m</span>)))
+<span style="color: #666;">// </span><span style="color: #666;">libbb/message.c</span>
+<span style="color: #800;">char</span> <span style="color: #048;">bb_common_bufsiz1</span>[COMMON_BUFSIZE] ALIGNED(<span style="color: #800;">sizeof</span>(<span style="color: #800;">long</span> <span style="color: #800;">long</span>));
+</pre>
+</div>
+<p>
+属性操作符让让bb_common_bufsize1按照long long类型对齐，如果再纠结一下COMMON_BUFSIZE，可以看到它的定义是这样的。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #666;">// </span><span style="color: #666;">&lt;libbb.h&gt;</span>
+<span style="color: #800;">extern</span> <span style="color: #800;">char</span> <span style="color: #048;">bb_common_bufsiz1</span>[COMMON_BUFSIZE];
+<span style="color: #800;">#if</span><span style="color: #800;">n</span><span style="color: #800;">def</span> BUFSIZ
+<span style="color: #800;"># define</span> <span style="color: #048;">BUFSIZ</span> 4096
+<span style="color: #800;">enum</span> {
+    <span style="color: #048;">COMMON_BUFSIZE</span> = (BUFSIZ &gt;= 256 * <span style="color: #800;">sizeof</span>(<span style="color: #800;">void</span>*) ? BUFSIZ + 1 :
+                      256 * <span style="color: #800;">sizeof</span>(<span style="color: #800;">void</span>*))
+};
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline13" class="outline-4">
+<h4 id="orgheadline13">消息打印函数</h4>
+<div class="outline-text-4" id="text-orgheadline13">
+<p>
+最终要打印数据是要落实到bb_error_msg的，多数情况下打印代码都是写成宏的，这里的代码则是用函数来实现。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">FAST_FUNC</span> bb_error_msg(<span style="color: #800;">const</span> <span style="color: #800;">char</span> *<span style="color: #048;">s</span>, ...)
+{
+    <span style="color: #800;">va_list</span> <span style="color: #048;">p</span>;
+
+    va_start(p, s);
+    bb_verror_msg(s, p, <span style="color: #800;">NULL</span>);
+    va_end(p);
+}
+</pre>
+</div>
+<p>
+解析可变参数的典型写法，如果这里看不明白，没有关系，接下来在下面一个函数详细分析。不过这里还有一个细节，FAST_FUNC，其实就是指定一些属性，不妨看看定义。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #666;">/* </span><span style="color: #666;">FAST_FUNC is a qualifier which (possibly) makes function call faster</span>
+<span style="color: #666;"> * and/or smaller by using modified ABI. It is usually only needed</span>
+<span style="color: #666;"> * on non-static, busybox internal functions. Recent versions of gcc</span>
+<span style="color: #666;"> * optimize statics automatically. FAST_FUNC on static is required</span>
+<span style="color: #666;"> * only if you need to match a function pointer's type */</span>
+<span style="color: #800;">#if</span> __GNUC_PREREQ(3,0) &amp;&amp; <span style="color: #800;">defined</span>(i386) <span style="color: #666;">/* </span><span style="color: #666;">|| </span><span style="color: #800;">defined</span><span style="color: #666;">(__x86_64__)? */</span>
+<span style="color: #666;">/* </span><span style="color: #666;">stdcall makes callee to pop arguments from stack, not caller */</span>
+<span style="color: #800;"># define</span> <span style="color: #048;">FAST_FUNC</span> <span style="color: #800;">__attribute__</span>((regparm(3),stdcall))
+<span style="color: #666;">/* </span><span style="color: #666;">#elif ... - add your favorite arch today! */</span>
+<span style="color: #800;">#else</span>
+<span style="color: #800;"># define</span> <span style="color: #048;">FAST_FUNC</span>
+<span style="color: #800;">#endif</span>
+</pre>
+</div>
+<p>
+regparam用于告诉编译器要用几个寄存器来传递参数，在0x86上最大为3（EAX/EDX/ECX），多个attribute用逗号分割，注意不要在这里加上多余的空格，而顺序是无所谓的，可以将stdcall放在前面。
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span class="linenr"> 1: </span><span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">FAST_FUNC</span> bb_verror_msg(<span style="color: #800;">const</span> <span style="color: #800;">char</span> *<span style="color: #048;">s</span>, <span style="color: #800;">va_list</span> <span style="color: #048;">p</span>, <span style="color: #800;">const</span> <span style="color: #800;">char</span>* <span style="color: #048;">strerr</span>)
+<span class="linenr"> 2: </span>{
+<span class="linenr"> 3: </span>    <span style="color: #800;">char</span> *<span style="color: #048;">msg</span>, *<span style="color: #048;">msg1</span>;
+<span class="linenr"> 4: </span>    <span style="color: #800;">int</span> <span style="color: #048;">applet_len</span>, <span style="color: #048;">strerr_len</span>, <span style="color: #048;">msgeol_len</span>, <span style="color: #048;">used</span>;
+<span class="linenr"> 5: </span>
+<span class="linenr"> 6: </span>    <span style="color: #800;">if</span> (<span style="color: #c00;">!</span>logmode)
+<span class="linenr"> 7: </span>        <span style="color: #800;">return</span>;
+<span class="linenr"> 8: </span>
+<span class="linenr"> 9: </span>    <span style="color: #800;">if</span> (<span style="color: #c00;">!</span>s) <span style="color: #666;">/* </span><span style="color: #666;">nomsg[_and_die] uses NULL fmt */</span>
+<span class="linenr">10: </span>        s = <span style="color: #800;">""</span>; <span style="color: #666;">/* </span><span style="color: #666;">some libc don't like printf(NULL) */</span>
+<span class="linenr">11: </span>
+<span class="linenr">12: </span>    used = vasprintf(&amp;msg, s, p);
+<span class="linenr">13: </span>    <span style="color: #800;">if</span> (used &lt; 0)
+<span class="linenr">14: </span>        <span style="color: #800;">return</span>;
+<span class="linenr">15: </span>
+<span class="linenr">16: </span>    <span style="color: #666;">/* </span><span style="color: #666;">This is ugly and costs +60 bytes compared to multiple</span>
+<span class="linenr">17: </span><span style="color: #666;">     * fprintf's, but is guaranteed to do a single write.</span>
+<span class="linenr">18: </span><span style="color: #666;">     * This is needed for e.g. httpd logging, when multiple</span>
+<span class="linenr">19: </span><span style="color: #666;">     * children can produce log messages simultaneously. */</span>
+<span class="linenr">20: </span>
+<span class="linenr">21: </span>    applet_len = strlen(applet_name) + 2; <span style="color: #666;">/* </span><span style="color: #666;">"applet: " */</span>
+<span class="linenr">22: </span>    strerr_len = strerr ? strlen(strerr) : 0;
+<span class="linenr">23: </span>    msgeol_len = strlen(msg_eol);
+<span class="linenr">24: </span>    <span style="color: #666;">/* </span><span style="color: #666;">can't use xrealloc: it calls error_msg on failure,</span>
+<span class="linenr">25: </span><span style="color: #666;">     * that may result in a recursion */</span>
+<span class="linenr">26: </span>    <span style="color: #666;">/* </span><span style="color: #666;">+3 is for ": " before strerr and for terminating NUL */</span>
+<span class="linenr">27: </span>    msg1 = realloc(msg, applet_len + used + strerr_len + msgeol_len + 3);
+<span class="linenr">28: </span>    <span style="color: #800;">if</span> (<span style="color: #c00;">!</span>msg1) {
+<span class="linenr">29: </span>        msg[used++] = <span style="color: #800;">'\n'</span>; <span style="color: #666;">/* </span><span style="color: #666;">overwrites NUL */</span>
+<span class="linenr">30: </span>        applet_len = 0;
+<span class="linenr">31: </span>    } <span style="color: #800;">else</span> {
+<span class="linenr">32: </span>        msg = msg1;
+<span class="linenr">33: </span>        <span style="color: #666;">/* </span><span style="color: #666;">TODO: maybe use writev instead of memmoving? Need full_writev? */</span>
+<span class="linenr">34: </span>        memmove(msg + applet_len, msg, used);
+<span class="linenr">35: </span>        used += applet_len;
+<span class="linenr">36: </span>        strcpy(msg, applet_name);
+<span class="linenr">37: </span>        msg[applet_len - 2] = <span style="color: #800;">':'</span>;
+<span class="linenr">38: </span>        msg[applet_len - 1] = <span style="color: #800;">' '</span>;
+<span class="linenr">39: </span>        <span style="color: #800;">if</span> (strerr) {
+<span class="linenr">40: </span>            <span style="color: #800;">if</span> (s[0]) { <span style="color: #666;">/* </span><span style="color: #666;">not perror_nomsg? */</span>
+<span class="linenr">41: </span>                msg[used++] = <span style="color: #800;">':'</span>;
+<span class="linenr">42: </span>                msg[used++] = <span style="color: #800;">' '</span>;
+<span class="linenr">43: </span>            }
+<span class="linenr">44: </span>            strcpy(&amp;msg[used], strerr);
+<span class="linenr">45: </span>            used += strerr_len;
+<span class="linenr">46: </span>        }
+<span class="linenr">47: </span>        strcpy(&amp;msg[used], msg_eol);
+<span class="linenr">48: </span>        used += msgeol_len;
+<span class="linenr">49: </span>    }
+<span class="linenr">50: </span>
+<span class="linenr">51: </span>    <span style="color: #800;">if</span> (logmode &amp; LOGMODE_STDIO) {
+<span class="linenr">52: </span>        fflush_all();
+<span class="linenr">53: </span>        full_write(STDERR_FILENO, msg, used);
+<span class="linenr">54: </span>    }
+<span class="linenr">55: </span><span style="color: #800;">#if</span> ENABLE_FEATURE_SYSLOG
+<span class="linenr">56: </span>    <span style="color: #800;">if</span> (logmode &amp; LOGMODE_SYSLOG) {
+<span class="linenr">57: </span>        syslog(LOG_ERR, <span style="color: #800;">"%s"</span>, msg + applet_len);
+<span class="linenr">58: </span>    }
+<span class="linenr">59: </span><span style="color: #800;">#endif</span>
+<span class="linenr">60: </span>    free(msg);
+<span class="linenr">61: </span>}
+</pre>
+</div>
+<dl class="org-dl">
+<dt>6</dt><dd>logmode是一个全局变量，用于指示日志级别，或者说要将日志打印到哪里去。包括LOGMODE_NONE、LOGMODE_STDIO、LOGMODE_SYSLOG、LOGMODE_BOTH</dd>
+<dt>9</dt><dd>特殊处理NULL指针</dd>
+<dt>12</dt><dd>vasprintf和vsprintf唯一不同之处在于该函数会分配空间，从传递&amp;msg二级指针就应该想到该函数会修改指针msg。另一方面vsprintf和sprintf的区别是v开头表示接收的参数是va_list类型。</dd>
+<dt>21</dt><dd>applet_name是全局变量</dd>
+<dt>23</dt><dd>换行符定义，全局变量，默认为"\n"</dd>
+<dt>27</dt><dd>增加额外格式信息到msg1中，故需要重新分配空间。</dd>
+<dt>28-30</dt><dd>重新分配失败，不添加额外信息。</dd>
+<dt>31-48</dt><dd>无非是将信息重组</dd>
+<dt>51-53</dt><dd>刷新STDIO，full_write起始就是将msg写入到标准错误文件描述符，由busybox自己定义，full_write保证足量写入，在遇到错误或EINTR时能够及时退出。</dd>
+<dt>56-57</dt><dd>借助syslog()将信息打印到系统日志中去</dd>
+</dl>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline15" class="outline-3">
+<h3 id="orgheadline15">数据结构</h3>
+<div class="outline-text-3" id="text-orgheadline15">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">struct</span> <span style="color: #800;">rule</span> {
+    <span style="color: #800;">bool</span> <span style="color: #048;">keep_matching</span>;
+    <span style="color: #800;">bool</span> <span style="color: #048;">regex_compiled</span>;
+    <span style="color: #800;">mode_t</span> <span style="color: #048;">mode</span>;
+    <span style="color: #800;">int</span> <span style="color: #048;">maj</span>, <span style="color: #048;">min0</span>, <span style="color: #048;">min1</span>;
+    <span style="color: #800;">struct</span> <span style="color: #800;">bb_uidgid_t</span> <span style="color: #048;">ugid</span>;
+    <span style="color: #800;">char</span> *<span style="color: #048;">envvar</span>;
+    <span style="color: #800;">char</span> *<span style="color: #048;">ren_mov</span>;
+    IF_FEATURE_MDEV_EXEC(<span style="color: #800;">char</span> *<span style="color: #048;">r_cmd</span>;)
+    <span style="color: #800;">regex_t</span> <span style="color: #048;">match</span>;
+    <span style="color: #800;">struct</span> <span style="color: #800;">envmatch</span> *<span style="color: #048;">envmatch</span>;
+};
+</pre>
+</div>
+<dl class="org-dl">
+<dt>IF_FEATURE_MDEV_EXEC</dt><dd>用于支持命令行，这个功能非常实用，建议开启，要执行额外的脚本也需要该选项支持。后面认为是开启的，不再额外说明。</dd>
+<dt>keep_matching</dt><dd>如果配置文件中以"-"作为开头，表示匹配完之后继续匹配，此时会置起该成员。</dd>
+</dl>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">struct</span> <span style="color: #800;">globals</span> {
+    <span style="color: #800;">int</span> <span style="color: #048;">root_major</span>, <span style="color: #048;">root_minor</span>;
+    <span style="color: #800;">smallint</span> <span style="color: #048;">verbose</span>;
+    <span style="color: #800;">char</span> *<span style="color: #048;">subsystem</span>;
+    <span style="color: #800;">char</span> *<span style="color: #048;">subsys_env</span>; <span style="color: #666;">/* </span><span style="color: #666;">for putenv("SUBSYSTEM=subsystem") */</span>
+<span style="color: #800;">#if</span> ENABLE_FEATURE_MDEV_CONF
+    <span style="color: #800;">const</span> <span style="color: #800;">char</span> *<span style="color: #048;">filename</span>;
+    <span style="color: #800;">parser_t</span> *<span style="color: #048;">parser</span>;
+    <span style="color: #800;">struct</span> <span style="color: #800;">rule</span> **<span style="color: #048;">rule_vec</span>;
+    <span style="color: #800;">unsigned</span> <span style="color: #048;">rule_idx</span>;
+<span style="color: #800;">#endif</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">rule</span> <span style="color: #048;">cur_rule</span>;
+    <span style="color: #800;">char</span> <span style="color: #048;">timestr</span>[<span style="color: #800;">sizeof</span>(<span style="color: #800;">"60.123456"</span>)];
+} <span style="color: #048;">FIX_ALIASING</span>;
+<span style="color: #800;">#define</span> <span style="color: #048;">G</span> (*(<span style="color: #800;">struct</span> <span style="color: #800;">globals</span>*)&amp;bb_common_bufsiz1)
+<span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">INIT_G</span>() <span style="color: #800;">do</span> {                                           \
+        IF_NOT_FEATURE_MDEV_CONF(G.cur_rule.maj = -1;)          \
+        IF_NOT_FEATURE_MDEV_CONF(G.cur_rule.mode = 0660;)       \
+} <span style="color: #800;">while</span> (0)
+</pre>
+</div>
+<dl class="org-dl">
+<dt>root_major/root_minor</dt><dd>根目录的主设备号/次设备号</dd>
+<dt>ENABLE_FEATURE_MDEV_CONF</dt><dd>表示支持mdev.conf文件，对mdev的行为进行配置，如果没有这个宏，很显然就无法按照用户的要求来工作，也就是说一般都是需要开启的。后面遇到这个宏就直接默认为是打开的，不再特别提示。</dd>
+<dt>filename</dt><dd>这个文件就是配置文件mdev.conf，这个是写死的，只能是/etc/mdev.conf。</dd>
+</dl>
+
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">#define</span> <span style="color: #048;">MAX_SYSFS_DEPTH</span> 3
+<span style="color: #800;">#define</span> <span style="color: #048;">SCRATCH_SIZE</span> 128
+</pre>
+</div>
+<dl class="org-dl">
+<dt>MAX_SYSFS_DEPTH</dt><dd>最大支持扫描深度为3层，比方<code>/sys/block/sda/sda1</code>就已经到极限了，再往下就不支持了。</dd>
+</dl>
+</div>
+</div>
+
+<div id="outline-container-orgheadline16" class="outline-3">
+<h3 id="orgheadline16">基本操作</h3>
+<div class="outline-text-3" id="text-orgheadline16">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">static</span> <span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">make_default_cur_rule</span>(<span style="color: #800;">void</span>)
+{
+    memset(&amp;G.cur_rule, 0, <span style="color: #800;">sizeof</span>(G.cur_rule));
+    G.cur_rule.maj = -1; <span style="color: #666;">/* </span><span style="color: #666;">"not a @major,minor rule" */</span>
+    G.cur_rule.mode = 0660;
+}
+<span style="color: #800;">static</span> <span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">clean_up_cur_rule</span>(<span style="color: #800;">void</span>)
+</pre>
+</div>
+<dl class="org-dl">
+<dt>clean_up_cur_rule</dt><dd>清除所有数据，并设置为默认值，
+rule里面动态分配的存储也会释放。</dd>
+</dl>
+
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">static</span> <span style="color: #800;">char</span> *<span style="color: #048; font-weight: bold;">parse_envmatch_pfx</span>(<span style="color: #800;">char</span> *<span style="color: #048;">val</span>)
+{
+    <span style="color: #800;">struct</span> <span style="color: #800;">envmatch</span> **<span style="color: #048;">nextp</span> = &amp;G.cur_rule.envmatch;
+
+    <span style="color: #800;">for</span> (;;) {
+        <span style="color: #800;">struct</span> <span style="color: #800;">envmatch</span> *<span style="color: #048;">e</span>;
+        <span style="color: #800;">char</span> *<span style="color: #048;">semicolon</span>;
+        <span style="color: #800;">char</span> *<span style="color: #048;">eq</span> = strchr(val, <span style="color: #800;">'='</span>);
+        <span style="color: #800;">if</span> (<span style="color: #c00;">!</span>eq <span style="color: #666;">/* </span><span style="color: #666;">|| eq == val? */</span>)
+            <span style="color: #800;">return</span> val;
+        <span style="color: #800;">if</span> (endofname(val) != eq)
+            <span style="color: #800;">return</span> val;
+        semicolon = strchr(eq, <span style="color: #800;">';'</span>);
+        <span style="color: #800;">if</span> (<span style="color: #c00;">!</span>semicolon)
+            <span style="color: #800;">return</span> val;
+        <span style="color: #666;">/* </span><span style="color: #666;">ENVVAR=regex;... */</span>
+        *nextp = e = xzalloc(<span style="color: #800;">sizeof</span>(*e));
+        nextp = &amp;e-&gt;next;
+        e-&gt;envname = xstrndup(val, eq - val);
+        *semicolon = <span style="color: #800;">'\0'</span>;
+        xregcomp(&amp;e-&gt;match, eq + 1, REG_EXTENDED);
+        *semicolon = <span style="color: #800;">';'</span>;
+        val = semicolon + 1;
+    }
+}
+</pre>
+</div>
+<dl class="org-dl">
+<dt>8</dt><dd>查找val中的'='</dd>
+<dt>11</dt><dd>确定val名字后面的第一个字符为eq，其实就是看'='前面的部分是不是合法的名字，至于名字的定义和C/C++一样，可以是下划线和字母开头，其它部分可以是下划线数字和字符。辅助宏是如下这样的。</dd>
+</dl>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">is_name</span>(<span style="color: #048;">c</span>)      ((c) == <span style="color: #800;">'_'</span> || isalpha((<span style="color: #800;">unsigned</span> <span style="color: #800;">char</span>)(c)))
+<span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">is_in_name</span>(<span style="color: #048;">c</span>)   ((c) == <span style="color: #800;">'_'</span> || isalnum((<span style="color: #800;">unsigned</span> <span style="color: #800;">char</span>)(c)))
+</pre>
+</div>
+<dl class="org-dl">
+<dt>13</dt><dd>查找val中的';'，因为环境变量是以分号分割的</dd>
+<dt>18</dt><dd>很显然这里是构造一个单向链表，链表头由G.cur_rule.envmatch保存</dd>
+<dt>19</dt><dd>将名字保存到e-&gt;envname中，由xstrndup负责分配空间</dd>
+<dt>20 &amp; 22</dt><dd>这样的写法比较好，免去了重新分配空间</dd>
+<dt>21</dt><dd>xregcomp实际是调用regcomp()函数，这个函数的作用是编译正则表达式，以便regexec()执行搜索动作，REG_EXTENDED表示使用POSIX扩展正则表达式语法。</dd>
+</dl>
+</div>
+</div>
+
+<div id="outline-container-orgheadline19" class="outline-3">
+<h3 id="orgheadline19">复杂操作</h3>
+<div class="outline-text-3" id="text-orgheadline19">
+</div><div id="outline-container-orgheadline17" class="outline-4">
+<h4 id="orgheadline17">recursive_action</h4>
+<div class="outline-text-4" id="text-orgheadline17">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">typedef</span> <span style="color: #800;">int</span> <span style="color: #800;">FAST_FUNC</span> (*fileAction)(<span style="color: #800;">const</span> <span style="color: #800;">char</span> *<span style="color: #048;">fileName</span>,
+                                    <span style="color: #800;">struct</span> <span style="color: #800;">stat</span> *<span style="color: #048;">statbuf</span>,
+                                    <span style="color: #800;">void</span>* <span style="color: #048;">userData</span>,
+                                    <span style="color: #800;">int</span> <span style="color: #048;">depth</span>);
+<span style="color: #800;">typedef</span> <span style="color: #800;">int</span> <span style="color: #800;">FAST_FUNC</span> (*dirAction)(<span style="color: #800;">const</span> <span style="color: #800;">char</span> *<span style="color: #048;">fileName</span>,
+                                   <span style="color: #800;">struct</span> <span style="color: #800;">stat</span> *<span style="color: #048;">statbuf</span>,
+                                   <span style="color: #800;">void</span>* <span style="color: #048;">userData</span>,
+                                   <span style="color: #800;">int</span> <span style="color: #048;">depth</span>);
+
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">FAST_FUNC</span> recursive_action(<span style="color: #800;">const</span> <span style="color: #800;">char</span> *<span style="color: #048;">fileName</span>,
+                               <span style="color: #800;">unsigned</span> <span style="color: #048;">flags</span>,
+                               fileAction,
+                               dirAction,
+                               <span style="color: #800;">void</span>* <span style="color: #048;">userData</span>,
+                               <span style="color: #800;">unsigned</span> <span style="color: #048;">depth</span>);
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline18" class="outline-4">
+<h4 id="orgheadline18">make_device</h4>
+<div class="outline-text-4" id="text-orgheadline18">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">static</span> <span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">make_device</span>(<span style="color: #800;">char</span> *<span style="color: #048;">device_name</span>, <span style="color: #800;">char</span> *<span style="color: #048;">path</span>, <span style="color: #800;">int</span> <span style="color: #048;">operation</span>);
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline20" class="outline-3">
+<h3 id="orgheadline20">主函数</h3>
+<div class="outline-text-3" id="text-orgheadline20">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">#define</span> <span style="color: #048;">UNUSED_PARAM</span> <span style="color: #800;">__attribute__</span> ((__unused__))
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">mdev_main</span>(<span style="color: #800;">int</span> <span style="color: #048;">argc</span> UNUSED_PARAM, <span style="color: #800;">char</span> **<span style="color: #048;">argv</span>)
+</pre>
+</div>
+<dl class="org-dl">
+<dt>UNUSED_PARAM</dt><dd>提示编译器这个参数不使用，不要报警。</dd>
+</dl>
+</div>
+
+<div id="outline-container-orgheadline21" class="outline-4">
+<h4 id="orgheadline21">分配/初始化变量</h4>
+<div class="outline-text-4" id="text-orgheadline21">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">#if</span> ENABLE_FEATURE_BUFFERS_GO_ON_STACK
+<span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">RESERVE_CONFIG_BUFFER</span>(<span style="color: #048;">buffer</span>,<span style="color: #048;">len</span>)  <span style="color: #800;">char</span> <span style="color: #048;">buffer</span>[len]
+<span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">RESERVE_CONFIG_UBUFFER</span>(<span style="color: #048;">buffer</span>,<span style="color: #048;">len</span>) <span style="color: #800;">unsigned</span> <span style="color: #800;">char</span> <span style="color: #048;">buffer</span>[len]
+<span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">RELEASE_CONFIG_BUFFER</span>(<span style="color: #048;">buffer</span>)      ((<span style="color: #800;">void</span>)0)
+<span style="color: #800;">#else</span>
+<span style="color: #800;">#if</span> ENABLE_FEATURE_BUFFERS_GO_IN_BSS
+<span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">RESERVE_CONFIG_BUFFER</span>(<span style="color: #048;">buffer</span>,<span style="color: #048;">len</span>)  <span style="color: #800;">static</span>          <span style="color: #800;">char</span> <span style="color: #048;">buffer</span>[len]
+<span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">RESERVE_CONFIG_UBUFFER</span>(<span style="color: #048;">buffer</span>,<span style="color: #048;">len</span>) <span style="color: #800;">static</span> <span style="color: #800;">unsigned</span> <span style="color: #800;">char</span> <span style="color: #048;">buffer</span>[len]
+<span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">RELEASE_CONFIG_BUFFER</span>(<span style="color: #048;">buffer</span>)      ((<span style="color: #800;">void</span>)0)
+<span style="color: #800;">#else</span>
+<span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">RESERVE_CONFIG_BUFFER</span>(<span style="color: #048;">buffer</span>,<span style="color: #048;">len</span>)  <span style="color: #800;">char</span> *<span style="color: #048;">buffer</span> = xmalloc(len)
+<span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">RESERVE_CONFIG_UBUFFER</span>(<span style="color: #048;">buffer</span>,<span style="color: #048;">len</span>) <span style="color: #800;">unsigned</span> <span style="color: #800;">char</span> *<span style="color: #048;">buffer</span> = xmalloc(len)
+<span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">RELEASE_CONFIG_BUFFER</span>(<span style="color: #048;">buffer</span>)      free(buffer)
+<span style="color: #800;">#endif</span>
+<span style="color: #800;">#endif</span>
+
+RESERVE_CONFIG_BUFFER(temp, PATH_MAX + SCRATCH_SIZE);
+INIT_G();
+<span style="color: #800;">#if</span> ENABLE_FEATURE_MDEV_CONF
+    G.filename = <span style="color: #800;">"/etc/mdev.conf"</span>;
+<span style="color: #800;">#endif</span>
+</pre>
+</div>
+<p>
+上面的宏无非是选择从哪个地方分配temp而已，PATH_MAX一般表示名字长度，256，而SCRATCH_SIZE则是mdev.c中定义的，128。
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-cpp">umask(0);                               <span style="color: #666;">// </span><span style="color: #666;">&#35774;&#32622;umask</span>
+xchdir(<span style="color: #800;">"/dev"</span>);                         <span style="color: #666;">// </span><span style="color: #666;">&#20999;&#25442;&#21040;&#30446;&#24405;/dev</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline22" class="outline-4">
+<h4 id="orgheadline22">扫描sysfs</h4>
+<div class="outline-text-4" id="text-orgheadline22">
+<p>
+mdev程序只支持一个参数，如果这个参数为"-s"，那么就会执行扫描工作。
+</p>
+<ul class="org-ul">
+<li>初始化G（剩余参数，如rulue_vec，root_major/root_minor等）</li>
+</ul>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">if</span> (access(<span style="color: #800;">"/sys/class/block"</span>, F_OK) != 0) {
+    <span style="color: #666;">/* </span><span style="color: #666;">Scan obsolete /sys/block only if /sys/class/block</span>
+<span style="color: #666;">     * doesn't exist. Otherwise we'll have dupes.</span>
+<span style="color: #666;">     * Also, do not complain if it doesn't exist.</span>
+<span style="color: #666;">     * Some people configure kernel to have no blockdevs.</span>
+<span style="color: #666;">     */</span>
+    recursive_action(<span style="color: #800;">"/sys/block"</span>,
+                     ACTION_RECURSE | ACTION_FOLLOWLINKS | ACTION_QUIET,
+                     fileAction, dirAction, temp, 0);
+}
+recursive_action(<span style="color: #800;">"/sys/class"</span>,
+                 ACTION_RECURSE | ACTION_FOLLOWLINKS,
+                 fileAction, dirAction, temp, 0);
+</pre>
+</div>
+<p>
+现在系统大多都有<code>/sys/class/block</code>目录，因此很少需要扫描<code>/sys/block</code>目录了。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline23" class="outline-4">
+<h4 id="orgheadline23">处理热插拔事件</h4>
+<div class="outline-text-4" id="text-orgheadline23">
+<p>
+当mdev不是以"-s"参数调用时，说明内核发生了热插拔事件。
+mdev实际上只对两种事件作出反应，即add/remove，都是调用函数make_device()来创建或者删除设备节点。
+</p>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline24" class="outline-2">
+<h2 id="orgheadline24">参考资料</h2>
+<div class="outline-text-2" id="text-orgheadline24">
+<ul class="org-ul">
+<li><a href="http://git.busybox.net/busybox/tree/docs/mdev.txt">mdev官方文档</a></li>
+<li><a href="http://git.busybox.net/busybox/tree/util-linux/mdev.c">mdev源代码</a></li>
+</ul>
+</div>
+</div>

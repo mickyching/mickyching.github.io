@@ -1,0 +1,479 @@
+---
+title: Linux内核并发与同步
+categories: kernel
+tags: linux kernel sync
+author: 敬叶
+---
+<dl class="post-meta">
+<dt class="post-meta">2015-06-03</dt><dd>敬叶 初稿</dd>
+</dl>
+<hr><br>
+<div id="table-of-contents"><h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#orgheadline9">并发场景</a>
+<ul>
+<li><a href="#orgheadline1">中断上半部</a></li>
+<li><a href="#orgheadline2">中断下半部</a>
+<ul>
+<li><a href="#orgheadline3">tasklet</a></li>
+<li><a href="#orgheadline4">workqueue</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline8">条件等待</a>
+<ul>
+<li><a href="#orgheadline5">延迟指定时间</a></li>
+<li><a href="#orgheadline6">定时器</a></li>
+<li><a href="#orgheadline7">完成变量</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#orgheadline10">内核同步方法</a>
+<ul>
+<li><a href="#orgheadline19">同步方法</a>
+<ul>
+<li><a href="#orgheadline11">原子操作</a></li>
+<li><a href="#orgheadline12">内存屏障</a></li>
+<li><a href="#orgheadline13">PERCPU变量</a></li>
+<li><a href="#orgheadline14">自旋锁</a></li>
+<li><a href="#orgheadline15">信号量</a></li>
+<li><a href="#orgheadline16">互斥锁</a></li>
+<li><a href="#orgheadline17">顺序锁</a></li>
+<li><a href="#orgheadline18">RCU-Read-Copy-Update</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline9" class="outline-2">
+<h2 id="orgheadline9">并发场景</h2>
+<div class="outline-text-2" id="text-orgheadline9">
+</div><div id="outline-container-orgheadline1" class="outline-3">
+<h3 id="orgheadline1">中断上半部</h3>
+<div class="outline-text-3" id="text-orgheadline1">
+<!--abstract-begin-->
+
+<p>
+硬件事件在不知道何时发生的情况下发生，因此要知道有没有事件发生，一种方式是CPU不断的去询问硬件，一种方式是发生之后硬件通知CPU。大多数情况下，由硬件去通知CPU是很好的处理方法，但是硬件在某些情况下密集发生事件时，采用询问更快，因为只要保证每次询问都能拿到消息，就可以省掉中断时间了。
+</p>
+
+<p>
+设备通过中断线关联到特定中断，中断线IRQ就是一个整数值。中断产生时由中断控制器将信号发送给CPU，CPU调用中断处理函数。中断处理函数是一个普通C函数，但是要求不能睡眠，并且要快速处理返回。因为中断会打断别的进程，所以必须要快，但是有时候又有很多事情要做，所以内核中引入了两半处理法，中断上半部做必要的标记，把真正麻烦的工作交给下半部，这样中断处理函数就可以快速返回了。
+</p>
+
+<!--abstract-end-->
+
+<p>
+系统中断信息可以通过<code>/proc/interrupts</code>查看。
+</p>
+
+<p>
+有些代码需要避免被ISR中断，这时可以禁用本地中断，禁用中断也意味着禁用抢占。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-c">local_irq_disable();
+<span style="color: #666;">/* </span><span style="color: #666;">do something </span><span style="color: #666;">*/</span>
+local_irq_enable();
+</pre>
+</div>
+<p>
+但是上面这样的写法是错误的，因为如果在禁用前已经禁用了，那么启用的时候就会意外开启已经禁用的中断，正确的做法是如下写法。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-c">local_irq_save(flags);                  <span style="color: #666;">/* </span><span style="color: #666;">flags is ulong, not ptr </span><span style="color: #666;">*/</span>
+<span style="color: #666;">/* </span><span style="color: #666;">do something </span><span style="color: #666;">*/</span>
+local_irq_restore(flags);
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-orgheadline2" class="outline-3">
+<h3 id="orgheadline2">中断下半部</h3>
+<div class="outline-text-3" id="text-orgheadline2">
+<p>
+前面提到中断必须要快速返回，一般的做法就是做一些标记，然后开启下半部，中断就可以返回了。
+</p>
+</div>
+
+<div id="outline-container-orgheadline3" class="outline-4">
+<h4 id="orgheadline3">tasklet</h4>
+<div class="outline-text-4" id="text-orgheadline3">
+<p>
+小任务是比较常用的一种下半部，其重要约束条件是不允许休眠。使用tasklet包括如下几点：处理函数，初始化，调度等
+</p>
+<div class="org-src-container">
+
+<pre class="src src-c"><span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">tasklet_handler</span>(<span style="color: #800;">unsigned</span> <span style="color: #800;">long</span> <span style="color: #048;">data</span>); <span style="color: #666;">/* </span><span style="color: #666;">write handler </span><span style="color: #666;">*/</span>
+
+tasklet_init(tasklet, tasklet_handler, dev);
+
+tasklet_schedule(&amp;tasklet);
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline4" class="outline-4">
+<h4 id="orgheadline4">workqueue</h4>
+<div class="outline-text-4" id="text-orgheadline4">
+<p>
+工作队列可以休眠，效率上相对于tasklet可能会低一点。使用workqueue包括如下几点：处理函数，初始化，调度等
+</p>
+<div class="org-src-container">
+
+<pre class="src src-c"><span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">work_handler</span>(<span style="color: #800;">void</span> *<span style="color: #048;">data</span>);
+
+schedule_work(&amp;work);
+
+<span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">flush_scheduled_work</span>(<span style="color: #800;">void</span>);
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">cancel_delayed_work</span>(<span style="color: #800;">struct</span> <span style="color: #800;">work_struct</span> *<span style="color: #048;">work</span>);
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline8" class="outline-3">
+<h3 id="orgheadline8">条件等待</h3>
+<div class="outline-text-3" id="text-orgheadline8">
+</div><div id="outline-container-orgheadline5" class="outline-4">
+<h4 id="orgheadline5">延迟指定时间</h4>
+<div class="outline-text-4" id="text-orgheadline5">
+<p>
+Linux提供了一个滴答计时器，HZ表示一秒钟的滴答数，这个值在不同平台上是不一样的，大部分平台是100。全局变量<code>jiffies</code>记录了开机到当前时间点所经历的滴答数，这个变量的长度和平台的字长相同，因此Linux提供了一个<code>jiffies_64</code>变量。
+</p>
+
+<p>
+改变量会溢出，所以要进行时间比较，需要使用如下函数：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-c"><span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">time_after</span>(<span style="color: #048;">unknown</span>, <span style="color: #048;">known</span>) ((<span style="color: #800;">long</span>)(known) - (<span style="color: #800;">long</span>)(unknown) &lt; 0)
+<span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">time_before</span>(<span style="color: #048;">unknown</span>, <span style="color: #048;">known</span>) ((<span style="color: #800;">long</span>)(unknown) - (<span style="color: #800;">long</span>)(known) &lt; 0)
+<span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">time_after_eq</span>(<span style="color: #048;">unknown</span>, <span style="color: #048;">known</span>) ((<span style="color: #800;">long</span>)(unknown) - (<span style="color: #800;">long</span>)(known) &gt;= 0)
+<span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">time_before_eq</span>(<span style="color: #048;">unknown</span>, <span style="color: #048;">known</span>) ((<span style="color: #800;">long</span>)(known) - (<span style="color: #800;">long</span>)(unknown) &gt;= 0)
+</pre>
+</div>
+
+<p>
+短时间的延迟可以用delay函数，delay其实就是忙等，所以毫秒级别的忙等是需要避免的。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-c"><span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">udelay</span>(<span style="color: #800;">unsigned</span> <span style="color: #800;">long</span> <span style="color: #048;">usecs</span>);
+<span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">ndelay</span>(<span style="color: #800;">unsigned</span> <span style="color: #800;">long</span> <span style="color: #048;">nsecs</span>);
+<span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">mdelay</span>(<span style="color: #800;">unsigned</span> <span style="color: #800;">long</span> <span style="color: #048;">msecs</span>);
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline6" class="outline-4">
+<h4 id="orgheadline6">定时器</h4>
+<div class="outline-text-4" id="text-orgheadline6">
+<p>
+定时器用于在指定时间之后调用指定函数。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-c"><span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">handler</span>(<span style="color: #800;">unsigned</span> <span style="color: #800;">long</span> <span style="color: #048;">data</span>);
+setup_timer(timer, func, data);
+
+add_timer(&amp;timer);
+mod_timer(&amp;timer, jiffies + new_delay);
+del_timer(&amp;timer);
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline7" class="outline-4">
+<h4 id="orgheadline7">完成变量</h4>
+<div class="outline-text-4" id="text-orgheadline7">
+<p>
+完成变量是一种异步等待机制，一个线程初始化之后，等待另一个线程唤醒。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-c">init_completion(x);
+wait_for_completion(x);
+</pre>
+</div>
+<p>
+另一个线程调用如下函数来通知条件成熟：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-c">complete(x);
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline10" class="outline-2">
+<h2 id="orgheadline10">内核同步方法</h2>
+<div class="outline-text-2" id="text-orgheadline10">
+<p>
+所谓同步方法，目的是为了让临界资源得到保护，防止竞态出现。如果不去保护临界资源，多个线程同时访问和修改会造成状态混乱。为了避免这样的混乱，内核提供了锁机制，当一个线程访问临界资源时，禁止其它线程并发访问。
+</p>
+
+<p>
+内核中出现并发的情况是非常多的，如中断上半部，延迟下半部，内核抢占，SMP等等。所以通常情况下，全局资源和共享资源都是要保护的对象。当然用锁也经常会遇到设计不当产生死锁的情况，一个重要的原则是如果要获取多个锁，那么确保在所有代码中以相同的顺序获取。
+</p>
+</div>
+
+<div id="outline-container-orgheadline19" class="outline-3">
+<h3 id="orgheadline19">同步方法</h3>
+<div class="outline-text-3" id="text-orgheadline19">
+</div><div id="outline-container-orgheadline11" class="outline-4">
+<h4 id="orgheadline11">原子操作</h4>
+<div class="outline-text-4" id="text-orgheadline11">
+<p>
+原子类型本质上就是一个整数，只不过对它访问不会产生竞态，其具体实现是和架构相关的。比较常见的接口如下：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-c"><span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">atomic_read</span>(<span style="color: #800;">atomic_t</span> *<span style="color: #048;">v</span>);
+<span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">atomic_set</span>(<span style="color: #800;">atomic_t</span> *<span style="color: #048;">v</span>, <span style="color: #800;">int</span> <span style="color: #048;">i</span>);
+<span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">atomic_add</span>(<span style="color: #800;">int</span> <span style="color: #048;">i</span>, <span style="color: #800;">atomic_t</span> *<span style="color: #048;">v</span>);
+<span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">atomic_sub</span>(<span style="color: #800;">int</span> <span style="color: #048;">i</span>, <span style="color: #800;">atomic_t</span> *<span style="color: #048;">v</span>);
+<span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">atomic_inc</span>(<span style="color: #800;">atomic_t</span> *<span style="color: #048;">v</span>);
+<span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">atomic_dec</span>(<span style="color: #800;">atomic_t</span> *<span style="color: #048;">v</span>);
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">atomic_sub_and_test</span>(<span style="color: #800;">int</span> <span style="color: #048;">i</span>, <span style="color: #800;">atomic_t</span> *<span style="color: #048;">v</span>);
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">atomic_add_negative</span>(<span style="color: #800;">int</span> <span style="color: #048;">i</span>, <span style="color: #800;">atomic_t</span> *<span style="color: #048;">v</span>);
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">atomic_add_return</span>(<span style="color: #800;">int</span> <span style="color: #048;">i</span>, <span style="color: #800;">atomic_t</span> *<span style="color: #048;">v</span>);
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">atomic_sub_return</span>(<span style="color: #800;">int</span> <span style="color: #048;">i</span>, <span style="color: #800;">atomic_t</span> *<span style="color: #048;">v</span>);
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">atomic_inc_return</span>(<span style="color: #800;">int</span> <span style="color: #048;">i</span>, <span style="color: #800;">atomic_t</span> *<span style="color: #048;">v</span>);
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">atomic_dec_return</span>(<span style="color: #800;">int</span> <span style="color: #048;">i</span>, <span style="color: #800;">atomic_t</span> *<span style="color: #048;">v</span>);
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">atomic_dec_and_test</span>(<span style="color: #800;">atomic_t</span> *<span style="color: #048;">v</span>);
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">atomic_inc_and_test</span>(<span style="color: #800;">atomic_t</span> *<span style="color: #048;">v</span>);
+</pre>
+</div>
+<p>
+要注意原子变量的长度是32位，即便在64位机上也是如此。内核也提供了64位原子变量，只需要将<code>atomic</code>改为<code>atomic64</code>即可。
+</p>
+
+<p>
+内核针对位操作也提供了一组原子操作，不过针对指针操作。既然是指针，那么就是平台依赖的，32位机上位的范围为0-31，
+64位机上范围为0-63，常见接口如下：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-c"><span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">set_bit</span>(<span style="color: #800;">int</span> <span style="color: #048;">nr</span>, <span style="color: #800;">void</span> *<span style="color: #048;">addr</span>);
+<span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">clear_bit</span>(<span style="color: #800;">int</span> <span style="color: #048;">nr</span>, <span style="color: #800;">void</span> *<span style="color: #048;">addr</span>);
+<span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">change_bit</span>(<span style="color: #800;">int</span> <span style="color: #048;">nr</span>, <span style="color: #800;">void</span> *<span style="color: #048;">addr</span>);
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">test_and_set_bit</span>(<span style="color: #800;">int</span> <span style="color: #048;">nr</span>, <span style="color: #800;">void</span> *<span style="color: #048;">addr</span>);
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">test_and_clear_bit</span>(<span style="color: #800;">int</span> <span style="color: #048;">nr</span>, <span style="color: #800;">void</span> *<span style="color: #048;">addr</span>);
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">test_and_change_bit</span>(<span style="color: #800;">int</span> <span style="color: #048;">nr</span>, <span style="color: #800;">void</span> *<span style="color: #048;">addr</span>);
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">test_bit</span>(<span style="color: #800;">int</span> <span style="color: #048;">nr</span>, <span style="color: #800;">void</span> *<span style="color: #048;">addr</span>);
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-orgheadline12" class="outline-4">
+<h4 id="orgheadline12">内存屏障</h4>
+<div class="outline-text-4" id="text-orgheadline12">
+<p>
+屏障的作用是确保对变量的操作是按顺序完成的，主要可以防止编译器优化。
+</p>
+</div>
+</div>
+<div id="outline-container-orgheadline13" class="outline-4">
+<h4 id="orgheadline13">PERCPU变量</h4>
+<div class="outline-text-4" id="text-orgheadline13">
+<p>
+PERCPU数据存储在数组中，将index关联到一个对应的CPU，因为只能有一个CPU访问，所以不需要关注并发问题。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-c"><span style="color: #800;">unsigned</span> <span style="color: #800;">long</span> <span style="color: #048;">my_percpu</span>[NR_CPUS];
+<span style="color: #800;">int</span> <span style="color: #048;">cpu</span>;
+
+cpu = get_cpu();                        <span style="color: #666;">/* </span><span style="color: #666;">disable kernel preemption </span><span style="color: #666;">*/</span>
+my_percpu[cpu]++;
+put_cpu();                              <span style="color: #666;">/* </span><span style="color: #666;">enable kernel preemption </span><span style="color: #666;">*/</span>
+</pre>
+</div>
+<p>
+上面的代码禁用了抢占，所以不要长期占用。之所以要禁止抢占，是因为如果拿到cpu号又调度出去，会导致拿到的cpu号就是错误的。
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-c">DEFINE_PER_CPU(type, name);
+get_cpu_var(name)++;
+put_cpu_var(name);
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-c"><span style="color: #800;">void</span> *<span style="color: #048; font-weight: bold;">alloc_percpu</span>(type);
+get_cpu_var(ptr);
+<span style="color: #666;">/* </span><span style="color: #666;">do something on ptr </span><span style="color: #666;">*/</span>
+put_cpu_var(ptr);
+<span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">free_percpu</span>(<span style="color: #800;">const</span> <span style="color: #800;">void</span> *);
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline14" class="outline-4">
+<h4 id="orgheadline14">自旋锁</h4>
+<div class="outline-text-4" id="text-orgheadline14">
+<p>
+自旋锁调用方法很简单：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-c">spin_lock(&amp;mr_lock);
+<span style="color: #666;">/* </span><span style="color: #666;">critical region ... </span><span style="color: #666;">*/</span>
+spin_unlock(&amp;mr_lock);
+</pre>
+</div>
+<p>
+自旋锁可以在中断上下文使用，因为自旋锁在获取过程中CPU一直忙等，所以在持有自旋锁期间不能休眠。
+</p>
+
+<p>
+很多驱动在获取自旋锁的时候，也要禁止中断，所以最常用的其实是如下一对：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-c">spin_lock_irqsave(flags);
+<span style="color: #666;">/* </span><span style="color: #666;">critical region ... </span><span style="color: #666;">*/</span>
+spin_lock_irqrestore(flags);
+</pre>
+</div>
+
+<p>
+自旋锁还有一种变体，就是读写自旋锁，读锁可以多次加锁，但是获取写入锁必须等到所有的读取锁释放。读写锁也有禁止IRQ形式，使用上和自旋锁完全一样。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-c">read_lock(&amp;mr_rwlock);
+<span style="color: #666;">/* </span><span style="color: #666;">critical section (read only) ... </span><span style="color: #666;">*/</span>
+read_unlock(&amp;mr_rwlock);
+
+write_lock(&amp;mr_rwlock);
+<span style="color: #666;">/* </span><span style="color: #666;">critical section (read and write) ... </span><span style="color: #666;">*/</span>
+write_unlock(&amp;mr_lock);
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-orgheadline15" class="outline-4">
+<h4 id="orgheadline15">信号量</h4>
+<div class="outline-text-4" id="text-orgheadline15">
+<p>
+信号量的好处是获取锁的过程可能会休眠，信号量不为0就可以获取。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-c">sema_init(sem, count);
+down(sem)
+<span style="color: #666;">/* </span><span style="color: #666;">critical region ... </span><span style="color: #666;">*/</span>
+up(sem);
+</pre>
+</div>
+
+<p>
+信号量也有读写形式，名字很奇怪，和自旋锁不统一：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-c">down_write(sem);
+<span style="color: #666;">/* </span><span style="color: #666;">critical region ... </span><span style="color: #666;">*/</span>
+up_write(sem);
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-orgheadline16" class="outline-4">
+<h4 id="orgheadline16">互斥锁</h4>
+<div class="outline-text-4" id="text-orgheadline16">
+<p>
+互斥锁不允许多次加锁，因此相比于信号量更简单，并且互斥锁在使用上还有限制：谁加锁谁释放。不允许进程退出后不解锁。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-c">mutex_lock(mutex);
+<span style="color: #666;">/* </span><span style="color: #666;">critical region ... </span><span style="color: #666;">*/</span>
+mutex_unlock(mutex);
+</pre>
+</div>
+<p>
+起始互斥锁强调的是互斥的概念，而不仅仅是同步，因为只能有一个进程可以持有互斥锁。
+</p>
+</div>
+</div>
+<div id="outline-container-orgheadline17" class="outline-4">
+<h4 id="orgheadline17">顺序锁</h4>
+<div class="outline-text-4" id="text-orgheadline17">
+<p>
+顺序锁的使用方法和别的锁有所不同，在Linux文件系统中有很多地方用到了顺序锁，顺序锁严格意义来讲是一个重试机制：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-c"><span style="color: #800;">do</span> {
+        seq = read_seqbegin(&amp;lock);
+        <span style="color: #666;">/* </span><span style="color: #666;">critical region ... </span><span style="color: #666;">*/</span>
+} <span style="color: #800;">while</span> (read_seqretry(&amp;lock, seq));
+</pre>
+</div>
+<p>
+首先读取顺序锁的值，然后进入临界区操作，操作完了之后再检查顺序值，如果顺序值被修改了，说明在操作期间被人动过，就需要重试，否则不需要重试。
+</p>
+</div>
+</div>
+<div id="outline-container-orgheadline18" class="outline-4">
+<h4 id="orgheadline18">RCU-Read-Copy-Update</h4>
+<div class="outline-text-4" id="text-orgheadline18">
+<p>
+这是一种高级互斥机制，如果用在正确的场景下，效率会非常好。要注意这种锁的应用场景：
+</p>
+<ul class="org-ul">
+<li>读取频率很高，写入频率很低！</li>
+<li>受保护的资源只能通过指针访问</li>
+<li>引用保护资源的地方必须是原子上下文</li>
+</ul>
+
+<p>
+其工作原理是，如果发生写入，那么写入将复制资源，在复制的资源上修改，修改完毕之后更新指针。这种锁是严重偏向读取优先的，读取几乎不需要等待，当然要求就是读取期间需要禁止抢占。相比较于顺序锁，读取不需要重试，顺序锁也是用在读取多写入少的情况，但是人家写入是不会被读取阻塞的。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-c">rcu_read_lock();
+ptr = rcu_dereference_raw(rcu_ptr);
+do_something_with(ptr);
+rcu_read_unlock();
+</pre>
+</div>
+
+<p>
+但是更新就比较费劲，因为要等待所有人释放才能更新，更新只需调用如下API：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-c">ptr = rcu_dereference_raw(rcu_ptr);
+new = copy_memory(ptr);
+rcu_assign_pointer(rcu_ptr, new);
+call_rcu(&amp;ptr-&gt;rcu_head, free_function);
+</pre>
+</div>
+<p>
+首先需要复制内存并修改，假定新内存地址为new，通过<code>rcu_assign_pointer</code>可以修改，但是我们需要释放之前的内存，那么需要先保存事先的地址，通过调用<code>call_rcu</code>来释放。另外要注意的是，每个受RCU保护的资源都应该有一个成员叫<code>rcu_head</code>，这样我们才能够在释放的时候通过<code>container_of</code>由<code>rcu_head</code>
+找到真正需要释放的资源。
+</p>
+</div>
+</div>
+</div>
+</div>

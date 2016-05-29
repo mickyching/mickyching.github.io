@@ -1,0 +1,428 @@
+---
+title: Linux内核进程管理
+categories: kernel
+tags: linux kernel process
+author: 敬叶
+---
+<dl class="post-meta">
+<dt class="post-meta">2015-06-05</dt><dd>敬叶 初稿</dd>
+</dl>
+<hr><br>
+<div id="table-of-contents"><h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#orgheadline9">基本概念</a>
+<ul>
+<li><a href="#orgheadline1">进程管理</a>
+<ul>
+<li><a href="#orgheadline2">创建进程</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline3">进程调度</a></li>
+<li><a href="#orgheadline8">多线程与多进程</a>
+<ul>
+<li><a href="#orgheadline4">进程与线程区别</a></li>
+<li><a href="#orgheadline5">进程间通信</a></li>
+<li><a href="#orgheadline6">进程池与线程池</a></li>
+<li><a href="#orgheadline7">趣味习题</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#orgheadline10">参考资料</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline9" class="outline-2">
+<h2 id="orgheadline9">基本概念</h2>
+<div class="outline-text-2" id="text-orgheadline9">
+</div><div id="outline-container-orgheadline1" class="outline-3">
+<h3 id="orgheadline1">进程管理</h3>
+<div class="outline-text-3" id="text-orgheadline1">
+<!--abstract-begin-->
+
+<p>
+在Linux内核中用<code>task_struct</code>描述一个进程，也被称之为进程描述符。该结构体很大，在32位机上有17KB，之所以这么大，是因为要保存一个进程所需要知道的全部信息，如打开的文件，进程地址空间，信号，进程状态等等。进程描述符可以通过<code>thread_info</code>查找，对于向下生长的栈，这个结构保存在栈底，内核提供了一个接口<code>current_thread_info()-&gt;task</code>用于获取进程描述符。每个进程有一个进程编号，系统支持的最大进程编号可以通过文件
+<code>/proc/sys/kernel/pid_max</code>查看。
+</p>
+
+<!--abstract-end-->
+
+<p>
+进程有三个状态：
+</p>
+<dl class="org-dl">
+<dt>TASK_RUNNING</dt><dd>表示进程可以运行，此时进程要么在运行，要么在等待运行</dd>
+<dt>TASK_INTERRUPTIBLE</dt><dd>进程在休眠，等待某种条件发生，当被信号中断的时候，进程就进入RUNNING状态</dd>
+<dt>TASK_UNINTERRUPTIBLE</dt><dd>进程等待某种条件发生，即便被信号中断也不会唤醒</dd>
+</dl>
+</div>
+
+<div id="outline-container-orgheadline2" class="outline-4">
+<h4 id="orgheadline2">创建进程</h4>
+<div class="outline-text-4" id="text-orgheadline2">
+<p>
+用户通过fork()创建子进程，内核中采用一种称为COW的技术，通过copy-on-write的方式来减少复制，也就是当子进程真正要写入的时候才会复制地址空间的页面。所以在写入之前，fork()只会复制父进程的页表并生成一个进程ID号。还有一个vfork()，相比fork()的好处就是不复制父进程的页表，因为不复制页表，所以子进程不能去写地址空间，由于这样的限制，现在已经不推荐用vfork()了。
+</p>
+
+<p>
+在Linux中不区分进程和线程，创建线程都是通过clone()来实现的，例如fork()在底层也是调用clone()。
+Linux还有一种内核线程，通过<code>kthread_run()</code>创建。
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-orgheadline3" class="outline-3">
+<h3 id="orgheadline3">进程调度</h3>
+<div class="outline-text-3" id="text-orgheadline3">
+<p>
+进程调度面临一个问题，就是不同类型的进程，需要不同的调度方式。简单来说就是交互式进程需要快速响应，而批操作进程需要高吞吐量。要调度进程，需要有一些指标来作为参数。最基本的参数是优先级，Linux提供了两种优先级指标。
+</p>
+
+<ol class="org-ol">
+<li>nice值的范围是(-20, 19)，值越大越友好，因此优先级越低。</li>
+<li>real-time优先级范围是(0, 99)，值越大，优先级越高。</li>
+</ol>
+
+<p>
+时间片用来表示一个进程在被抢占之前需要运行的时间，传统的UNIX系统根据nice值计算时间片。这样的方法简单，但是存在如下一些问题：
+</p>
+<ol class="org-ol">
+<li>同低同高问题，假定nice0分配100ms，nice20分配5ms，如果是两个nice0，各执行100ms再切换，如果是两个nice20，则各执行5ms就要切换。</li>
+<li>非线性问题，如nice0和nice1，分配100ms和95ms，而nice19和nice20，分配10ms和5ms，虽然相邻相差为5ms，但是nice19却是nice20的总时间两倍。</li>
+<li>时间片受系统计时精度影响。</li>
+</ol>
+
+<p>
+Linux引入一个叫CFS调度，让每个进程获取总时间的\( \frac{1}{n} \)，而nice值则用来增加权重。
+</p>
+</div>
+</div>
+<div id="outline-container-orgheadline8" class="outline-3">
+<h3 id="orgheadline8">多线程与多进程</h3>
+<div class="outline-text-3" id="text-orgheadline8">
+</div><div id="outline-container-orgheadline4" class="outline-4">
+<h4 id="orgheadline4">进程与线程区别</h4>
+<div class="outline-text-4" id="text-orgheadline4">
+<p>
+首先要区分一下进程与线程，Linux内核中进程和线程都是一个执行体，所以没有区别。用户空间通过系统调用<code>clone</code>来复制一个任务，如果是创建线程，则需要传递如下标志：
+</p>
+<dl class="org-dl">
+<dt>CLONE_FILES</dt><dd>共享文件描述表</dd>
+<dt>CLONE_PARENT</dt><dd>不用设置父子关系</dd>
+<dt>CLONE_VM</dt><dd>共享内存空间</dd>
+<dt>CLONE_THREAD</dt><dd>共享信号</dd>
+</dl>
+
+<p>
+创建进程需要多做的工作是复制页表、创建COW内存映射。至于上下文切换，如果是线程那么切换代价可能会小一点，因为数据可能已经在CPU cache中，当然即便没有共享切换也很快，这由内核努力来保证。对于多核处理器，不共享反而可能更快，因为同步共享内存代价很大。
+</p>
+
+<p>
+归纳用户空间进程与线程的区别如下表所示：
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">进程</th>
+<th scope="col" class="org-left">线程</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">资源分配基本单位</td>
+<td class="org-left">调度基本单位</td>
+</tr>
+
+<tr>
+<td class="org-left">上下文切换要切页表、刷新TLB</td>
+<td class="org-left">上下文切换开销小</td>
+</tr>
+
+<tr>
+<td class="org-left">进程间通信慢</td>
+<td class="org-left">线程间通信快</td>
+</tr>
+
+<tr>
+<td class="org-left">进程间独立</td>
+<td class="org-left">父进程终止将导致所有子线程终止</td>
+</tr>
+
+<tr>
+<td class="org-left">进程间独立</td>
+<td class="org-left">线程调用exit()将导致所有子线程同时灭亡</td>
+</tr>
+
+<tr>
+<td class="org-left">地址空间独立</td>
+<td class="org-left">共享地址空间</td>
+</tr>
+
+<tr>
+<td class="org-left">调用fork()创建进程</td>
+<td class="org-left">调用库函数创建线程</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+值得一提的是<code>vfork()</code>，父进程在子进程返回之后才执行，调用<code>vfork()</code>之后一般会调用<code>execv()</code>启动一个全新进程，因此不需要复制父进程资源空间。当<code>execv()</code>返回时父进程就认为子进程结束了，实际上子进程在一个完全独立的空间运行。
+</p>
+
+<p>
+这里顺便在比较一下fork和vfork的区别，fork将父进程的内存数据复制到子进程，而vfork则共享父进程的内存数据。而且vfork在执行上是有要求的，子进程先执行，并且在子进程调用exit()/exec()之后父进程才会执行。并且vfork的存在也是一个历史原因，因为最初的fork没有使用COW技术，而很多程序fork之后调用exec来执行外部程序就退出了，所以复制父进程的数据显得很多余，才发明了vfork，而如今fork使用了COW技术，vfork又显得很多余了。比较有趣的是如果你在vfork子进程中调用return语句，因为父子栈共享，所以整个栈就回收了，父进程在接收到子进程退出之后开始执行vfork之后的代码，但是此时父进程的栈已经被回收，程序崩溃。
+</p>
+
+<p>
+进程间的独立性比较有助于编写简练的代码，如TCP服务端父进程accept之后返回描述符fda，在fork的子进程中可以直接使用fda，因为子进程会复制文件描述符，父进程就可以继续accept下一个请求。如果换成多线程，子线程就必须自己去复制fda，但是由要保证在父进程执行下一个accept之前复制完成，这就必须要通过通信来完成，处理上就比较麻烦。
+</p>
+
+<p>
+进程间通信包括：文件、信号、socket、消息队列、管道/命名管道、信号量、共享内存、内存映射等。而线程间通信除了包括进程间通信的方法外，还有：互斥量、自旋锁、读写锁、条件变量、线程信号、全局变量。进程间的通信要么需要切换内核上下文，要么需要与外设访问，如命名管道、文件，所以效率低。
+</p>
+
+<p>
+进程间如果使用共享内存，为了保证数据写入安全需要和信号量一起使用，如果使用消息队列，则因消息队列本身是原子操作而自动互斥。共享内存有比较大的好处，因为共享内存脱离进程，当进程意外终止时不会被回收，可以用来分析故障原因，程序重启之后还有机会继续处理未完成任务。当然也有明显的缺点，如加锁后崩溃重启，再次加锁会死锁，也存在被其它进程误操作的可能。
+</p>
+
+<p>
+当父进程先于子进程结束时，孤儿进程将有init收养。子进程先于父进程终止，而父进程由没有调用<code>wait</code>或<code>waitpid</code>时，子进程进入僵死状态。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline5" class="outline-4">
+<h4 id="orgheadline5">进程间通信</h4>
+<div class="outline-text-4" id="text-orgheadline5">
+<p>
+早期的进程间通信只有管道、信号、文件。但是很不灵活，因此后来又引入了共享内存/信号量、内存映射、消息队列。再后来又增加了远程进程通信，即socket。
+</p>
+
+<p>
+pipe的通信起始就是利用pipefs来通信，父进程调用pipe创建两个文件描述符，再fork两个子进程，让两个子进程相互通信。相对来说限制比较多，一个只能读，一个只能写。命名管道的好处是允许无亲缘关系的进程之间通信。
+</p>
+
+<p>
+共享内存提供一种方式可让两个进程同时访问一块内存，但是本身没有提供同步机制，所以需要和信号量配合使用。另外共享内存有大小限制，具体数值可以查看：<code>cat /proc/sys/kernel/shmmax</code>。默认值为32MB，可以通过如下命令来修改：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">sysctl -w kernel.shmmax=2147483648
+</pre>
+</div>
+<p>
+也可以将如下命令放到<code>/etc/rc.local</code>启动文件中。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #800;">echo</span> <span style="color: #800;">"2147483648"</span> &gt; /proc/sys/kernel/shmmax
+</pre>
+</div>
+<p>
+不过从安全性考虑，有句格言是：不要通过共享内存来通信，要通过通信来共享内存。
+</p>
+
+<p>
+内存映射和共享内存有相似之处，只不过共享内存用key来指定共享区，而内存映射用文件来指定共享区。
+</p>
+
+<p>
+消息队列则和命名管道相似，但是可以通过发送消息来避免命名管道的同步和阻塞问题。同管道一样每个数据块有长度限制。
+</p>
+
+<p>
+补充文档：
+</p>
+<ul class="org-ul">
+<li><a href="http://blog.csdn.net/ljianhui/article/details/10128731">Linux进程间通信——使用信号</a></li>
+<li><a href="http://blog.csdn.net/ljianhui/article/details/10130539">Linux进程间通信——信号集函数</a></li>
+<li><a href="http://blog.csdn.net/ljianhui/article/details/10168031">Linux进程间通信——使用匿名管道</a></li>
+<li><a href="http://blog.csdn.net/ljianhui/article/details/10202699">Linux进程间通信——使用命名管道</a></li>
+<li><a href="http://blog.csdn.net/ljianhui/article/details/10253345">Linux进程间通信——使用共享内存</a></li>
+<li><a href="http://blog.csdn.net/ljianhui/article/details/10243617">Linux进程间通信——使用信号量</a></li>
+<li><a href="http://blog.csdn.net/ljianhui/article/details/10287879">Linux进程间通信——使用消息队列</a></li>
+</ul>
+</div>
+</div>
+<div id="outline-container-orgheadline6" class="outline-4">
+<h4 id="orgheadline6">进程池与线程池</h4>
+<div class="outline-text-4" id="text-orgheadline6">
+<p>
+一般用数组管理一组进程ID，不用的进程将其挂起，用<code>pause()</code>、信号量、IPC阻塞皆可。当有任务时将其唤醒，可以用信号将其唤醒，可以用函数指针告诉它该做什么，通过共享内存指定要处理的数据。处理完成之后再执行一次通信通知已经处理完成即可。最后需要回收所有子进程，这可以向各进程发送信号唤醒，改变激活状态让其主动结束，逐个<code>wait()</code>。
+</p>
+
+<p>
+线程池则更为轻量级，调度不用等待额外的资源，通过条件变量就可以控制线程阻塞和激活。线程通信的效率也很高，整个程序结束时通过改变条件让子线程自己结束，最后逐个回收即可。
+</p>
+</div>
+</div>
+<div id="outline-container-orgheadline7" class="outline-4">
+<h4 id="orgheadline7">趣味习题</h4>
+<div class="outline-text-4" id="text-orgheadline7">
+<div class="org-src-container">
+
+<pre class="src src-cpp" id="orgsrcblock1"><span style="color: #800;">#include</span> <span style="color: #800;">&lt;stdio.h&gt;</span>
+<span style="color: #800;">#include</span> <span style="color: #800;">&lt;sys/types.h&gt;</span>
+<span style="color: #800;">#include</span> <span style="color: #800;">&lt;unistd.h&gt;</span>
+<span style="color: #800;">#include</span> <span style="color: #800;">&lt;sys/wait.h&gt;</span>
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">main</span>()
+{
+    <span style="color: #800;">int</span> <span style="color: #048;">i</span>;
+
+    <span style="color: #800;">for</span>(i = 2; i != 0; --i) {
+        fork();
+        printf(<span style="color: #800;">"ppid=%d, pid=%d, i=%d\n"</span>, getppid(), getpid(), i);
+        <span style="color: #800;">if</span> (flush)
+            fflush(stdout);
+    }
+
+    wait(<span style="color: #800;">NULL</span>);
+    wait(<span style="color: #800;">NULL</span>);
+    <span style="color: #800;">return</span> 0;
+}
+</pre>
+</div>
+
+<p>
+如果不flush，则结果如下：
+</p>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<tbody>
+<tr>
+<td class="org-left">ppid=25101</td>
+<td class="org-left">pid=11464</td>
+<td class="org-left">i=2</td>
+</tr>
+
+<tr>
+<td class="org-left">ppid=11464</td>
+<td class="org-left">pid=11466</td>
+<td class="org-left">i=1</td>
+</tr>
+
+<tr>
+<td class="org-left">ppid=11464</td>
+<td class="org-left">pid=11465</td>
+<td class="org-left">i=2</td>
+</tr>
+
+<tr>
+<td class="org-left">ppid=11465</td>
+<td class="org-left">pid=11467</td>
+<td class="org-left">i=1</td>
+</tr>
+
+<tr>
+<td class="org-left">ppid=11464</td>
+<td class="org-left">pid=11465</td>
+<td class="org-left">i=2</td>
+</tr>
+
+<tr>
+<td class="org-left">ppid=11464</td>
+<td class="org-left">pid=11465</td>
+<td class="org-left">i=1</td>
+</tr>
+
+<tr>
+<td class="org-left">ppid=25101</td>
+<td class="org-left">pid=11464</td>
+<td class="org-left">i=2</td>
+</tr>
+
+<tr>
+<td class="org-left">ppid=25101</td>
+<td class="org-left">pid=11464</td>
+<td class="org-left">i=1</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+如果加上flush，则输出是这样的：
+</p>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<tbody>
+<tr>
+<td class="org-left">ppid=25101</td>
+<td class="org-left">pid=11490</td>
+<td class="org-left">i=2</td>
+</tr>
+
+<tr>
+<td class="org-left">ppid=11490</td>
+<td class="org-left">pid=11491</td>
+<td class="org-left">i=2</td>
+</tr>
+
+<tr>
+<td class="org-left">ppid=25101</td>
+<td class="org-left">pid=11490</td>
+<td class="org-left">i=1</td>
+</tr>
+
+<tr>
+<td class="org-left">ppid=11490</td>
+<td class="org-left">pid=11492</td>
+<td class="org-left">i=1</td>
+</tr>
+
+<tr>
+<td class="org-left">ppid=11490</td>
+<td class="org-left">pid=11491</td>
+<td class="org-left">i=1</td>
+</tr>
+
+<tr>
+<td class="org-left">ppid=11491</td>
+<td class="org-left">pid=11493</td>
+<td class="org-left">i=1</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+简单分析一下为什么会出现如此奇怪的输出，如果不调用<code>fflush</code>父进程的内存会复制到子进程，所以子进程在打印的时候，顺带又打印了一次父进程的内容。仔细分析上面的数据关系你就会发现，只会在第一次fork出的子进程才会复制。即A两个子进程BC、只有B会打印A的内容，但是B只有一个子进程D，所以D也会打印B的内容。
+</p>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline10" class="outline-2">
+<h2 id="orgheadline10">参考资料</h2>
+<div class="outline-text-2" id="text-orgheadline10">
+<ul class="org-ul">
+<li><a href="http://my.oschina.net/cnyinlinux/blog/422207">Linux进程与线程的区别</a></li>
+</ul>
+</div>
+</div>

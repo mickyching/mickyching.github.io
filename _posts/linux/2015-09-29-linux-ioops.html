@@ -1,0 +1,293 @@
+---
+title: Linux IO操作
+categories: linux
+tags: linux
+author: 敬叶
+---
+<dl class="post-meta">
+<dt class="post-meta">2015-09-29</dt><dd>敬叶 初稿</dd>
+</dl>
+<hr><br>
+<div id="table-of-contents"><h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#orgheadline1">Linux IO操作</a>
+<ul>
+<li><a href="#orgheadline2">非阻塞IO操作</a></li>
+<li><a href="#orgheadline3">记录锁</a></li>
+<li><a href="#orgheadline4">IO复用</a></li>
+<li><a href="#orgheadline5">异步IO</a></li>
+<li><a href="#orgheadline6">分散/聚集读写</a></li>
+<li><a href="#orgheadline7">固定长度读写</a></li>
+<li><a href="#orgheadline8">内存映射IO</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline1" class="outline-2">
+<h2 id="orgheadline1">Linux IO操作</h2>
+<div class="outline-text-2" id="text-orgheadline1">
+<!--abstract-begin-->
+<p>
+除了最基本的读写操作之外，Linux还提供了一些高级特征。非阻塞的IO操作允许在文件未准备好的情况下直接返回错误。记录锁让文件的一个区域锁住，防止被其它人篡改。
+IO多路复用允许我们同时查询多个文件中哪些已经准备好。异步IO则可以通过异步IO控制块进行异步传输。分散聚集读写操作允许我们将连续的读写操作分割成多个读写操作同时发送出去。固定长度读写让我们能够准确读取指定数目的长度，这实际上是多次调用读写来实现。内存映射可以让我们像访问内存一样的方式来修改文件。
+</p>
+<!--abstract-end-->
+</div>
+
+<div id="outline-container-orgheadline2" class="outline-3">
+<h3 id="orgheadline2">非阻塞IO操作</h3>
+<div class="outline-text-3" id="text-orgheadline2">
+<p>
+非阻塞IO就是在我们读写数据的时候，发送命令后就立即返回，如果返回错误码，就表示尚需等待。有两种方式可以让我们实现非阻塞的IO操作。
+</p>
+<ul class="org-ul">
+<li>用<code>O_NONBLOCK</code>标志调用open函数</li>
+<li>用fcntl函数打开<code>O_NONBLOCK</code>标志</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline3" class="outline-3">
+<h3 id="orgheadline3">记录锁</h3>
+<div class="outline-text-3" id="text-orgheadline3">
+<p>
+当两个人同时编辑一个文件的时候，后编辑的将覆盖先编辑的，为了避免这种问题，记录锁可以保证进程单独占用文件一段区域。实际上是通过fcntl函数实现。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">fcntl</span>(<span style="color: #800;">int</span> <span style="color: #048;">fd</span>, <span style="color: #800;">int</span> <span style="color: #048;">cmd</span>, ... <span style="color: #666;">/* </span><span style="color: #666;">struct flock *flockptr */</span> );
+<span style="color: #800;">struct</span> <span style="color: #800;">flock</span> {
+    <span style="color: #800;">short</span> <span style="color: #048;">l_type</span>;                       <span style="color: #666;">// </span><span style="color: #666;">F_RDLCK, F_WRLCK, or F_UNLCK</span>
+    <span style="color: #800;">short</span> <span style="color: #048;">l_whence</span>;                     <span style="color: #666;">// </span><span style="color: #666;">SEEK_SET, SEEK_CUR, or SEEK_END</span>
+    <span style="color: #800;">off_t</span> <span style="color: #048;">l_start</span>;                      <span style="color: #666;">// </span><span style="color: #666;">offset in bytes, relative to l_whence</span>
+    <span style="color: #800;">off_t</span> <span style="color: #048;">l_len</span>;                        <span style="color: #666;">// </span><span style="color: #666;">length, in bytes; 0 means lock to EOF</span>
+    <span style="color: #800;">pid_t</span> <span style="color: #048;">l_pid</span>;                        <span style="color: #666;">// </span><span style="color: #666;">returned with F_GETLK</span>
+};
+</pre>
+</div>
+<p>
+参数cmd可以为F_GETLK, F_SETLK和F_SETLKW等值，最后一个<code>F_SETLKW</code>是阻塞形式，表示Wait。
+</p>
+
+<p>
+记录锁关联一个进程和一个文件
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp">fd1 = open(pathname, ...);
+read_lock(fd1, ...);
+fd2 = dup(fd1);
+close(fd2);                             <span style="color: #666;">// </span><span style="color: #666;">lock on fd1 is released</span>
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-cpp">fd1 = open(pathname, ...);
+read_lock(fd1, ...);
+fd2 = open(pathname, ...)
+close(fd2);                             <span style="color: #666;">// </span><span style="color: #666;">lock on fd1 is released</span>
+</pre>
+</div>
+
+<p>
+子进程不继承记录锁，所以fork的子进程需要自己去获取。但是exec产生的进程则会继承。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline4" class="outline-3">
+<h3 id="orgheadline4">IO复用</h3>
+<div class="outline-text-3" id="text-orgheadline4">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">while</span> ((n = read(STDIN_FILENO, buf, BUFSIZ)) &gt; 0)
+    <span style="color: #800;">if</span> (write(STDOUT_FILENO, buf, n) != n)
+        err_sys(<span style="color: #800;">"write error"</span>);
+</pre>
+</div>
+<p>
+我们经常可以看到这样的代码，但是如果我们企图从两个文件读取，就不能简单在一个文件上面阻塞了。当然我们可以产生两个线程，这样当一个文件结束的时候我们就需要发送信号通知另一个线程，这就显得比较复杂了。
+</p>
+
+<p>
+另外一种方法是我们用非阻塞的形式，在每个文件上等待一会，这样的方式叫轮询，比较费CPU。轮询的方式不适合多任务系统。
+</p>
+
+<p>
+还有一种方法叫异步IO，当文件准备好的时候，内核给我们发送一个信号来通知我们。这样做面临一个移植性问题，主要是各种规范定义的接口不一致。另外一个问题就是当信号产生的时候，我们不知道是哪个文件已经准备好。
+</p>
+
+<p>
+IO复用技术用于解决这类问题，主要涉及三个函数，poll、pselect和select。函数select告诉内核：
+</p>
+<ul class="org-ul">
+<li>对哪个文件描述符感兴趣</li>
+<li>需要等待何种状态</li>
+<li>想要等待多长时间</li>
+</ul>
+<p>
+然后内核会告诉我们：
+</p>
+<ul class="org-ul">
+<li>总共可以使用的文件描述符个数</li>
+<li>哪些描述符已经准备好</li>
+</ul>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">select</span>(<span style="color: #800;">int</span> <span style="color: #048;">maxfdp1</span>, <span style="color: #800;">fd_set</span> *<span style="color: #048;">restrict</span> readfds,
+           <span style="color: #800;">fd_set</span> *<span style="color: #048;">restrict</span> writefds, <span style="color: #800;">fd_set</span> *<span style="color: #048;">restrict</span> exceptfds,
+           <span style="color: #800;">struct</span> <span style="color: #800;">timeval</span> *<span style="color: #048;">restrict</span> tvptr);
+</pre>
+</div>
+<dl class="org-dl">
+<dt>tvptr</dt><dd>如果传递NULL表示将会等到至少有一个文件描述符准备好</dd>
+</dl>
+
+<p>
+另外提供了一组宏来操作fd_set，如下所示。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">FD_ISSET</span>(<span style="color: #800;">int</span> <span style="color: #048;">fd</span>, <span style="color: #800;">fd_set</span> *<span style="color: #048;">fdset</span>);
+<span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">FD_CLR</span>(<span style="color: #800;">int</span> <span style="color: #048;">fd</span>, <span style="color: #800;">fd_set</span> *<span style="color: #048;">fdset</span>);
+<span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">FD_SET</span>(<span style="color: #800;">int</span> <span style="color: #048;">fd</span>, <span style="color: #800;">fd_set</span> *<span style="color: #048;">fdset</span>);
+<span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">FD_ZERO</span>(<span style="color: #800;">fd_set</span> *<span style="color: #048;">fdset</span>);
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">pselect</span>(<span style="color: #800;">int</span> <span style="color: #048;">maxfdp1</span>, <span style="color: #800;">fd_set</span> *<span style="color: #048;">restrict</span> readfds,
+            <span style="color: #800;">fd_set</span> *<span style="color: #048;">restrict</span> writefds, <span style="color: #800;">fd_set</span> *<span style="color: #048;">restrict</span> exceptfds,
+            <span style="color: #800;">const</span> <span style="color: #800;">struct</span> <span style="color: #800;">timespec</span> *<span style="color: #048;">restrict</span> tsptr,
+            <span style="color: #800;">const</span> <span style="color: #800;">sigset_t</span> *<span style="color: #048;">restrict</span> sigmask);
+</pre>
+</div>
+<p>
+和select相比，该函数有如下不同。
+</p>
+<ul class="org-ul">
+<li>时间采用<code>timespec</code>，精度为纳秒级别</li>
+<li>如果sigmask为NULL，在处理信号上和select行为一致，如果指定了sigmask，在执行pselect期间自动安装信号mask，当执行完成之后又会恢复原来的状态</li>
+</ul>
+
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">struct</span> <span style="color: #800;">pollfd</span> {
+    <span style="color: #800;">int</span> <span style="color: #048;">fd</span>;                             <span style="color: #666;">// </span><span style="color: #666;">file descriptor to check, or &lt;0 to ignore</span>
+    <span style="color: #800;">short</span> <span style="color: #048;">events</span>;                       <span style="color: #666;">// </span><span style="color: #666;">events of interest on fd</span>
+    <span style="color: #800;">short</span> <span style="color: #048;">revents</span>;                      <span style="color: #666;">// </span><span style="color: #666;">events that occurred on fd</span>
+};
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">poll</span>(<span style="color: #800;">struct</span> <span style="color: #800;">pollfd</span> <span style="color: #048;">fdarray</span>[], <span style="color: #800;">nfds_t</span> <span style="color: #048;">nfds</span>, <span style="color: #800;">int</span> <span style="color: #048;">timeout</span>);
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline5" class="outline-3">
+<h3 id="orgheadline5">异步IO</h3>
+<div class="outline-text-3" id="text-orgheadline5">
+<p>
+使用select和poll实现的是同步通知模型，使用信号可以异步通知我们感兴趣的文件发生了什么。但是异步IO也有局限性，如果是关注多个文件，就无法确定是哪个文件产生的变化。
+POSIX异步IO利用AIO控制块描述IO操作。
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">struct</span> <span style="color: #800;">aiocb</span> {
+    <span style="color: #800;">int</span> <span style="color: #048;">aio_fildes</span>;                     <span style="color: #666;">// </span><span style="color: #666;">file descriptor</span>
+    <span style="color: #800;">off_t</span> <span style="color: #048;">aio_offset</span>;                   <span style="color: #666;">// </span><span style="color: #666;">file offset for I/O</span>
+    <span style="color: #800;">volatile</span> <span style="color: #800;">void</span> *<span style="color: #048;">aio_buf</span>;             <span style="color: #666;">// </span><span style="color: #666;">buffer for I/O</span>
+    <span style="color: #800;">size_t</span> <span style="color: #048;">aio_nbytes</span>;                  <span style="color: #666;">// </span><span style="color: #666;">number of bytes to transfer</span>
+    <span style="color: #800;">int</span> <span style="color: #048;">aio_reqprio</span>;                    <span style="color: #666;">// </span><span style="color: #666;">priority</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">sigevent</span> <span style="color: #048;">aio_sigevent</span>;       <span style="color: #666;">// </span><span style="color: #666;">signal information</span>
+    <span style="color: #800;">int</span> <span style="color: #048;">aio_lio_opcode</span>;                 <span style="color: #666;">// </span><span style="color: #666;">operation for list I/O</span>
+};
+<span style="color: #800;">struct</span> <span style="color: #800;">sigevent</span> {
+    <span style="color: #800;">int</span> <span style="color: #048;">sigev_notify</span>;
+    <span style="color: #800;">int</span> <span style="color: #048;">sigev_signo</span>;
+    <span style="color: #800;">union</span> <span style="color: #800;">sigval</span> <span style="color: #048;">sigev_value</span>;
+    <span style="color: #800;">void</span> (*<span style="color: #048; font-weight: bold;">sigev_notify_function</span>)(<span style="color: #800;">union</span> <span style="color: #800;">sigval</span>);
+    <span style="color: #800;">pthread_attr_t</span> *<span style="color: #048;">sigev_notify_attributes</span>;
+};
+</pre>
+</div>
+
+<p>
+要执行异步IO，只需要将构造好的控制块传递给读写命令即可。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">aio_read</span>(<span style="color: #800;">struct</span> <span style="color: #800;">aiocb</span> *<span style="color: #048;">aiocb</span>);
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">aio_write</span>(<span style="color: #800;">struct</span> <span style="color: #800;">aiocb</span> *<span style="color: #048;">aiocb</span>);
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">aio_fsync</span>(<span style="color: #800;">int</span> <span style="color: #048;">op</span>, <span style="color: #800;">struct</span> <span style="color: #800;">aiocb</span> *<span style="color: #048;">aiocb</span>);
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">aio_error</span>(<span style="color: #800;">const</span> <span style="color: #800;">struct</span> <span style="color: #800;">aiocb</span> *<span style="color: #048;">aiocb</span>);
+<span style="color: #800;">ssize_t</span> <span style="color: #048; font-weight: bold;">aio_return</span>(<span style="color: #800;">const</span> <span style="color: #800;">struct</span> <span style="color: #800;">aiocb</span> *<span style="color: #048;">aiocb</span>);
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">aio_suspend</span>(<span style="color: #800;">const</span> <span style="color: #800;">struct</span> <span style="color: #800;">aiocb</span> *<span style="color: #800;">const</span> <span style="color: #048;">list</span>[], <span style="color: #800;">int</span> <span style="color: #048;">nent</span>,
+                <span style="color: #800;">const</span> <span style="color: #800;">struct</span> <span style="color: #800;">timespec</span> *<span style="color: #048;">timeout</span>);
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">aio_cancel</span>(<span style="color: #800;">int</span> <span style="color: #048;">fd</span>, <span style="color: #800;">struct</span> <span style="color: #800;">aiocb</span> *<span style="color: #048;">aiocb</span>);
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline6" class="outline-3">
+<h3 id="orgheadline6">分散/聚集读写</h3>
+<div class="outline-text-3" id="text-orgheadline6">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">struct</span> <span style="color: #800;">iovec</span> {
+    <span style="color: #800;">void</span> *<span style="color: #048;">iov_base</span>;                     <span style="color: #666;">// </span><span style="color: #666;">starting address of buffer</span>
+    <span style="color: #800;">size_t</span> <span style="color: #048;">iov_len</span>;                     <span style="color: #666;">// </span><span style="color: #666;">size of buffer</span>
+};
+<span style="color: #800;">ssize_t</span> <span style="color: #048; font-weight: bold;">readv</span>(<span style="color: #800;">int</span> <span style="color: #048;">fd</span>, <span style="color: #800;">const</span> <span style="color: #800;">struct</span> <span style="color: #800;">iovec</span> *<span style="color: #048;">iov</span>, <span style="color: #800;">int</span> <span style="color: #048;">iovcnt</span>);
+<span style="color: #800;">ssize_t</span> <span style="color: #048; font-weight: bold;">writev</span>(<span style="color: #800;">int</span> <span style="color: #048;">fd</span>, <span style="color: #800;">const</span> <span style="color: #800;">struct</span> <span style="color: #800;">iovec</span> *<span style="color: #048;">iov</span>, <span style="color: #800;">int</span> <span style="color: #048;">iovcnt</span>);
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline7" class="outline-3">
+<h3 id="orgheadline7">固定长度读写</h3>
+<div class="outline-text-3" id="text-orgheadline7">
+<p>
+调用read/write函数返回的长度可能比需要的少，如果想要得到指定长度的读写量可以使用如下一组函数，它们不过是多次调用读写来实现。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">ssize_t</span> <span style="color: #048; font-weight: bold;">readn</span>(<span style="color: #800;">int</span> <span style="color: #048;">fd</span>, <span style="color: #800;">void</span> *<span style="color: #048;">buf</span>, <span style="color: #800;">size_t</span> <span style="color: #048;">nbytes</span>);
+<span style="color: #800;">ssize_t</span> <span style="color: #048; font-weight: bold;">writen</span>(<span style="color: #800;">int</span> <span style="color: #048;">fd</span>, <span style="color: #800;">void</span> *<span style="color: #048;">buf</span>, <span style="color: #800;">size_t</span> <span style="color: #048;">nbytes</span>);
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline8" class="outline-3">
+<h3 id="orgheadline8">内存映射IO</h3>
+<div class="outline-text-3" id="text-orgheadline8">
+<p>
+利用内存映射，可以直接向文件读写数据而不用调用read/write函数。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">void</span> *<span style="color: #048; font-weight: bold;">mmap</span>(<span style="color: #800;">void</span> *<span style="color: #048;">addr</span>, <span style="color: #800;">size_t</span> <span style="color: #048;">len</span>, <span style="color: #800;">int</span> <span style="color: #048;">prot</span>, <span style="color: #800;">int</span> <span style="color: #048;">flag</span>, <span style="color: #800;">int</span> <span style="color: #048;">fd</span>, <span style="color: #800;">off_t</span> <span style="color: #048;">off</span>);
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">mprotect</span>(<span style="color: #800;">void</span> *<span style="color: #048;">addr</span>, <span style="color: #800;">size_t</span> <span style="color: #048;">len</span>, <span style="color: #800;">int</span> <span style="color: #048;">prot</span>); <span style="color: #666;">// </span><span style="color: #666;">change protection</span>
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">msync</span>(<span style="color: #800;">void</span> *<span style="color: #048;">addr</span>, <span style="color: #800;">size_t</span> <span style="color: #048;">len</span>, <span style="color: #800;">int</span> <span style="color: #048;">flags</span>);   <span style="color: #666;">// </span><span style="color: #666;">flush change to mapping</span>
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">munmap</span>(<span style="color: #800;">void</span> *<span style="color: #048;">addr</span>, <span style="color: #800;">size_t</span> <span style="color: #048;">len</span>);
+</pre>
+</div>
+<dl class="org-dl">
+<dt>addr</dt><dd>一般指定为0，由系统帮我们确定起始地址</dd>
+<dt>len</dt><dd>一般指定为文件大小，通过fstat获取</dd>
+<dt>prot</dt><dd>指定保护方式：<code>PROT_READ</code>、<code>PROT_WRITE</code>、<code>PROT_EXEC</code>、<code>PROT_NONE</code>，要注意这里所指定的返回不能比调用open时传递的范围大。</dd>
+<dt>flag</dt><dd>可以为：<code>MAP_FIXED</code>、<code>MAP_SHARED</code>、<code>MAP_PRIVATE</code></dd>
+<dt>fd</dt><dd>要操作的文件描述符</dd>
+<dt>off</dt><dd>一般指定为0</dd>
+</dl>
+</div>
+</div>
+</div>

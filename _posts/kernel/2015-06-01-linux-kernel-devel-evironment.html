@@ -1,0 +1,1003 @@
+---
+title: Linux内核开发环境
+categories: kernel
+tags: linux kernel
+author: 敬叶
+---
+<dl class="post-meta">
+<dt class="post-meta">2015-06-01</dt><dd>敬叶 初稿</dd>
+</dl>
+<hr><br>
+<div id="table-of-contents"><h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#orgheadline1">Linux简介</a>
+<ul>
+<li><a href="#orgheadline2">构建内核</a></li>
+<li><a href="#orgheadline5">内核调试</a>
+<ul>
+<li><a href="#orgheadline3">动态调试</a></li>
+<li><a href="#orgheadline4">打印调试</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#orgheadline8">驱动开发</a>
+<ul>
+<li><a href="#orgheadline6">编译环境</a></li>
+<li><a href="#orgheadline7">设备驱动</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline12">Linux设备驱动模型</a>
+<ul>
+<li><a href="#orgheadline9">基本对象</a></li>
+<li><a href="#orgheadline10">uevent</a>
+<ul>
+<li><a href="#orgheadline11">kobject_uevent()</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#orgheadline13">向内核提交代码</a></li>
+<li><a href="#orgheadline14">参考资料</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline1" class="outline-2">
+<h2 id="orgheadline1">Linux简介</h2>
+<div class="outline-text-2" id="text-orgheadline1">
+<!--abstract-begin-->
+
+<p>
+Linux基于UNIX开发，UNIX在1969年由Dennis Ritchie和Ken Thompson两位大师开发。
+Linux最早由Linus Torvalds于1991年开发。整个Linux系统由系统调用将用户空间和内核空间联系起来，用户通过系统调用来进入到内核态，以完成对设备的访问和控制。因此从功能上讲，内核主要是为用户提供接口，对计算机硬件资源进行管理。
+</p>
+
+<!--abstract-end-->
+
+<p>
+Linux具备一些非常好的技术支持，包括：
+</p>
+<ul class="org-ul">
+<li>支持动态载入和卸载内核模块</li>
+<li>支持SMP</li>
+<li>抢占式任务调度</li>
+<li>进程和线程不作区分</li>
+<li>面向对象设备模型、热插拔支持、用户空间设备文件系统sysfs</li>
+</ul>
+</div>
+
+<div id="outline-container-orgheadline2" class="outline-3">
+<h3 id="orgheadline2">构建内核</h3>
+<div class="outline-text-3" id="text-orgheadline2">
+<p>
+最新的Linux内核可以通过如下方式获取：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">git clone https://github.com/torvalds/linux
+</pre>
+</div>
+
+<p>
+可以看到内核下包括如下文件和目录：
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<tbody>
+<tr>
+<td class="org-left">Documentation</td>
+<td class="org-left">文档</td>
+</tr>
+
+<tr>
+<td class="org-left">arch</td>
+<td class="org-left">架构相关代码</td>
+</tr>
+
+<tr>
+<td class="org-left">block</td>
+<td class="org-left">块IO层代码</td>
+</tr>
+
+<tr>
+<td class="org-left">crypto</td>
+<td class="org-left">加密API</td>
+</tr>
+
+<tr>
+<td class="org-left">drivers</td>
+<td class="org-left">设备驱动</td>
+</tr>
+
+<tr>
+<td class="org-left">firmware</td>
+<td class="org-left">一些驱动会用到的固件</td>
+</tr>
+
+<tr>
+<td class="org-left">fs</td>
+<td class="org-left">文件系统</td>
+</tr>
+
+<tr>
+<td class="org-left">include</td>
+<td class="org-left">头文件</td>
+</tr>
+
+<tr>
+<td class="org-left">init</td>
+<td class="org-left">内核启动代码</td>
+</tr>
+
+<tr>
+<td class="org-left">ipc</td>
+<td class="org-left">进程间通信代码</td>
+</tr>
+
+<tr>
+<td class="org-left">kernel</td>
+<td class="org-left">核心子系统，如进程调度</td>
+</tr>
+
+<tr>
+<td class="org-left">lib</td>
+<td class="org-left">常用库函数</td>
+</tr>
+
+<tr>
+<td class="org-left">mm</td>
+<td class="org-left">内存管理子系统</td>
+</tr>
+
+<tr>
+<td class="org-left">net</td>
+<td class="org-left">网络子系统</td>
+</tr>
+
+<tr>
+<td class="org-left">samples</td>
+<td class="org-left">样本示例代码</td>
+</tr>
+
+<tr>
+<td class="org-left">scripts</td>
+<td class="org-left">各种脚本</td>
+</tr>
+
+<tr>
+<td class="org-left">security</td>
+<td class="org-left">安全模块</td>
+</tr>
+
+<tr>
+<td class="org-left">sound</td>
+<td class="org-left">声音子系统</td>
+</tr>
+
+<tr>
+<td class="org-left">tools</td>
+<td class="org-left">开发内核实用工具</td>
+</tr>
+
+<tr>
+<td class="org-left">virt</td>
+<td class="org-left">虚拟化设施</td>
+</tr>
+
+<tr>
+<td class="org-left">COPYING</td>
+<td class="org-left">许可证</td>
+</tr>
+
+<tr>
+<td class="org-left">CREDITS</td>
+<td class="org-left">对内核有较多贡献的人列表</td>
+</tr>
+
+<tr>
+<td class="org-left">Kbuild</td>
+<td class="org-left">Kbuild</td>
+</tr>
+
+<tr>
+<td class="org-left">Kconfig</td>
+<td class="org-left">Kbuild配置文件</td>
+</tr>
+
+<tr>
+<td class="org-left">MAINTAINERS</td>
+<td class="org-left">各子系统维护者</td>
+</tr>
+
+<tr>
+<td class="org-left">Makefile</td>
+<td class="org-left">主Makefile</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+在构建内核之前需要对内核进行配置，比如去掉不必要的模块，修改调试级别，如打开动态debug，打开锁调试等等。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">make menuconfig
+</pre>
+</div>
+<p>
+在menuconfig提供的界面中，有如下一些快捷键可以使用：
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<tbody>
+<tr>
+<td class="org-left">?</td>
+<td class="org-left">查看帮助</td>
+</tr>
+
+<tr>
+<td class="org-left">SPC</td>
+<td class="org-left">用于对当前项选中：星号表示编译至内核、M表示编译为模块</td>
+</tr>
+
+<tr>
+<td class="org-left">ESC</td>
+<td class="org-left">退出</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>/</code></td>
+<td class="org-left">搜索</td>
+</tr>
+
+<tr>
+<td class="org-left">&lt; &gt;</td>
+<td class="org-left">左右移动</td>
+</tr>
+
+<tr>
+<td class="org-left">up down</td>
+<td class="org-left">上下移动</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+配置好内核即可使用如下命令编译安装：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">make -j8                                <span style="color: #666;"># </span><span style="color: #666;">8 means start 8 threads</span>
+make modules_install
+make install
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-orgheadline5" class="outline-3">
+<h3 id="orgheadline5">内核调试</h3>
+<div class="outline-text-3" id="text-orgheadline5">
+</div><div id="outline-container-orgheadline3" class="outline-4">
+<h4 id="orgheadline3">动态调试</h4>
+<div class="outline-text-4" id="text-orgheadline3">
+<p>
+内核动态调试是通过一个控制文件来控制哪些消息打印出来，哪些消息不打印。要支持这个功能就需要启用如下配置：
+</p>
+<ul class="org-ul">
+<li>CONFIG_DYNAMIC_DEBUG</li>
+</ul>
+
+<p>
+如果开启动态调试，那么pr_debug()/dev_dbg()，
+print_hex_dump_debug()/print_hex_dump_bytes()就可以动态选择是否打印出来。使用动态调试的好处是，可以控制文件、函数、行号、模块以及格式字符串。控制文件位于<code>&lt;debugfs&gt;/dynamic_debug/control</code>。
+</p>
+
+<p>
+下面是用于控制的样例：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #800;">echo</span> <span style="color: #800;">'file svcsock.c line 1603 +p'</span> &gt; control <span style="color: #666;"># </span><span style="color: #666;">&#25511;&#21046;&#25171;&#21360;&#34892;</span>
+<span style="color: #800;">echo</span> <span style="color: #800;">'func get_resources +p'</span> &gt; control       <span style="color: #666;"># </span><span style="color: #666;">&#25511;&#21046;&#20989;&#25968;</span>
+<span style="color: #800;">echo</span> <span style="color: #800;">"file drivers/usb/* +p"</span> &gt; control       <span style="color: #666;"># </span><span style="color: #666;">&#27491;&#21017;&#34920;&#36798;&#24335;&#25511;&#21046;</span>
+cat batch-file &gt; control                     <span style="color: #666;"># </span><span style="color: #666;">&#25209;&#37327;&#25511;&#21046;</span>
+</pre>
+</div>
+<p>
+控制规则如下：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #800;">command</span> ::= match-spec* flags-spec
+</pre>
+</div>
+<dl class="org-dl">
+<dt>match-spec</dt><dd>'func' string | 'file' string | 'module' string | 'format' string | 'line' line-range
+<ul class="org-ul">
+<li>func 用函数名匹配</li>
+<li>file 用文件匹配</li>
+<li>module 用模块匹配，不要后缀，其中"-"要替换为"_"</li>
+<li>format 用格式字符串匹配，特殊字符可以用八进制转义得到，也可以用引号包围</li>
+<li>line 根据指定行号范围匹配</li>
+</ul></dd>
+<dt>line-range</dt><dd>lineno | -lineno | lineno- | lineno1-lineno2</dd>
+<dt>flags-spec</dt><dd>更改调试状态
+<ul class="org-ul">
+<li><code>-</code>移除</li>
+<li><code>+</code>添加</li>
+<li><code>=</code>设置为指定标志</li>
+<li><code>p</code>启用pr_debug()</li>
+<li><code>f</code>在打印消息中添加函数名</li>
+<li><code>l</code>在打印消息中添加行号</li>
+<li><code>m</code>在打印消息中添加模块名</li>
+<li><code>t</code>包含线程ID</li>
+<li><code>_</code>没有任何标志位置起</li>
+</ul></dd>
+</dl>
+
+<p>
+对于print_hex_dump_debug()和print_hex_dump_bytes()，只有p操作有意义，其它操作被忽略。
+</p>
+
+<p>
+我们可以用<code>^[-+=][flmpt_]+$</code>匹配标志规则部分，要清除所有标志使用<code>=_</code>即可。
+</p>
+
+<p>
+我们也可以从控制文件获取相关信息，控制文件的格式如下：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-text">filename:lineno [module]function flags format
+</pre>
+</div>
+<dl class="org-dl">
+<dt>flags</dt><dd>表示启用状态，默认是=_表示没有开启。</dd>
+</dl>
+<p>
+如果想查看不是处于默认状态的信息可以用如下一个命令。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">awk <span style="color: #800;">'$3 != "=_"'</span> control
+</pre>
+</div>
+
+<p>
+有时候我们希望在插入模块的时候就打开调试。当执行modprobe foo的时候，modprobe会去为foo.params扫描/proc/cmdline，去掉"foo."之后传递给内核。总共有三个地方的参数会传递给内核，并且有执行顺序。
+</p>
+<ol class="org-ol">
+<li><p>
+/etc/modprobe.d/*.conf
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">options foo <span style="color: #048;">dyndbg</span>=+pt
+options foo dyndbg                      <span style="color: #666;"># </span><span style="color: #666;">defaults to +p</span>
+</pre>
+</div></li>
+<li><p>
+foo.dyndbg as given in boot args
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">foo.dyndbg=<span style="color: #800;">" func bar +p; func buz +mp "</span>
+</pre>
+</div></li>
+<li><p>
+args to modprobe
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">modprobe foo <span style="color: #048;">dyndbg</span>==pmf <span style="color: #666;"># </span><span style="color: #666;">override previous settings</span>
+</pre>
+</div></li>
+</ol>
+
+<p>
+这里dyndbg是一个伪参数，每个模块不必自己去定义，相当于系统已经为每个模块定义好了。
+</p>
+</div>
+</div>
+<div id="outline-container-orgheadline4" class="outline-4">
+<h4 id="orgheadline4">打印调试</h4>
+<div class="outline-text-4" id="text-orgheadline4">
+<p>
+打印调试可以用到的格式字符如下表所示。
+</p>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">标识符</th>
+<th scope="col" class="org-left">类型</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">基本数据类型</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+
+<tr>
+<td class="org-left">%d or %x</td>
+<td class="org-left">int</td>
+</tr>
+
+<tr>
+<td class="org-left">%u or %x</td>
+<td class="org-left">unsigned int</td>
+</tr>
+
+<tr>
+<td class="org-left">%ld or %lx</td>
+<td class="org-left">long</td>
+</tr>
+
+<tr>
+<td class="org-left">%lu or %lx</td>
+<td class="org-left">unsigned long</td>
+</tr>
+
+<tr>
+<td class="org-left">%lld or %llx</td>
+<td class="org-left">long long</td>
+</tr>
+
+<tr>
+<td class="org-left">%llu or %llx</td>
+<td class="org-left">unsigned long long</td>
+</tr>
+
+<tr>
+<td class="org-left">%zu or %zx</td>
+<td class="org-left">size_t</td>
+</tr>
+
+<tr>
+<td class="org-left">%zd or %zx</td>
+<td class="org-left">ssize_t</td>
+</tr>
+
+<tr>
+<td class="org-left">%p</td>
+<td class="org-left">raw pointer</td>
+</tr>
+</tbody>
+<tbody>
+<tr>
+<td class="org-left">函数指针</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+
+<tr>
+<td class="org-left">%pF</td>
+<td class="org-left">versatile_init+0x0/0x110</td>
+</tr>
+
+<tr>
+<td class="org-left">%pf</td>
+<td class="org-left">versatile_init</td>
+</tr>
+
+<tr>
+<td class="org-left">%pS</td>
+<td class="org-left">versatile_init+0x0/0x110</td>
+</tr>
+
+<tr>
+<td class="org-left">%pSR</td>
+<td class="org-left">versatile_init+0x9/0x110</td>
+</tr>
+
+<tr>
+<td class="org-left">%ps</td>
+<td class="org-left">versatile_init</td>
+</tr>
+
+<tr>
+<td class="org-left">%pB</td>
+<td class="org-left">prev_fn_of_versatile_init+0x88/0x88</td>
+</tr>
+</tbody>
+<tbody>
+<tr>
+<td class="org-left">缓冲区</td>
+<td class="org-left">星号用具体的长度值替换</td>
+</tr>
+
+<tr>
+<td class="org-left">%*ph</td>
+<td class="org-left">00 01 02  &#x2026;  3f</td>
+</tr>
+
+<tr>
+<td class="org-left">%*phC</td>
+<td class="org-left">0:01:02: &#x2026; :3f</td>
+</tr>
+
+<tr>
+<td class="org-left">%*phD</td>
+<td class="org-left">0-01-02- &#x2026; -3f</td>
+</tr>
+
+<tr>
+<td class="org-left">%*phN</td>
+<td class="org-left">00102 &#x2026; 3f</td>
+</tr>
+</tbody>
+<tbody>
+<tr>
+<td class="org-left">物理地址</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+
+<tr>
+<td class="org-left">%pa[p]</td>
+<td class="org-left">0x01234567 or 0x0123456789abcdef</td>
+</tr>
+</tbody>
+<tbody>
+<tr>
+<td class="org-left">DMA地址</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+
+<tr>
+<td class="org-left">%pad</td>
+<td class="org-left">0x01234567 or 0x0123456789abcdef</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline8" class="outline-2">
+<h2 id="orgheadline8">驱动开发</h2>
+<div class="outline-text-2" id="text-orgheadline8">
+</div><div id="outline-container-orgheadline6" class="outline-3">
+<h3 id="orgheadline6">编译环境</h3>
+<div class="outline-text-3" id="text-orgheadline6">
+<p>
+设备驱动都放在<code>drivers/</code>目录下，下面又细分为不同类型的设备驱动。假定要写一个字符设备驱动，需要修改<code>drivers/char/Makefile</code>以编译新加的驱动。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-makefile"><span style="color: #048;">obj-$(</span><span style="color: #048;">CONFIG_FISHING_POLE</span><span style="color: #048;">)</span> += fishing.o
+<span style="color: #048;">fishing-objs</span> := fishing-main.o fishing-line.o
+<span style="color: #048;">EXTRA_CFLAGS</span> += -DTITANIUM_POLE
+</pre>
+</div>
+<p>
+由于内核是可以配置的，所以需要添加配置选项，修改<code>drivers/char/Kconfig</code>：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-makefile">config FISHING_POLE
+        depends on EXAMPLE_DRIVERS &amp;&amp; !NO_FISHING_ALLOWED
+        select BAIT
+        tristate <span style="color: #800;">"Fish Master 3000 support"</span>
+        default n
+        help
+          If you say Y here, support for the Fish Master 3000
+</pre>
+</div>
+<p>
+当然你也可以创建自己的子目录，子目录中Makefile和Kconfig的写法可以参考父目录。
+</p>
+
+<p>
+如果只想写一个不加入到内核的驱动，可以这么写Makefile：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-makefile"><span style="color: #048;">obj-m</span> += fishing.o
+<span style="color: #048;">fishing-objs</span> := fishing-main.o fishing-line.o
+<span style="color: #048;">EXTRA_CFLAGS</span> += -DTITANIUM_POLE
+</pre>
+</div>
+<p>
+编译的时候这么写：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">make -C /kernel/source/location <span style="color: #048;">SUBDIRS</span>=$<span style="color: #048;">PWD</span> modules
+make modules_install                    <span style="color: #666;"># </span><span style="color: #666;">install module</span>
+depmod -A                               <span style="color: #666;"># </span><span style="color: #666;">add to dependency</span>
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">insmod module.ko                        <span style="color: #666;"># </span><span style="color: #666;">insert module</span>
+rmmod module                            <span style="color: #666;"># </span><span style="color: #666;">remove module</span>
+modprobe module [parameters]            <span style="color: #666;"># </span><span style="color: #666;">insert module</span>
+modprobe &#8211;r modules                     <span style="color: #666;"># </span><span style="color: #666;">remove module</span>
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-orgheadline7" class="outline-3">
+<h3 id="orgheadline7">设备驱动</h3>
+<div class="outline-text-3" id="text-orgheadline7">
+<p>
+Linux对设备分为三种类型，块设备、字符设备、网络设备。块设备以固定块长作为访问单位。字符设备不可寻址，本质上就是字节流。网络设备通过物理适配器提供访问网络的接口。并不是说设备驱动就一定是驱动物理设备，也可是虚拟设备，例如<code>/dev/urandom</code>就是一个随机数发生器。
+</p>
+
+<p>
+设备驱动被写作一个模块，类似于用户空间的一个程序。如果编译时以模块形式生成，那么系统启动后可以动态加载或卸载。一个模块的框架如下所示：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-c"><span style="color: #800;">#include</span> <span style="color: #800;">&lt;linux/init.h&gt;</span>
+<span style="color: #800;">#include</span> <span style="color: #800;">&lt;linux/module.h&gt;</span>
+
+<span style="color: #800;">static</span> <span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">hello_init</span>(<span style="color: #800;">void</span>)             <span style="color: #666;">/* </span><span style="color: #666;">like main </span><span style="color: #666;">*/</span>
+{
+        printk(KERN_ALERT <span style="color: #800;">"I bear a charmed life.\n"</span>);
+        <span style="color: #800;">return</span> 0;
+}
+<span style="color: #800;">static</span> <span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">hello_exit</span>(<span style="color: #800;">void</span>)            <span style="color: #666;">/* </span><span style="color: #666;">for release resource </span><span style="color: #666;">*/</span>
+{
+        printk(KERN_ALERT <span style="color: #800;">"Out, out, brief candle!\n"</span>);
+}
+module_init(hello_init);
+module_exit(hello_exit);
+MODULE_LICENSE(<span style="color: #800;">"GPL"</span>);
+MODULE_AUTHOR(<span style="color: #800;">"Shakespeare"</span>);
+MODULE_DESCRIPTION(<span style="color: #800;">"A Hello, World Module"</span>);
+</pre>
+</div>
+
+<p>
+一个模块可以有参数，也可以导出接口，添加参数要使用内核提供的<code>module_param</code>系列接口，导出接口要要使用<code>EXPORT_SYMBOL_GPL</code>接口。所谓导出接口，就是提供一个函数可以被其它模块使用。
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline12" class="outline-2">
+<h2 id="orgheadline12">Linux设备驱动模型</h2>
+<div class="outline-text-2" id="text-orgheadline12">
+</div><div id="outline-container-orgheadline9" class="outline-3">
+<h3 id="orgheadline9">基本对象</h3>
+<div class="outline-text-3" id="text-orgheadline9">
+<p>
+提到设备模型就不得不说道如下几个类：
+</p>
+<dl class="org-dl">
+<dt>kobject</dt><dd>可以看作设备基类，每个设备都应该有一个kobject</dd>
+<dt>kref</dt><dd>在kobject中用kref来进行引用计数，也就是说kref提供了一个通用计数机制</dd>
+<dt>ktype</dt><dd>如果我们把kobject中其它字段看作数据成员，那么ktype就是方法成员</dd>
+<dt>kset</dt><dd>同类对象的集合，ktype是为了让同类对象共享方法，而kset只是一个容器，代表一个子系统</dd>
+</dl>
+
+<p>
+每个kobject都有一个名字和一个引用计数，还有一个父亲，以表示在层次中的位置，此外还有一个类型，一个sysfs中的表示。
+kobject自身没有什么用，它们都是嵌入到别的数据结构中去，当然任何数据结构也只能嵌入一个kobject。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">struct</span> <span style="color: #800;">kobject</span> {
+    <span style="color: #800;">const</span> <span style="color: #800;">char</span>              *<span style="color: #048;">name</span>;      <span style="color: #666;">// </span><span style="color: #666;">&#30446;&#24405;&#21517;&#23383;</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">list_head</span>        <span style="color: #048;">entry</span>;      <span style="color: #666;">// </span><span style="color: #666;">head: kset-&gt;list</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">kobject</span>          *<span style="color: #048;">parent</span>;    <span style="color: #666;">// </span><span style="color: #666;">&#29238;&#23545;&#35937;</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">kset</span>             *<span style="color: #048;">kset</span>;      <span style="color: #666;">// </span><span style="color: #666;">&#25152;&#23646;&#38598;&#21512;</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">kobj_type</span>        *<span style="color: #048;">ktype</span>;     <span style="color: #666;">// </span><span style="color: #666;">&#25152;&#23646;&#31867;&#22411;</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">kernfs_node</span>      *<span style="color: #048;">sd</span>;        <span style="color: #666;">// </span><span style="color: #666;">&#20851;&#32852;&#23545;&#35937;&#19982;sysfs</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">kref</span>             <span style="color: #048;">kref</span>;       <span style="color: #666;">// </span><span style="color: #666;">&#24341;&#29992;&#35745;&#25968;</span>
+<span style="color: #800;">#ifdef</span> CONFIG_DEBUG_KOBJECT_RELEASE
+    <span style="color: #800;">struct</span> <span style="color: #800;">delayed_work</span>     <span style="color: #048;">release</span>;
+<span style="color: #800;">#endif</span>
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048;">state_initialized</span>:1;
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048;">state_in_sysfs</span>:1;
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048;">state_add_uevent_sent</span>:1;
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048;">state_remove_uevent_sent</span>:1;
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048;">uevent_suppress</span>:1;     <span style="color: #666;">// </span><span style="color: #666;">&#31105;&#27490;&#21457;&#36865;uevent</span>
+};
+</pre>
+</div>
+
+<div class="org-center">
+
+<div class="figure">
+<p><img src="/resource/kernel/fig/kdevel/kset.png" alt="kset.png" />
+</p>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline10" class="outline-3">
+<h3 id="orgheadline10">uevent</h3>
+<div class="outline-text-3" id="text-orgheadline10">
+<p>
+内核空间的设备和驱动信息通过<code>sysfs</code>文件系统导出到<code>/sys</code>目录。该目录下各子目录说明如下：
+</p>
+<dl class="org-dl">
+<dt>block</dt><dd>系统注册的所有块设备</dd>
+<dt>bus</dt><dd>系统中的总线</dd>
+<dt>class</dt><dd>设备分类，按功能分类</dd>
+<dt>dev</dt><dd>注册的设备节点</dd>
+<dt>devices</dt><dd>导出设备模型</dd>
+<dt>firmware</dt><dd>底层子系统，如ACPI, EDD, EFI等</dd>
+<dt>fs</dt><dd>注册的文件系统</dd>
+<dt>kernel</dt><dd>内核配置和状态信息</dd>
+<dt>modules</dt><dd>载入模块信息</dd>
+<dt>power</dt><dd>电源管理数据</dd>
+</dl>
+
+<p>
+向sysfs添加设备节点是通过kobject来实现的，每一个添加的kobject对应一个目录。而文件则是通过属性添加，可以认为一个文件表示一个属性，添加属性一般要实现<code>show()</code>和<code>store()</code>两个方法，用于对文件读取和写入。如果利用好sysfs提供的属性，可以避免使用不安全的ioctl以及混乱的<code>/proc</code>系统。
+</p>
+
+<p>
+内核事件通过uevent发送给用户，而uevent也是通过kobject来发送的。当然要完整的工作，也离不开用户空间的监听程序。当用户插拔设备的时候，内核检测到设备插拔并发出插拔事件，调用<code>/proc/sys/kernel/hotplug</code>中指定的用户空间应用对事件进行处理。
+</p>
+
+<p>
+以device_add为例，该函数的主要工作如下：
+</p>
+<ul class="org-ul">
+<li>如果没有名字，设置设备的名字</li>
+<li>设置其kobj的parent，kobj_add()添加kobject到parent下</li>
+<li>创建设备sysfs目录下的文件
+<ul class="org-ul">
+<li>uevent</li>
+<li>dev：有设备号才会创建</li>
+</ul></li>
+<li>device_add_class_symlinks()
+<ul class="org-ul">
+<li>subsystem：位于设备属性下，指向所属的子系统的符号链接。</li>
+<li>device：位于设备属性下，有父亲且不是分区时才会创建，指向父设备的符号链接。</li>
+<li>name：位于子系统属性下，指向设备属性，名字和设备名相同，如果是块设备就不会创建，因为已经在/sys/block下面创建了和设备名相同的符号链接。</li>
+</ul></li>
+<li>device_add_attrs()
+<ul class="org-ul">
+<li>dev-&gt;class-&gt;dev_groups</li>
+<li>dev-&gt;type-&gt;groups</li>
+<li>dev-&gt;groups</li>
+<li>dev_attr_online</li>
+</ul></li>
+<li>bus_add_device()
+<ul class="org-ul">
+<li>device_add_attrs() 添加总线属性，不同于设备属性</li>
+<li>bus-&gt;dev_groups</li>
+<li>name：位于总线属性下，指向设备的符号链接</li>
+<li>subsystem：位于设备属性下，指向总线的符号链接</li>
+</ul></li>
+<li>dpm_sysfs_add()
+<ul class="org-ul">
+<li>动态PM相关sysfs文件</li>
+</ul></li>
+<li>device_pm_add()
+将设备添加到PM核心链表</li>
+<li>blocking_notifier_call_chain()</li>
+<li><code>kobject_uevent(&amp;dev-&gt;kobj, KOBJ_ADD);</code></li>
+<li>bus_probe_device()
+为设备探测合适的驱动</li>
+</ul>
+</div>
+<div id="outline-container-orgheadline11" class="outline-4">
+<h4 id="orgheadline11">kobject_uevent()</h4>
+<div class="outline-text-4" id="text-orgheadline11">
+<p>
+要使用netlink发出uevent，必须配置NET，同样，要使用uevent_helper发出uevent，必须配置UEVENT_HELPER。
+udev通过netlink监听，mdev则通过uevent_helper监听。假定所有函数都能成功执行，将其简化后如下所示。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">kobject_uevent_env</span>(<span style="color: #800;">struct</span> <span style="color: #800;">kobject</span> *<span style="color: #048;">kobj</span>,
+                       <span style="color: #800;">enum</span> <span style="color: #800;">kobject_action</span> <span style="color: #048;">action</span>,
+                       <span style="color: #800;">char</span> *<span style="color: #048;">envp_ext</span>[])
+{
+    <span style="color: #800;">struct</span> <span style="color: #800;">kobj_uevent_env</span> *<span style="color: #048;">env</span> =
+        kzalloc(<span style="color: #800;">sizeof</span>(<span style="color: #800;">struct</span> <span style="color: #800;">kobj_uevent_env</span>), GFP_KERNEL);
+    <span style="color: #666;">// </span><span style="color: #666;">&#21033;&#29992;&#23383;&#31526;&#20018;&#25968;&#32452;&#23558;enum&#36716;&#25442;&#20026;&#23383;&#31526;&#20018;</span>
+    <span style="color: #800;">const</span> <span style="color: #800;">char</span> *<span style="color: #048;">action_string</span> = kobject_actions[action];
+    <span style="color: #800;">struct</span> <span style="color: #800;">kobject</span> *<span style="color: #048;">top_kobj</span> = ...;             <span style="color: #666;">// </span><span style="color: #666;">&#24517;&#39035;&#25214;&#21040;kset</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">kset</span> *<span style="color: #048;">kset</span> = top_kobj-&gt;kset;
+    <span style="color: #800;">const</span> <span style="color: #800;">struct</span> <span style="color: #800;">kset_uevent_ops</span> *<span style="color: #048;">uevent_ops</span> = kset-&gt;uevent_ops;
+    <span style="color: #800;">const</span> <span style="color: #800;">char</span> *<span style="color: #048;">subsystem</span>;
+
+    <span style="color: #800;">if</span> (kobj-&gt;uevent_suppress)                  <span style="color: #666;">// </span><span style="color: #666;">&#31105;&#27490;&#21457;&#20986;</span>
+        <span style="color: #800;">return</span> 0;
+    <span style="color: #800;">if</span> (uevent_ops &amp;&amp; uevent_ops-&gt;filter)
+        <span style="color: #800;">if</span> (<span style="color: #c00;">!</span>uevent_ops-&gt;filter(kset, kobj))    <span style="color: #666;">// </span><span style="color: #666;">&#34987;&#36807;&#28388;</span>
+            <span style="color: #800;">return</span> 0;
+
+    <span style="color: #800;">if</span> (uevent_ops &amp;&amp; uevent_ops-&gt;name)
+        subsystem = uevent_ops-&gt;name(kset, kobj);
+    <span style="color: #800;">else</span>
+        subsystem = kobject_name(&amp;kset-&gt;kobj);
+    <span style="color: #800;">if</span> (<span style="color: #c00;">!</span>subsystem)                             <span style="color: #666;">// </span><span style="color: #666;">&#24517;&#39035;&#26377;&#23376;&#31995;&#32479;</span>
+        <span style="color: #800;">return</span> 0;
+
+    <span style="color: #800;">const</span> <span style="color: #800;">char</span> *<span style="color: #048;">devpath</span> = kobject_get_path(kobj, GFP_KERNEL);
+    add_uevent_var(env, <span style="color: #800;">"ACTION=%s"</span>, action_string);
+    add_uevent_var(env, <span style="color: #800;">"DEVPATH=%s"</span>, devpath);
+    add_uevent_var(env, <span style="color: #800;">"SUBSYSTEM=%s"</span>, subsystem);
+    <span style="color: #800;">for</span> (<span style="color: #800;">int</span> <span style="color: #048;">i</span> = 0; envp_ext &amp;&amp; envp_ext[i]; i++) <span style="color: #666;">// </span><span style="color: #666;">&#39069;&#22806;&#29615;&#22659;&#21464;&#37327;</span>
+        add_uevent_var(env, <span style="color: #800;">"%s"</span>, envp_ext[i]);
+    <span style="color: #800;">if</span> (uevent_ops &amp;&amp; uevent_ops-&gt;uevent)       <span style="color: #666;">// </span><span style="color: #666;">kset&#25805;&#20316;</span>
+        uevent_ops-&gt;uevent(kset, kobj, env);
+
+    <span style="color: #800;">if</span> (action == KOBJ_ADD)
+        kobj-&gt;state_add_uevent_sent = 1;
+    <span style="color: #800;">else</span> <span style="color: #800;">if</span> (action == KOBJ_REMOVE)
+        kobj-&gt;state_remove_uevent_sent = 1;
+
+    mutex_lock(&amp;uevent_sock_mutex);
+    add_uevent_var(env, <span style="color: #800;">"SEQNUM=%llu"</span>,          <span style="color: #666;">// </span><span style="color: #666;">&#24207;&#21015;&#21495;</span>
+                   (<span style="color: #800;">unsigned</span> <span style="color: #800;">long</span> <span style="color: #800;">long</span>)++uevent_seqnum);
+
+<span style="color: #800;">#ifdef</span> CONFIG_NET
+    <span style="color: #800;">struct</span> <span style="color: #800;">uevent_sock</span> *<span style="color: #048;">ue_sk</span>;
+    <span style="color: #048;">list_for_each_entry</span>(ue_sk, &amp;uevent_sock_list, <span style="color: #800;">list</span>) {
+        <span style="color: #800;">struct</span> <span style="color: #800;">sock</span> *<span style="color: #048;">uevent_sock</span> = ue_sk-&gt;sk;
+        <span style="color: #800;">struct</span> <span style="color: #800;">sk_buff</span> *<span style="color: #048;">skb</span>;
+        <span style="color: #800;">char</span> *<span style="color: #048;">scratch</span>;
+        <span style="color: #800;">size_t</span> <span style="color: #048;">len</span>;
+
+        <span style="color: #800;">if</span> (<span style="color: #c00;">!</span>netlink_has_listeners(uevent_sock, 1))
+            <span style="color: #800;">continue</span>;
+
+        len = strlen(action_string) + strlen(devpath) + 2;
+        skb = alloc_skb(len + env-&gt;buflen, GFP_KERNEL);
+
+        scratch = skb_put(skb, len);
+        sprintf(scratch, <span style="color: #800;">"%s@%s"</span>, action_string, devpath);
+
+        <span style="color: #800;">for</span> (i = 0; i &lt; env-&gt;envp_idx; i++) {
+            len = strlen(env-&gt;envp[i]) + 1;
+            scratch = skb_put(skb, len);
+            strcpy(scratch, env-&gt;envp[i]);
+        }
+
+        NETLINK_CB(skb).dst_group = 1;
+        netlink_broadcast_filtered(uevent_sock, skb, 0, 1, GFP_KERNEL,
+                                   kobj_bcast_filter, kobj);
+    }
+<span style="color: #800;">#endif</span>
+    mutex_unlock(&amp;uevent_sock_mutex);
+
+<span style="color: #800;">#ifdef</span> CONFIG_UEVENT_HELPER
+    <span style="color: #800;">if</span> (uevent_helper[0] &amp;&amp; <span style="color: #c00;">!</span>kobj_usermode_filter(kobj)) {
+        <span style="color: #800;">struct</span> <span style="color: #800;">subprocess_info</span> *<span style="color: #048;">info</span>;
+        <span style="color: #800;">const</span> <span style="color: #800;">char</span> *<span style="color: #048;">path</span> = <span style="color: #800;">"PATH=/sbin:/bin:/usr/sbin:/usr/bin"</span>
+            add_uevent_var(env, <span style="color: #800;">"HOME=/"</span>);
+        add_uevent_var(env, path);
+        init_uevent_argv(env, subsystem);
+        info = call_usermodehelper_setup(env-&gt;argv[0], env-&gt;argv,
+                                         env-&gt;envp, GFP_KERNEL, <span style="color: #800;">NULL</span>,
+                                         cleanup_uevent_env, env);
+        call_usermodehelper_exec(info, UMH_NO_WAIT);
+        env = <span style="color: #800;">NULL</span>;     <span style="color: #666;">/* </span><span style="color: #666;">freed by cleanup_uevent_env */</span>
+    }
+<span style="color: #800;">#endif</span>
+
+<span style="color: #800;">exit</span>:
+    kfree(devpath);
+    kfree(env);
+    <span style="color: #800;">return</span> 0;
+}
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="outline-container-orgheadline13" class="outline-2">
+<h2 id="orgheadline13">向内核提交代码</h2>
+<div class="outline-text-2" id="text-orgheadline13">
+<p>
+如果发现内核中存在问题，或者性能可以提高，或者添加新的驱动等待，就可以向内核提交补丁。不过在提交之前必须做好验证工作，首先代码中不能有BUG，代码必须要安照内核标准风格来写，还要做些必要的静态检查等。
+</p>
+
+<p>
+关于代码风格，建议先阅读 <a href="/slide/linux/linux-kernel-coding-style.html">Linux kernel coding-style</a>。代码风格的检查可以用如下指令检查：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">scripts/checkpatch.pl *.patch
+</pre>
+</div>
+<p>
+如果要检查的不是补丁而是文件，加一个参数<code>-f</code>即可，如果希望对出现问题的代码修复，可以加参数<code>--fix</code>或者<code>--fix-inplace</code>。
+</p>
+
+<p>
+sparse是Linux常用的一个静态检查工具，ubuntu用户可以用apt-get安装，安装好之后在调用<code>make</code>时传递参数<code>C=2</code>即可。
+smatch也是一个静态检查工具，可以通过如下命令获取：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">git clone git://repo.or.cz/smatch.git
+</pre>
+</div>
+<p>
+安装好以后在调用<code>make</code>时传递参数<code>CHECK="smatch -p=kernel"</code>即可。
+</p>
+
+<p>
+当一切检查妥当之后就可以生成patch，一般采用如下命令生成：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">git format-patch --cover-letter --thread --subject-prefix=<span style="color: #800;">"PATCH v2"</span> -5
+</pre>
+</div>
+<p>
+如果只需要生成一个commit的patch，是不需要<code>--cover-letter</code>和<code>--thread</code>选项的。注意<code>--cover-letter</code>需要编辑以添加封面信息。如果第一次提交发现有问题，那么在第二次提交的时候就要加上<code>--subject-prefix="PATCH v2"</code>选项。
+</p>
+
+<p>
+准备好patch之后就可以通过如下命令向内核发送补丁了：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">git send-email --smtp-server /usr/bin/msmtp <span style="color: #800;">\</span>
+ --from yourname@email.com <span style="color: #800;">\</span>
+ --to maintainer1@email1.com <span style="color: #800;">\</span>
+ --to maintainer2@email2.com <span style="color: #800;">\</span>
+ --cc devel@linuxdriverproject.org <span style="color: #800;">\</span>
+ --cc linux-kernel@vger.kernel.org *.patch
+</pre>
+</div>
+<p>
+很显然git用到msmtp工具来发送邮件，在ubuntu上可以通过apt-get安装，配置文件在<code>~/.msmtprc</code>。大致格式如下：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #666;"># </span><span style="color: #666;">Set default values for all following accounts.</span>
+defaults
+logfile ~/.msmtp.log
+
+<span style="color: #666;"># </span><span style="color: #666;">gmail</span>
+account gmail
+protocol smtp
+host gmail.com
+from mickyching@gmail.com
+user mickyching@gmail.com
+password PASSWORD
+port 25
+auth ntlm
+syslog LOG_MAIL
+
+<span style="color: #666;"># </span><span style="color: #666;">Set a default account</span>
+account default : gmail
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-orgheadline14" class="outline-2">
+<h2 id="orgheadline14">参考资料</h2>
+<div class="outline-text-2" id="text-orgheadline14">
+<ul class="org-ul">
+<li><a href="https://www.kernel.org/doc/Documentation/kobject.txt">Documentation/kobject.txt</a></li>
+</ul>
+</div>
+</div>

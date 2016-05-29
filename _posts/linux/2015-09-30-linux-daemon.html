@@ -1,0 +1,96 @@
+---
+title: Linux守护进程
+categories: linux
+tags: linux daemon
+author: 敬叶
+---
+<dl class="post-meta">
+<dt class="post-meta">2015-09-30</dt><dd>敬叶 初稿</dd>
+</dl>
+<hr><br>
+<div id="table-of-contents"><h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#orgheadline1">Linux守护进程</a></li>
+<li><a href="#orgheadline3">参考资料</a>
+<ul>
+<li><a href="#orgheadline2">博客资源</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline1" class="outline-2">
+<h2 id="orgheadline1">Linux守护进程</h2>
+<div class="outline-text-2" id="text-orgheadline1">
+<!--abstract-begin-->
+<p>
+守护进程一般在系统启动的时候启动，在系统关闭的时候才会退出，
+Linux的大多数服务器都是以守护进程的形式实现。因为在后台运行，也叫后台进程，独立于终端运行，故输出需要特殊处理。
+</p>
+
+<p>
+守护进程的父进程是init进程，因为其真正父进程在fork()出子进程就立即退出了，将子进程交给init托管。
+</p>
+
+<dl class="org-dl">
+<dt>进程组</dt><dd>每个进程的进程组ID就是组长的ID，进程只能为自己或其子进程设置组ID。</dd>
+<dt>会话</dt><dd>新建会话的目的主要是解除原有的会话，另一方面因为如果该进程是组长，就无法建立新会话，所以要先fork()一个子进程。</dd>
+</dl>
+
+<p>
+编写守护进程需要完成如下步骤：
+</p>
+<ol class="org-ol">
+<li>父进程<code>fork()</code>并退出。</li>
+<li>子进程<code>umask(0)</code>。</li>
+<li>子进程<code>setsid()</code>创建新会话。</li>
+<li>子进程<code>chdir("/")</code>切换工作目录，如果不切换工作目录可能导致进程占用文件系统，使文件系统无法卸载。</li>
+<li>子进程关闭所有不用的文件描述符。</li>
+</ol>
+<!--abstract-end-->
+
+<p>
+以上这些步骤可以通过一个函数来完成，Linux提供了daemon()函数用于执行通用步骤。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">daemon</span>(<span style="color: #800;">int</span> <span style="color: #048;">nochdir</span>, <span style="color: #800;">int</span> <span style="color: #048;">noclose</span>);
+</pre>
+</div>
+
+<p>
+编写守护进程同时需要遵循一些惯例，包括如下几点。
+</p>
+<ul class="org-ul">
+<li>如果后台进程试图创建文件，如日志文件、锁住文件来实现单实例等，文件应该在<code>/var/run</code>目录下创建。</li>
+<li>如果需要配置文件，配置文件应该在<code>/etc</code>目录下创建。</li>
+</ul>
+
+<p>
+在Linux系统下，不同的发行版日志系统有所不同，以Ubuntu为例。
+</p>
+<dl class="org-dl">
+<dt>/var/log/auth.log</dt><dd>授权日志，包括ssh、su登录信息。</dd>
+<dt>/var/log/daemon.log</dt><dd>守护进程日志，如gdm、mysqld等。</dd>
+<dt>/var/log/kern.log</dt><dd>内核日志，由操作系统内核发出。</dd>
+<dt>/var/log/dmesg</dt><dd>内核循环缓冲日志，可以通过dmesg查看。</dd>
+<dt>/var/log/syslog</dt><dd>系统日志，syslog()函数将消息输出到该文件。</dd>
+</dl>
+</div>
+</div>
+
+<div id="outline-container-orgheadline3" class="outline-2">
+<h2 id="orgheadline3">参考资料</h2>
+<div class="outline-text-2" id="text-orgheadline3">
+</div><div id="outline-container-orgheadline2" class="outline-3">
+<h3 id="orgheadline2">博客资源</h3>
+<div class="outline-text-3" id="text-orgheadline2">
+<ul class="org-ul">
+<li><a href="http://www.cnblogs.com/mickole/p/3188321.html">守护进程详解及创建，daemon()使用</a></li>
+<li><a href="http://www.danielhall.me/2010/01/writing-a-daemon-in-c/">Writing a Daemon in C</a></li>
+</ul>
+</div>
+</div>
+</div>

@@ -1,0 +1,386 @@
+---
+title: UNIX Network Programming
+categories: network
+tags: network
+author: 敬叶
+---
+<dl class="post-meta">
+<dt class="post-meta">2015-07-09</dt><dd>敬叶 初稿</dd>
+</dl>
+<hr><br>
+<div id="table-of-contents"><h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#orgheadline1">基本概念</a></li>
+<li><a href="#orgheadline16">TCP机制</a>
+<ul>
+<li><a href="#orgheadline2">基本概念</a></li>
+<li><a href="#orgheadline9">应用程序接口</a>
+<ul>
+<li><a href="#orgheadline3">数据结构</a></li>
+<li><a href="#orgheadline4">创建套接字</a></li>
+<li><a href="#orgheadline5">绑定套接字</a></li>
+<li><a href="#orgheadline6">监听和连接</a></li>
+<li><a href="#orgheadline7">断开连接</a></li>
+<li><a href="#orgheadline8">数据传输</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline15">IO模型</a>
+<ul>
+<li><a href="#orgheadline10">阻塞传输</a></li>
+<li><a href="#orgheadline11">非阻塞传输</a></li>
+<li><a href="#orgheadline12">复用模型</a></li>
+<li><a href="#orgheadline13">信号驱动模型</a></li>
+<li><a href="#orgheadline14">异步模型</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#orgheadline18">参考资料</a>
+<ul>
+<li><a href="#orgheadline17">博客资源</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline1" class="outline-2">
+<h2 id="orgheadline1">基本概念</h2>
+<div class="outline-text-2" id="text-orgheadline1">
+<!--abstract-begin-->
+
+<p>
+网络中进程之间要通信首先需要标识自己，本地是通过PID标识的，而网络中则是通过IP地址标识主机，通过协议和端口标识进程。使用TCP/IP协议的应用程序通常采用套接字通信，套接字源于UNIX。
+</p>
+
+<p>
+在网络编程中还需要注意字节序，网络字节序为大端，因此将CPU数据传递给网络接口的时候，需要进行字节序转换。常用的也就四个函数：hton[sl]()、ntoh[sl]()。几个字母的含义是Host、Network、Short、Long。
+</p>
+
+<!--abstract-end-->
+
+<p>
+网际网协议族和OSI模型如下图所示：
+</p>
+<div class="org-center">
+
+<div class="figure">
+<p><img src="/resource/network/fig/net/osi-model.png" alt="osi-model.png" />
+</p>
+</div>
+</div>
+
+<p>
+UDP不保证到达目的地，不保证顺序不变，不保证只达一次，不需要两端长期连接，数据报包含长度信息。
+</p>
+
+<p>
+TCP需要建立连接，三次握手，基于字节流，提供确认机制，全双工。
+</p>
+
+<p>
+SCTP和TCP最大区别是提供了多宿主连接，四次握手，支持多个流，基于消息流。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline16" class="outline-2">
+<h2 id="orgheadline16">TCP机制</h2>
+<div class="outline-text-2" id="text-orgheadline16">
+</div><div id="outline-container-orgheadline2" class="outline-3">
+<h3 id="orgheadline2">基本概念</h3>
+<div class="outline-text-3" id="text-orgheadline2">
+<p>
+连接三次握手
+</p>
+<ul class="org-ul">
+<li>服务端：socket、bind、listen被动打开</li>
+<li>客户端：connect主动打开，发送SYN，握手开始</li>
+<li>服务端：accept确认ACK并发送SYN</li>
+<li>客户端：确认服务端SYN，此时客户端connect返回，服务端accept返回</li>
+</ul>
+
+<p>
+断开四次握手
+</p>
+<ul class="org-ul">
+<li>A主动关闭：close发送FIN</li>
+<li>B被动关闭：确认FIN</li>
+<li>B主动关闭：close发送FIN</li>
+<li>A确认关闭：确认FIN</li>
+</ul>
+</div>
+</div>
+<div id="outline-container-orgheadline9" class="outline-3">
+<h3 id="orgheadline9">应用程序接口</h3>
+<div class="outline-text-3" id="text-orgheadline9">
+</div><div id="outline-container-orgheadline3" class="outline-4">
+<h4 id="orgheadline3">数据结构</h4>
+<div class="outline-text-4" id="text-orgheadline3">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">struct</span> <span style="color: #800;">sockaddr_in</span> {
+    <span style="color: #800;">sa_family_t</span>    <span style="color: #048;">sin_family</span>;          <span style="color: #666;">// </span><span style="color: #666;">e.g. AF_INET, AF_INET6</span>
+    <span style="color: #800;">in_port_t</span>      <span style="color: #048;">sin_port</span>;            <span style="color: #666;">// </span><span style="color: #666;">e.g. htons(3490)</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">in_addr</span> <span style="color: #048;">sin_addr</span>;            <span style="color: #666;">// </span><span style="color: #666;">see below</span>
+};
+<span style="color: #800;">struct</span> <span style="color: #800;">in_addr</span> {
+    <span style="color: #800;">uint32_t</span>       <span style="color: #048;">s_addr</span>;              <span style="color: #666;">// </span><span style="color: #666;">load with inet_pton()</span>
+};
+
+<span style="color: #800;">struct</span> <span style="color: #800;">sockaddr_in6</span> {
+    <span style="color: #800;">sa_family_t</span>     <span style="color: #048;">sin6_family</span>;        <span style="color: #666;">// </span><span style="color: #666;">address family, AF_INET6</span>
+    <span style="color: #800;">in_port_t</span>       <span style="color: #048;">sin6_port</span>;          <span style="color: #666;">// </span><span style="color: #666;">port number, Network Byte Order</span>
+    <span style="color: #800;">uint32_t</span>        <span style="color: #048;">sin6_flowinfo</span>;      <span style="color: #666;">// </span><span style="color: #666;">IPv6 flow information</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">in6_addr</span> <span style="color: #048;">sin6_addr</span>;          <span style="color: #666;">// </span><span style="color: #666;">IPv6 address</span>
+    <span style="color: #800;">uint32_t</span>        <span style="color: #048;">sin6_scope_id</span>;      <span style="color: #666;">// </span><span style="color: #666;">Scope ID</span>
+};
+<span style="color: #800;">struct</span> <span style="color: #800;">in6_addr</span> {
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">char</span>   <span style="color: #048;">s6_addr</span>[16];        <span style="color: #666;">// </span><span style="color: #666;">load with inet_pton()</span>
+};
+
+<span style="color: #800;">struct</span> <span style="color: #800;">sockaddr_un</span> {
+    <span style="color: #800;">sa_family_t</span> <span style="color: #048;">sun_family</span>;              <span style="color: #666;">// </span><span style="color: #666;">AF_UNIX</span>
+    <span style="color: #800;">char</span>        <span style="color: #048;">sun_path</span>[UNIX_PATH_MAX]; <span style="color: #666;">// </span><span style="color: #666;">pathname</span>
+};
+</pre>
+</div>
+<p>
+作为参数传递时要使用通用套接字<code>sockaddr</code>，相当于是一个通用结构。之所以这么麻烦，是因为指定标准时还没有<code>void</code>类型。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">struct</span> <span style="color: #800;">sockaddr</span> {
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">short</span>    <span style="color: #048;">sa_family</span>;        <span style="color: #666;">// </span><span style="color: #666;">2 bytes address family, AF_xxx</span>
+    <span style="color: #800;">char</span>              <span style="color: #048;">sa_data</span>[14];      <span style="color: #666;">// </span><span style="color: #666;">14 bytes of protocol address</span>
+};
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-orgheadline4" class="outline-4">
+<h4 id="orgheadline4">创建套接字</h4>
+<div class="outline-text-4" id="text-orgheadline4">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">socket</span>(<span style="color: #800;">int</span> <span style="color: #048;">domain</span>, <span style="color: #800;">int</span> <span style="color: #048;">type</span>, <span style="color: #800;">int</span> <span style="color: #048;">protocol</span>);
+</pre>
+</div>
+
+<p>
+参数domain指定地址类型。
+</p>
+<dl class="org-dl">
+<dt>AF_INET</dt><dd>IPv4地址加端口</dd>
+<dt>AF_INET6</dt><dd>IPv6地址加端口</dd>
+<dt>AF_UNIX</dt><dd>绝对路径</dd>
+</dl>
+
+<p>
+参数type指定套接字的类型。
+</p>
+<dl class="org-dl">
+<dt>SOCK_DGRAM</dt><dd>固定长度，无连接，不可信赖消息，使用UDP协议，无连接的含义是不需要建立连接，直接发送数据包即可</dd>
+<dt>SOCK_STREAM</dt><dd>序列化、可信赖、双向面向连接的字节流</dd>
+<dt>SOCK_RAW</dt><dd>IP报文接口</dd>
+<dt>SOCK_SEQPACKET</dt><dd>固定长度、序列化、可信赖、面向连接的消息</dd>
+</dl>
+
+<p>
+参数protocol指定协议，包括：IPPROTO_IP、IPPROTO_IPV6、
+IPPROTO_ICMP、IPPROTO_RAW、IPPROTO_TCP、IPPROTO_UDP等。
+</p>
+
+<p>
+要注意类型和协议是不能随意组合的，为了避免人工错误选择，可以设置协议为0，这样会自动选择匹配的协议。
+</p>
+</div>
+</div>
+<div id="outline-container-orgheadline5" class="outline-4">
+<h4 id="orgheadline5">绑定套接字</h4>
+<div class="outline-text-4" id="text-orgheadline5">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">inet_pton</span>(<span style="color: #800;">int</span> <span style="color: #048;">af</span>, <span style="color: #800;">const</span> <span style="color: #800;">char</span> *<span style="color: #048;">str</span>, <span style="color: #800;">void</span> *<span style="color: #048;">addr</span>);
+<span style="color: #800;">const</span> <span style="color: #800;">char</span> *<span style="color: #048; font-weight: bold;">inet_ntop</span>(<span style="color: #800;">int</span> <span style="color: #048;">af</span>, <span style="color: #800;">const</span> <span style="color: #800;">void</span> *<span style="color: #048;">addr</span>, <span style="color: #800;">char</span> *<span style="color: #048;">str</span>, <span style="color: #800;">socklen_t</span> <span style="color: #048;">size</span>);
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">bind</span>(<span style="color: #800;">int</span> <span style="color: #048;">sockfd</span>, <span style="color: #800;">const</span> <span style="color: #800;">struct</span> <span style="color: #800;">sockaddr</span> *<span style="color: #048;">addr</span>, <span style="color: #800;">socklen_t</span> <span style="color: #048;">addrlen</span>);
+</pre>
+</div>
+<p>
+在服务启动的时候需要绑定一个已知的IP地址和端口，客户就可以利用它来连接服务器，客户端不用自己分配，在调用connect的时候系统会自动随机分配一个。
+</p>
+
+<p>
+由<code>inet_pton</code>和<code>inet_ntop</code>完成<code>in_addr</code>与字符串IP地址之间的转换。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline6" class="outline-4">
+<h4 id="orgheadline6">监听和连接</h4>
+<div class="outline-text-4" id="text-orgheadline6">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">listen</span>(<span style="color: #800;">int</span> <span style="color: #048;">sockfd</span>, <span style="color: #800;">int</span> <span style="color: #048;">backlog</span>);
+</pre>
+</div>
+<p>
+参数backlog用于指定最大连接个数。
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">connect</span>(<span style="color: #800;">int</span> <span style="color: #048;">sockfd</span>, <span style="color: #800;">const</span> <span style="color: #800;">struct</span> <span style="color: #800;">sockaddr</span> *<span style="color: #048;">addr</span>, <span style="color: #800;">socklen_t</span> <span style="color: #048;">addrlen</span>);
+</pre>
+</div>
+<p>
+客户端通过connect来建立连接。
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">accept</span>(<span style="color: #800;">int</span> <span style="color: #048;">sockfd</span>, <span style="color: #800;">struct</span> <span style="color: #800;">sockaddr</span> *<span style="color: #048;">addr</span>, <span style="color: #800;">socklen_t</span> *<span style="color: #048;">addrlen</span>);
+</pre>
+</div>
+<p>
+参数addr用于获取客户端的协议地址，addrlen是客户端协议地址长度，如果接受成功，返回内核生成的全新描述字。注意区分参数中的sockfd是监听套接字，而返回的是已连接套接字。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline7" class="outline-4">
+<h4 id="orgheadline7">断开连接</h4>
+<div class="outline-text-4" id="text-orgheadline7">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">close</span>(<span style="color: #800;">int</span> <span style="color: #048;">sockfd</span>);
+</pre>
+</div>
+<p>
+当使用完成之后关闭即可断开连接，关闭之后就不能继续使用该描述符。实际行为是将引用计数减1，当计数为0时才会真正去关闭套接字。
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">shutdown</span>(<span style="color: #800;">int</span> <span style="color: #048;">sockfd</span>, <span style="color: #800;">int</span> <span style="color: #048;">how</span>);
+</pre>
+</div>
+<p>
+注意shutdown()不会影响引用计数，只会影响行为，由参数how来控制：
+<code>SHUT_RD</code><code>SHUT_WR</code><code>SHUT_RDWR</code>。
+</p>
+</div>
+</div>
+<div id="outline-container-orgheadline8" class="outline-4">
+<h4 id="orgheadline8">数据传输</h4>
+<div class="outline-text-4" id="text-orgheadline8">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">#include</span> <span style="color: #800;">&lt;unistd.h&gt;</span>
+<span style="color: #800;">ssize_t</span> <span style="color: #048; font-weight: bold;">read</span>(<span style="color: #800;">int</span> <span style="color: #048;">fd</span>, <span style="color: #800;">void</span> *<span style="color: #048;">buf</span>, <span style="color: #800;">size_t</span> <span style="color: #048;">count</span>);
+<span style="color: #800;">ssize_t</span> <span style="color: #048; font-weight: bold;">write</span>(<span style="color: #800;">int</span> <span style="color: #048;">fd</span>, <span style="color: #800;">const</span> <span style="color: #800;">void</span> *<span style="color: #048;">buf</span>, <span style="color: #800;">size_t</span> <span style="color: #048;">count</span>);
+</pre>
+</div>
+<p>
+这一组读写方法和UNIX文件读写方法是完全相同的接口，需要注意的是凡是读写都要检查返回值，返回为0的时候表示没有读写到信息，没有读写到信息也可能是套接字被关闭，返回负数的时候表示有错误发生。
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">#include</span> <span style="color: #800;">&lt;sys/types.h&gt;</span>
+<span style="color: #800;">#include</span> <span style="color: #800;">&lt;sys/socket.h&gt;</span>
+<span style="color: #800;">ssize_t</span> <span style="color: #048; font-weight: bold;">send</span>(<span style="color: #800;">int</span> <span style="color: #048;">sockfd</span>, <span style="color: #800;">const</span> <span style="color: #800;">void</span> *<span style="color: #048;">buf</span>, <span style="color: #800;">size_t</span> <span style="color: #048;">len</span>, <span style="color: #800;">int</span> <span style="color: #048;">flags</span>);
+<span style="color: #800;">ssize_t</span> <span style="color: #048; font-weight: bold;">recv</span>(<span style="color: #800;">int</span> <span style="color: #048;">sockfd</span>, <span style="color: #800;">void</span> *<span style="color: #048;">buf</span>, <span style="color: #800;">size_t</span> <span style="color: #048;">len</span>, <span style="color: #800;">int</span> <span style="color: #048;">flags</span>);
+<span style="color: #800;">ssize_t</span> <span style="color: #048; font-weight: bold;">sendto</span>(<span style="color: #800;">int</span> <span style="color: #048;">sockfd</span>, <span style="color: #800;">const</span> <span style="color: #800;">void</span> *<span style="color: #048;">buf</span>, <span style="color: #800;">size_t</span> <span style="color: #048;">len</span>, <span style="color: #800;">int</span> <span style="color: #048;">flags</span>,
+               <span style="color: #800;">const</span> <span style="color: #800;">struct</span> <span style="color: #800;">sockaddr</span> *<span style="color: #048;">dest_addr</span>, <span style="color: #800;">socklen_t</span> <span style="color: #048;">addrlen</span>);
+<span style="color: #800;">ssize_t</span> <span style="color: #048; font-weight: bold;">recvfrom</span>(<span style="color: #800;">int</span> <span style="color: #048;">sockfd</span>, <span style="color: #800;">void</span> *<span style="color: #048;">buf</span>, <span style="color: #800;">size_t</span> <span style="color: #048;">len</span>, <span style="color: #800;">int</span> <span style="color: #048;">flags</span>,
+                 <span style="color: #800;">struct</span> <span style="color: #800;">sockaddr</span> *<span style="color: #048;">src_addr</span>, <span style="color: #800;">socklen_t</span> *<span style="color: #048;">addrlen</span>);
+<span style="color: #800;">ssize_t</span> <span style="color: #048; font-weight: bold;">sendmsg</span>(<span style="color: #800;">int</span> <span style="color: #048;">sockfd</span>, <span style="color: #800;">const</span> <span style="color: #800;">struct</span> <span style="color: #800;">msghdr</span> *<span style="color: #048;">msg</span>, <span style="color: #800;">int</span> <span style="color: #048;">flags</span>);
+<span style="color: #800;">ssize_t</span> <span style="color: #048; font-weight: bold;">recvmsg</span>(<span style="color: #800;">int</span> <span style="color: #048;">sockfd</span>, <span style="color: #800;">struct</span> <span style="color: #800;">msghdr</span> *<span style="color: #048;">msg</span>, <span style="color: #800;">int</span> <span style="color: #048;">flags</span>);
+</pre>
+</div>
+
+<p>
+这一组中的sendto/recvfrom可以用于未连接的报文套接字，事实上对于报文套接字也可以调用connect()函数，这样做的好处就是可以用send/recv进行收发，调用send/recv并不会改变协议类型，但是可以自动帮我们加上目标地址。
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline15" class="outline-3">
+<h3 id="orgheadline15">IO模型</h3>
+<div class="outline-text-3" id="text-orgheadline15">
+</div><div id="outline-container-orgheadline10" class="outline-4">
+<h4 id="orgheadline10">阻塞传输</h4>
+<div class="outline-text-4" id="text-orgheadline10">
+<p>
+阻塞式IO处理方法是当资源没有准备好的时候一直等待。
+</p>
+</div>
+</div>
+<div id="outline-container-orgheadline11" class="outline-4">
+<h4 id="orgheadline11">非阻塞传输</h4>
+<div class="outline-text-4" id="text-orgheadline11">
+<p>
+实际上就是不断的轮询，当资源没准备好的时候直接返回错误。
+</p>
+</div>
+</div>
+<div id="outline-container-orgheadline12" class="outline-4">
+<h4 id="orgheadline12">复用模型</h4>
+<div class="outline-text-4" id="text-orgheadline12">
+<p>
+select和poll是该模型基本命令，select用于确定哪些资源已经准备好，对于准备的好的资源就可以进行传输。复用模型的好处是可以一次查询多个资源。
+</p>
+
+<p>
+函数select能够监视多个套接字，告诉你哪些可以读，哪些可以写等等。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">select</span>(<span style="color: #800;">int</span> <span style="color: #048;">numfds</span>, <span style="color: #800;">fd_set</span> *<span style="color: #048;">readfds</span>, <span style="color: #800;">fd_set</span> *<span style="color: #048;">writefds</span>,
+           <span style="color: #800;">fd_set</span> *<span style="color: #048;">exceptfds</span>, <span style="color: #800;">struct</span> <span style="color: #800;">timeval</span> *<span style="color: #048;">timeout</span>);
+</pre>
+</div>
+<p>
+该函数也有一些局限性，就是最大可测试数目限制为<code>FD_SETSIZE</code>，这通常比进程可打开文件描述符小很多。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline13" class="outline-4">
+<h4 id="orgheadline13">信号驱动模型</h4>
+<div class="outline-text-4" id="text-orgheadline13">
+<p>
+让内核在资源准备好的时候向用户空间发送一个信号，收到信号之后开始数据传输。
+</p>
+</div>
+</div>
+<div id="outline-container-orgheadline14" class="outline-4">
+<h4 id="orgheadline14">异步模型</h4>
+<div class="outline-text-4" id="text-orgheadline14">
+<p>
+异步模型就是向内核提交一个数据传输然后返回，当传输完成之后内核发送一个信号。这种方法和信号驱动模型很相似，只不过发送信号的时间推迟到传输完成而已。
+</p>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline18" class="outline-2">
+<h2 id="orgheadline18">参考资料</h2>
+<div class="outline-text-2" id="text-orgheadline18">
+</div><div id="outline-container-orgheadline17" class="outline-3">
+<h3 id="orgheadline17">博客资源</h3>
+<div class="outline-text-3" id="text-orgheadline17">
+<ul class="org-ul">
+<li><a href="https://github.com/astaxie/build-web-application-with-golang/tree/master/en">Build Web Application with Golang</a></li>
+<li><a href="http://colobu.com/2014/12/02/go-socket-programming-TCP/">Go socket编程实践: TCP服务器和客户端实现</a></li>
+<li><a href="http://www.jianshu.com/p/49750ca1589d">Python Socket 网络编程</a></li>
+<li><a href="http://www.jianshu.com/p/26445d55669e">Python Socket 编程——聊天室示例程序</a></li>
+<li><a href="http://blog.csdn.net/hguisu/article/details/7445768">Linux的SOCKET编程详解</a></li>
+</ul>
+</div>
+</div>
+</div>

@@ -1,0 +1,18 @@
+#+BEGIN_SRC dot :file cunit-frame.png
+  digraph G {
+          "Test Registry" -> "Suite 'A'"
+          "Suite 'A'" -> "Test 'A1'"
+          Test_A_ [label="..."]
+          "Suite 'A'" -> Test_A_
+          "Suite 'A'" -> "Test 'Am'"
+          "Test Registry" -> "Suite 'B'"
+          "Suite 'B'" -> "Test 'B1'"
+          Test_B_ [label="..."]
+          "Suite 'B'" -> Test_B_
+          "Suite 'B'" -> "Test 'Bn'"
+  }
+#+END_SRC
+
+#+RESULTS:
+[[file:cunit-frame.png]]
+

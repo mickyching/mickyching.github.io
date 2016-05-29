@@ -1,0 +1,636 @@
+---
+title: C语言单元测试
+categories: language
+tags: clang unit-test
+author: 敬叶
+---
+<dl class="post-meta">
+<dt class="post-meta">2015-09-25</dt><dd>敬叶 初稿</dd>
+</dl>
+<hr><br>
+<div id="table-of-contents"><h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#orgheadline14">CUnit</a>
+<ul>
+<li><a href="#orgheadline1">简介</a>
+<ul>
+<li><a href="#orgheadline2">基本用法</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline13">CUnit使用详解</a>
+<ul>
+<li><a href="#orgheadline3">测试宏</a></li>
+<li><a href="#orgheadline4">Test Registry</a></li>
+<li><a href="#orgheadline5">管理Test和Suite</a></li>
+<li><a href="#orgheadline11">运行测试</a>
+<ul>
+<li><a href="#orgheadline6">Automated mode</a></li>
+<li><a href="#orgheadline7">Basic mode</a></li>
+<li><a href="#orgheadline8">Interactive Console Mode</a></li>
+<li><a href="#orgheadline9">Interactive Curses Mode</a></li>
+<li><a href="#orgheadline10">Getting Test Results</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline12">错误处理</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#orgheadline15">参考资料</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline14" class="outline-2">
+<h2 id="orgheadline14">CUnit</h2>
+<div class="outline-text-2" id="text-orgheadline14">
+</div><div id="outline-container-orgheadline1" class="outline-3">
+<h3 id="orgheadline1">简介</h3>
+<div class="outline-text-3" id="text-orgheadline1">
+<!--abstract-begin-->
+
+<p>
+CUnit是一个轻量级的系统，用于对C代码进行单元测试，
+CUnit以静态库的方式提供给用户使用。
+</p>
+
+<p>
+主要头文件如下。
+</p>
+<dl class="org-dl">
+<dt>CUnit/CUnit.h</dt><dd>主要包括用于测试的宏</dd>
+<dt>CUnit/CUError.h</dt><dd>错误处理函数和数据类型</dd>
+<dt>CUnit/TestDB.h</dt><dd>用于registry、suites和tests</dd>
+<dt>CUnit/TestRun.h</dt><dd>运行测试和生成结果</dd>
+<dt>CUnit/Automated.h</dt><dd>用于输出xml</dd>
+<dt>CUnit/Basic.h</dt><dd>非交互式输出到stdout的接口</dd>
+<dt>CUnit/Console.h</dt><dd>交互式console接口</dd>
+<dt>CUnit/CUCurses.h</dt><dd>交互式console接口(*nix)</dd>
+<dt>CUnit/Win.h</dt><dd>Windows接口</dd>
+</dl>
+
+<!--abstract-end-->
+
+
+<div class="figure">
+<p><img src="/resource/language/fig/cunit/cunit-frame.png" alt="cunit-frame.png" />
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline2" class="outline-4">
+<h4 id="orgheadline2">基本用法</h4>
+<div class="outline-text-4" id="text-orgheadline2">
+<ul class="org-ul">
+<li>编写测试函数，suite的init/cleanup</li>
+<li>初始化registry，CU_initialize_registry()</li>
+<li>添加suite到registry，CU_add_suite()</li>
+<li>添加test到suite，CU_add_test()</li>
+<li>运行测试，CU_console_run_tests()</li>
+<li>清除registry，CU_cleanup_registry()</li>
+</ul>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline13" class="outline-3">
+<h3 id="orgheadline13">CUnit使用详解</h3>
+<div class="outline-text-3" id="text-orgheadline13">
+</div><div id="outline-container-orgheadline3" class="outline-4">
+<h4 id="orgheadline3">测试宏</h4>
+<div class="outline-text-4" id="text-orgheadline3">
+<p>
+测试函数的原型为<code>void test_func(void)</code>，如下所示。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">maxi</span>(<span style="color: #800;">int</span> <span style="color: #048;">i1</span>, <span style="color: #800;">int</span> <span style="color: #048;">i2</span>)
+{
+    <span style="color: #800;">return</span> (i1 &gt; i2) ? i1 : i2;
+}
+
+<span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">test_maxi</span>(<span style="color: #800;">void</span>)
+{
+    CU_ASSERT(maxi(0,2) == 2);
+    CU_ASSERT(maxi(0,-2) == 0);
+    CU_ASSERT(maxi(2,2) == 2);
+}
+</pre>
+</div>
+
+<p>
+如果测试失败，将继续测试下去，如果调用FATAL版本，那么测试出错就会退出，使用FATAL版本需要慎重，因为测试函数可能没有机会执行清除动作。
+</p>
+
+<p>
+基本测试宏如下所示。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp">CU_ASSERT(<span style="color: #800;">int</span> <span style="color: #048;">expression</span>)
+CU_ASSERT_FATAL(<span style="color: #800;">int</span> <span style="color: #048;">expression</span>)
+CU_TEST(<span style="color: #800;">int</span> <span style="color: #048;">expression</span>)
+CU_TEST_FATAL(<span style="color: #800;">int</span> <span style="color: #048;">expression</span>)
+
+CU_ASSERT_TRUE(value)
+CU_ASSERT_TRUE_FATAL(value)
+CU_ASSERT_FALSE(value)
+CU_ASSERT_FALSE_FATAL(value)
+CU_ASSERT_EQUAL(actual, expected)
+CU_ASSERT_EQUAL_FATAL(actual, expected)
+CU_ASSERT_NOT_EQUAL(actual, expected)
+CU_ASSERT_NOT_EQUAL_FATAL(actual, expected)
+
+CU_ASSERT_PTR_EQUAL(actual, expected)
+CU_ASSERT_PTR_EQUAL_FATAL(actual, expected)
+CU_ASSERT_PTR_NOT_EQUAL(actual, expected)
+CU_ASSERT_PTR_NOT_EQUAL_FATAL(actual, expected)
+CU_ASSERT_PTR_NULL(value)
+CU_ASSERT_PTR_NULL_FATAL(value)
+CU_ASSERT_PTR_NOT_NULL(value)
+CU_ASSERT_PTR_NOT_NULL_FATAL(value)
+
+CU_ASSERT_STRING_EQUAL(actual, expected)
+CU_ASSERT_STRING_EQUAL_FATAL(actual, expected)
+CU_ASSERT_STRING_NOT_EQUAL(actual, expected)
+CU_ASSERT_STRING_NOT_EQUAL_FATAL(actual, expected)
+
+CU_ASSERT_NSTRING_EQUAL(actual, expected, count)
+CU_ASSERT_NSTRING_EQUAL_FATAL(actual, expected, count)
+CU_ASSERT_NSTRING_NOT_EQUAL(actual, expected, count)
+CU_ASSERT_NSTRING_NOT_EQUAL_FATAL(actual, expected, count)
+
+CU_ASSERT_DOUBLE_EQUAL(actual, expected, granularity)
+CU_ASSERT_DOUBLE_EQUAL_FATAL(actual, expected, granularity)
+CU_ASSERT_DOUBLE_NOT_EQUAL(actual, expected, granularity)
+CU_ASSERT_DOUBLE_NOT_EQUAL_FATAL(actual, expected, <span style="color: #800;">granula</span>
+
+<span style="color: #048;">CU_PASS</span>(message)
+CU_FAIL(message)
+CU_FAIL_FATAL(message)
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline4" class="outline-4">
+<h4 id="orgheadline4">Test Registry</h4>
+<div class="outline-text-4" id="text-orgheadline4">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">typedef</span> <span style="color: #800;">struct</span> <span style="color: #800;">CU_TestRegistry</span>
+{
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048;">uiNumberOfSuites</span>;
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048;">uiNumberOfTests</span>;
+    <span style="color: #800;">CU_pSuite</span>    <span style="color: #048;">pSuite</span>;
+} <span style="color: #800;">CU_TestRegistry</span>;
+<span style="color: #800;">typedef</span> <span style="color: #800;">CU_TestRegistry</span>*  <span style="color: #800;">CU_pTestRegistry</span>
+
+CU_ErrorCode     CU_initialize_registry(<span style="color: #800;">void</span>);
+<span style="color: #800;">void</span>             <span style="color: #048; font-weight: bold;">CU_cleanup_registry</span>(<span style="color: #800;">void</span>);
+<span style="color: #800;">CU_pTestRegistry</span> <span style="color: #048; font-weight: bold;">CU_get_registry</span>(<span style="color: #800;">void</span>);
+<span style="color: #800;">CU_pTestRegistry</span> <span style="color: #048; font-weight: bold;">CU_set_registry</span>(<span style="color: #800;">CU_pTestRegistry</span> <span style="color: #048;">pTestRegistry</span>);
+<span style="color: #800;">CU_pTestRegistry</span> <span style="color: #048; font-weight: bold;">CU_create_new_registry</span>(<span style="color: #800;">void</span>);
+<span style="color: #800;">void</span>             <span style="color: #048; font-weight: bold;">CU_destroy_existing_registry</span>(<span style="color: #800;">CU_pTestRegistry</span>* <span style="color: #048;">ppRegistry</span>);
+</pre>
+</div>
+<dl class="org-dl">
+<dt>CU_cleanup_registry</dt><dd>只会影响到内部的CU_TestRegistry，用户的数据需要用户自己去维护。</dd>
+<dt>CU_get_registry</dt><dd>获取一个CU_TestRegistry，用户不要去直接访问结构的成员。</dd>
+<dt>CU_set_registry</dt><dd>返回的是old registry，释放old registry是用户的责任。</dd>
+</dl>
+</div>
+</div>
+
+<div id="outline-container-orgheadline5" class="outline-4">
+<h4 id="orgheadline5">管理Test和Suite</h4>
+<div class="outline-text-4" id="text-orgheadline5">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">typedef</span> <span style="color: #800;">struct</span> <span style="color: #800;">CU_Suite</span>;
+<span style="color: #800;">typedef</span> <span style="color: #800;">CU_Suite</span>* <span style="color: #800;">CU_pSuite</span>;
+
+<span style="color: #800;">typedef</span> <span style="color: #800;">struct</span> <span style="color: #800;">CU_Test</span>;
+<span style="color: #800;">typedef</span> <span style="color: #800;">CU_Test</span>* <span style="color: #800;">CU_pTest</span>;
+
+<span style="color: #800;">typedef</span> <span style="color: #800;">void</span> (*<span style="color: #800;">CU_TestFunc</span>)(<span style="color: #800;">void</span>);
+<span style="color: #800;">typedef</span> <span style="color: #800;">int</span>  (*<span style="color: #800;">CU_InitializeFunc</span>)(<span style="color: #800;">void</span>);
+<span style="color: #800;">typedef</span> <span style="color: #800;">int</span>  (*<span style="color: #800;">CU_CleanupFunc</span>)(<span style="color: #800;">void</span>);
+
+<span style="color: #800;">CU_pSuite</span> <span style="color: #048; font-weight: bold;">CU_add_suite</span>(<span style="color: #800;">const</span> <span style="color: #800;">char</span>* <span style="color: #048;">strName</span>, <span style="color: #800;">CU_InitializeFunc</span> <span style="color: #048;">pInit</span>,
+                       <span style="color: #800;">CU_CleanupFunc</span> <span style="color: #048;">pClean</span>);
+<span style="color: #800;">CU_pTest</span>  <span style="color: #048; font-weight: bold;">CU_add_test</span>(<span style="color: #800;">CU_pSuite</span> <span style="color: #048;">pSuite</span>, <span style="color: #800;">const</span> <span style="color: #800;">char</span>* <span style="color: #048;">strName</span>,
+                      <span style="color: #800;">CU_TestFunc</span> <span style="color: #048;">pTestFunc</span>);
+
+<span style="color: #800;">typedef</span> <span style="color: #800;">struct</span> <span style="color: #800;">CU_TestInfo</span>;
+<span style="color: #800;">typedef</span> <span style="color: #800;">struct</span> <span style="color: #800;">CU_SuiteInfo</span>;
+
+<span style="color: #800;">CU_ErrorCode</span> <span style="color: #048; font-weight: bold;">CU_register_suites</span>(<span style="color: #800;">CU_SuiteInfo</span> <span style="color: #048;">suite_info</span>[]);
+<span style="color: #800;">CU_ErrorCode</span> <span style="color: #048; font-weight: bold;">CU_register_nsuites</span>(<span style="color: #800;">int</span> <span style="color: #048;">suite_count</span>, ...);
+</pre>
+</div>
+<dl class="org-dl">
+<dt>CU_add_suite</dt><dd>将suite加入到registry，因此必须要先初始化registry。如果添加成功就会返回suite的指针，否则返回NULL并设置error-code，含义如下表所示。</dd>
+</dl>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<tbody>
+<tr>
+<td class="org-left">CUE_SUCCESS</td>
+<td class="org-left">suite creation was successful.</td>
+</tr>
+
+<tr>
+<td class="org-left">CUE_NOREGISTRY</td>
+<td class="org-left">the registry has not been initialized.</td>
+</tr>
+
+<tr>
+<td class="org-left">CUE_NO_SUITENAME</td>
+<td class="org-left">strName was NULL.</td>
+</tr>
+
+<tr>
+<td class="org-left">CUE_DUP_SUITE</td>
+<td class="org-left">the suite's name was not unique.</td>
+</tr>
+
+<tr>
+<td class="org-left">CUE_NOMEMORY</td>
+<td class="org-left">memory allocation failed.</td>
+</tr>
+</tbody>
+</table>
+
+<dl class="org-dl">
+<dt>CU_add_test</dt><dd>成功返回test指针，失败返回NULL并设置error-code，含义如下表所示。</dd>
+</dl>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<tbody>
+<tr>
+<td class="org-left">CUE_SUCCESS</td>
+<td class="org-left">suite creation was successful.</td>
+</tr>
+
+<tr>
+<td class="org-left">CUE_NOSUITE</td>
+<td class="org-left">the specified suite was NULL or invalid.</td>
+</tr>
+
+<tr>
+<td class="org-left">CUE_NO_TESTNAME</td>
+<td class="org-left">strName was NULL.</td>
+</tr>
+
+<tr>
+<td class="org-left">CUE_NO_TEST</td>
+<td class="org-left">pTestFunc was NULL or invalid.</td>
+</tr>
+
+<tr>
+<td class="org-left">CUE_DUP_TEST</td>
+<td class="org-left">the test's name was not unique.</td>
+</tr>
+
+<tr>
+<td class="org-left">CUE_NOMEMORY</td>
+<td class="org-left">memory allocation failed.</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+除此之外还定义了一组宏来简化添加操作，如下所示。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">CU_ADD_TEST</span>(<span style="color: #048;">suite</span>, <span style="color: #048;">test</span>) \
+    (CU_add_test(suite, #test, (<span style="color: #800;">CU_TestFunc</span>)test))
+<span style="color: #800;">CU_ErrorCode</span> <span style="color: #048; font-weight: bold;">CU_register_suites</span>(<span style="color: #800;">CU_SuiteInfo</span> <span style="color: #048;">suite_info</span>[]);
+<span style="color: #800;">CU_ErrorCode</span> <span style="color: #048; font-weight: bold;">CU_register_nsuites</span>(<span style="color: #800;">int</span> <span style="color: #048;">suite_count</span>, ...);
+</pre>
+</div>
+<dl class="org-dl">
+<dt>CU_ADD_TEST</dt><dd>用于简化添加测试</dd>
+<dt>CU_register_suites</dt><dd>用数组定义多个测试集，一次将数组内的测试集都添加进来。</dd>
+<dt>CU_register_nsuites</dt><dd>这个函数更夸张，将多个测试集数组一次性添加进来。</dd>
+</dl>
+
+<p>
+我个人比较喜欢数组写法，举例如下。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">CU_TestInfo</span> <span style="color: #048;">test_array1</span>[] = {
+    { <span style="color: #800;">"testname1"</span>, test_func1 },
+    { <span style="color: #800;">"testname2"</span>, test_func2 },
+    { <span style="color: #800;">"testname3"</span>, test_func3 },
+    CU_TEST_INFO_NULL,
+};
+
+<span style="color: #800;">CU_SuiteInfo</span> <span style="color: #048;">suites1</span>[] = {
+    { <span style="color: #800;">"suitename1"</span>, suite1_init-func, suite1_cleanup_func, test_array1 },
+    { <span style="color: #800;">"suitename2"</span>, suite2_init-func, suite2_cleanup_func, test_array2 },
+    CU_SUITE_INFO_NULL,
+};
+
+<span style="color: #800;">CU_ErrorCode</span> <span style="color: #048;">error</span> = CU_register_suites(suites1);
+<span style="color: #800;">CU_ErrorCode</span> <span style="color: #048;">error</span> = CU_register_nsuites(2, suites1, suites2);
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline11" class="outline-4">
+<h4 id="orgheadline11">运行测试</h4>
+<div class="outline-text-4" id="text-orgheadline11">
+</div><div id="outline-container-orgheadline6" class="outline-5">
+<h5 id="orgheadline6">Automated mode</h5>
+<div class="outline-text-5" id="text-orgheadline6">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">void</span>         <span style="color: #048; font-weight: bold;">CU_automated_run_tests</span>(<span style="color: #800;">void</span>);
+<span style="color: #800;">CU_ErrorCode</span> <span style="color: #048; font-weight: bold;">CU_list_tests_to_file</span>(<span style="color: #800;">void</span>);
+<span style="color: #800;">void</span>         <span style="color: #048; font-weight: bold;">CU_set_output_filename</span>(<span style="color: #800;">const</span> <span style="color: #800;">char</span>* <span style="color: #048;">szFilenameRoot</span>);
+</pre>
+</div>
+<dl class="org-dl">
+<dt>CU_automated_run_tests</dt><dd>测试输出结果为ROOT-Results.xml，
+ROOT可以用CU_set_output_filename()设定，默认名字为CUnitAutomated-Results.xml。</dd>
+<dt>CU_list_tests_to_file</dt><dd>将注册的测试集和关联测试输出到文件，文件名为ROOT-Listing.xml。</dd>
+<dt>CU_set_output_filename</dt><dd>指定文件名，默认使用CUnitAutomated。</dd>
+</dl>
+</div>
+</div>
+
+<div id="outline-container-orgheadline7" class="outline-5">
+<h5 id="orgheadline7">Basic mode</h5>
+<div class="outline-text-5" id="text-orgheadline7">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">typedef</span> <span style="color: #800;">enum</span>    <span style="color: #800;">CU_BasicRunMode</span>;
+<span style="color: #800;">CU_ErrorCode</span>    <span style="color: #048; font-weight: bold;">CU_basic_run_tests</span>(<span style="color: #800;">void</span>);
+<span style="color: #800;">CU_ErrorCode</span>    <span style="color: #048; font-weight: bold;">CU_basic_run_suite</span>(<span style="color: #800;">CU_pSuite</span> <span style="color: #048;">pSuite</span>);
+<span style="color: #800;">CU_ErrorCode</span>    <span style="color: #048; font-weight: bold;">CU_basic_run_test</span>(<span style="color: #800;">CU_pSuite</span> <span style="color: #048;">pSuite</span>, <span style="color: #800;">CU_pTest</span> <span style="color: #048;">pTest</span>);
+<span style="color: #800;">void</span>            <span style="color: #048; font-weight: bold;">CU_basic_set_mode</span>(<span style="color: #800;">CU_BasicRunMode</span> <span style="color: #048;">mode</span>);
+<span style="color: #800;">CU_BasicRunMode</span> <span style="color: #048; font-weight: bold;">CU_basic_get_mode</span>(<span style="color: #800;">void</span>);
+<span style="color: #800;">void</span>            <span style="color: #048; font-weight: bold;">CU_basic_show_failures</span>(<span style="color: #800;">CU_pFailureRecord</span> <span style="color: #048;">pFailure</span>);
+</pre>
+</div>
+<dl class="org-dl">
+<dt>CU_basic_run_tests</dt><dd>Runs all tests in all registered suites</dd>
+<dt>CU_basic_run_suite</dt><dd>Runs all tests in single specified suite</dd>
+<dt>CU_basic_run_test</dt><dd>Runs a single test in a specified suite</dd>
+<dt>CU_basic_set_mode</dt><dd>设置运行模式
+<dl class="org-dl">
+<dt>CU_BRM_NORMAL</dt><dd>输出错误信息和概要</dd>
+<dt>CU_BRM_SILENT</dt><dd>仅输出错误信息</dd>
+<dt>CU_BRM_VERBOSE</dt><dd>详细输出所有信息</dd>
+</dl></dd>
+<dt>CU_basic_get_mode</dt><dd>Retrieves the current basic run mode code</dd>
+<dt>CU_basic_show_failures</dt><dd>Prints a summary of all failures to stdout.
+Does not depend on the run mode.</dd>
+</dl>
+</div>
+</div>
+
+<div id="outline-container-orgheadline8" class="outline-5">
+<h5 id="orgheadline8">Interactive Console Mode</h5>
+<div class="outline-text-5" id="text-orgheadline8">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">CU_console_run_tests</span>(<span style="color: #800;">void</span>);
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-orgheadline9" class="outline-5">
+<h5 id="orgheadline9">Interactive Curses Mode</h5>
+<div class="outline-text-5" id="text-orgheadline9">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">CU_curses_run_tests</span>(<span style="color: #800;">void</span>);
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-orgheadline10" class="outline-5">
+<h5 id="orgheadline10">Getting Test Results</h5>
+<div class="outline-text-5" id="text-orgheadline10">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">CU_get_number_of_suites_run</span>(<span style="color: #800;">void</span>);
+<span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">CU_get_number_of_suites_failed</span>(<span style="color: #800;">void</span>);
+<span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">CU_get_number_of_tests_run</span>(<span style="color: #800;">void</span>);
+<span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">CU_get_number_of_tests_failed</span>(<span style="color: #800;">void</span>);
+<span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">CU_get_number_of_asserts</span>(<span style="color: #800;">void</span>);
+<span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">CU_get_number_of_successes</span>(<span style="color: #800;">void</span>);
+<span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">CU_get_number_of_failures</span>(<span style="color: #800;">void</span>);
+
+<span style="color: #800;">typedef</span> <span style="color: #800;">struct</span> <span style="color: #800;">CU_RunSummary</span>
+{
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048;">nSuitesRun</span>;
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048;">nSuitesFailed</span>;
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048;">nTestsRun</span>;
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048;">nTestsFailed</span>;
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048;">nAsserts</span>;
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048;">nAssertsFailed</span>;
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048;">nFailureRecords</span>;
+} <span style="color: #800;">CU_RunSummary</span>;
+<span style="color: #800;">typedef</span> <span style="color: #800;">CU_Runsummary</span>* <span style="color: #800;">CU_pRunSummary</span>;
+<span style="color: #800;">const</span> <span style="color: #800;">CU_pRunSummary</span> <span style="color: #048; font-weight: bold;">CU_get_run_summary</span>(<span style="color: #800;">void</span>);
+
+<span style="color: #800;">typedef</span> <span style="color: #800;">struct</span> <span style="color: #800;">CU_FailureRecord</span>
+{
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span>  <span style="color: #048;">uiLineNumber</span>;
+    <span style="color: #800;">char</span>*         <span style="color: #048;">strFileName</span>;
+    <span style="color: #800;">char</span>*         <span style="color: #048;">strCondition</span>;
+    <span style="color: #800;">CU_pTest</span>      <span style="color: #048;">pTest</span>;
+    <span style="color: #800;">CU_pSuite</span>     <span style="color: #048;">pSuite</span>;
+
+    <span style="color: #800;">struct</span> <span style="color: #800;">CU_FailureRecord</span>* <span style="color: #048;">pNext</span>;
+    <span style="color: #800;">struct</span> <span style="color: #800;">CU_FailureRecord</span>* <span style="color: #048;">pPrev</span>;
+} <span style="color: #800;">CU_FailureRecord</span>;
+<span style="color: #800;">typedef</span> <span style="color: #800;">CU_FailureRecord</span>*  <span style="color: #800;">CU_pFailureRecord</span>;
+<span style="color: #800;">const</span> <span style="color: #800;">CU_pFailureRecord</span> <span style="color: #048; font-weight: bold;">CU_get_failure_list</span>(<span style="color: #800;">void</span>);
+<span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">CU_get_number_of_failure_records</span>(<span style="color: #800;">void</span>);
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline12" class="outline-4">
+<h4 id="orgheadline12">错误处理</h4>
+<div class="outline-text-4" id="text-orgheadline12">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">typedef</span> <span style="color: #800;">enum</span> <span style="color: #800;">CU_ErrorCode</span>;
+<span style="color: #800;">CU_ErrorCode</span>   <span style="color: #048; font-weight: bold;">CU_get_error</span>(<span style="color: #800;">void</span>);
+<span style="color: #800;">const</span> <span style="color: #800;">char</span>*    <span style="color: #048; font-weight: bold;">CU_get_error_msg</span>(<span style="color: #800;">void</span>);
+
+<span style="color: #800;">typedef</span> <span style="color: #800;">enum</span> <span style="color: #800;">CU_ErrorAction</span>;
+<span style="color: #800;">void</span>           <span style="color: #048; font-weight: bold;">CU_set_error_action</span>(<span style="color: #800;">CU_ErrorAction</span> <span style="color: #048;">action</span>);
+<span style="color: #800;">CU_ErrorAction</span> <span style="color: #048; font-weight: bold;">CU_get_error_action</span>(<span style="color: #800;">void</span>);
+</pre>
+</div>
+<p>
+错误码定义如下表所示。
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<tbody>
+<tr>
+<td class="org-left">CUE_SUCCESS</td>
+<td class="org-left">No error condition.</td>
+</tr>
+
+<tr>
+<td class="org-left">CUE_NOMEMORY</td>
+<td class="org-left">Memory allocation failed.</td>
+</tr>
+
+<tr>
+<td class="org-left">CUE_NOREGISTRY</td>
+<td class="org-left">Test registry not initialized.</td>
+</tr>
+
+<tr>
+<td class="org-left">CUE_REGISTRY_EXISTS</td>
+<td class="org-left">Attempt to CU_set_registry() without CU_cleanup_registry().</td>
+</tr>
+
+<tr>
+<td class="org-left">CUE_NOSUITE</td>
+<td class="org-left">A required CU_pSuite pointer was NULL.</td>
+</tr>
+
+<tr>
+<td class="org-left">CUE_NO_SUITENAME</td>
+<td class="org-left">Required CU_Suite name not provided.</td>
+</tr>
+
+<tr>
+<td class="org-left">CUE_SINIT_FAILED</td>
+<td class="org-left">Suite initialization failed.</td>
+</tr>
+
+<tr>
+<td class="org-left">CUE_SCLEAN_FAILED</td>
+<td class="org-left">Suite cleanup failed.</td>
+</tr>
+
+<tr>
+<td class="org-left">CUE_DUP_SUITE</td>
+<td class="org-left">Duplicate suite name not allowed.</td>
+</tr>
+
+<tr>
+<td class="org-left">CUE_NOTEST</td>
+<td class="org-left">A required CU_pTest pointer was NULL.</td>
+</tr>
+
+<tr>
+<td class="org-left">CUE_NO_TESTNAME</td>
+<td class="org-left">Required CU_Test name not provided.</td>
+</tr>
+
+<tr>
+<td class="org-left">CUE_DUP_TEST</td>
+<td class="org-left">Duplicate test case name not allowed.</td>
+</tr>
+
+<tr>
+<td class="org-left">CUE_TEST_NOT_IN_SUITE</td>
+<td class="org-left">Test is not registered in the specified suite.</td>
+</tr>
+
+<tr>
+<td class="org-left">CUE_FOPEN_FAILED</td>
+<td class="org-left">An error occurred opening a file.</td>
+</tr>
+
+<tr>
+<td class="org-left">CUE_FCLOSE_FAILED</td>
+<td class="org-left">An error occurred closing a file.</td>
+</tr>
+
+<tr>
+<td class="org-left">CUE_BAD_FILENAME</td>
+<td class="org-left">A bad filename was requested (NULL, empty, nonexistent, etc.).</td>
+</tr>
+
+<tr>
+<td class="org-left">CUE_WRITE_ERROR</td>
+<td class="org-left">An error occurred during a write to a file.</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+出错时的行为定义如下表所示。
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<tbody>
+<tr>
+<td class="org-left">CUEA_IGNORE</td>
+<td class="org-left">Runs should be continued when an error condition occurs (default)</td>
+</tr>
+
+<tr>
+<td class="org-left">CUEA_FAIL</td>
+<td class="org-left">Runs should be stopped when an error condition occurs</td>
+</tr>
+
+<tr>
+<td class="org-left">CUEA_ABORT</td>
+<td class="org-left">The application should exit() when an error conditions occurs</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline15" class="outline-2">
+<h2 id="orgheadline15">参考资料</h2>
+<div class="outline-text-2" id="text-orgheadline15">
+<ul class="org-ul">
+<li><a href="http://cunit.sourceforge.net/">A Unit Testing Framework for C</a>
+<ul class="org-ul">
+<li><a href="http://cunit.sourceforge.net/doc/index.html">CUnit Users Guide</a></li>
+<li><a href="http://cunit.sourceforge.net/doxdocs/index.html">CUnit Documentation</a></li>
+</ul></li>
+</ul>
+</div>
+</div>

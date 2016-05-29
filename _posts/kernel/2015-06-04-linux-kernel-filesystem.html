@@ -1,0 +1,254 @@
+---
+title: Linux内核文件系统
+categories: kernel
+tags: linux kernel filesystem
+author: 敬叶
+---
+<dl class="post-meta">
+<dt class="post-meta">2015-06-04</dt><dd>敬叶 初稿</dd>
+</dl>
+<hr><br>
+<div id="table-of-contents"><h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#orgheadline1">虚拟文件系统</a></li>
+<li><a href="#orgheadline2">块设备层</a>
+<ul>
+<li><a href="#orgheadline3">块设备事件</a>
+<ul>
+<li><a href="#orgheadline4">disk_event</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline1" class="outline-2">
+<h2 id="orgheadline1">虚拟文件系统</h2>
+<div class="outline-text-2" id="text-orgheadline1">
+<!--abstract-begin-->
+
+<p>
+在Linux中，一切对象皆文件，为了用户层面能够以比较一致的接口访问文件，提供了VFS，VFS简单来说就是一个转换功能，将上层命令，根据具体对象转发到对应的驱动去。
+</p>
+
+<p>
+虚拟文件系统是典型的面向对象方法设计出来的一个东西，包括四个重要类型：
+</p>
+
+<dl class="org-dl">
+<dt>superblock</dt><dd>用于表示一个挂载的文件系统，相当于文件系统总信息</dd>
+<dt>inode</dt><dd>表示一个真正的文件</dd>
+<dt>dentry</dt><dd>表示一个目录项，请不要和文件系统中的目录混淆，它只不过是路径中的一个节点而已</dd>
+<dt>file</dt><dd>表示进程打开的文件，很显然多个进程可以打开同一个文件，所以可以有很多个file指向同一个inode</dd>
+</dl>
+<!--abstract-end-->
+
+<p>
+由于C语言没有将方法和成员绑定的功能，所以对应的有四个函数指针集：
+super_operations、inode_operations、dentry_operations和file_operations。比方用户比较常用的read/write调用，最终都会进入到file_operations提供的read/write。
+</p>
+
+<p>
+对于虚拟文件系统层来说，我个人认为它提供了两个核心功能，一个是转发功能，其实就是面向对象概念中的多态。一个是缓存功能，缓存功能极大的提高了对文件的查询速度。缓存的核心数据结构就是dentry，查询文件就是通过dentry来找到具体的文件。
+</p>
+
+<p>
+dentry有三个状态：
+</p>
+<dl class="org-dl">
+<dt>used</dt><dd>此时dentry关联到一个inode，并且inode正被人访问</dd>
+<dt>unused</dt><dd>此时dentry关联到一个inode，但是inode没人访问，所以dentry有被回收的可能</dd>
+<dt>negative</dt><dd>此时dentry没有关联到inode，可能的原因是inode被删除，路径名不正确等等。要注意的是，negative目录项很有存在价值，因为当你试图多次去打开一个不存在的文件时，系统能快速的确定文件不存在。</dd>
+</dl>
+
+<p>
+为了能够极大的提高文件搜索速度，内核做了一个dentry cache，简称dcache。
+dcache核心包括如下三个部分：
+</p>
+<ol class="org-ol">
+<li>一个used dentry链表</li>
+<li>一个LRU dentry链表，该链表包括unused和negative dentry</li>
+<li>一个hash table和hash function用于将路径映射到dentry</li>
+</ol>
+
+<p>
+哈希表就是<code>dentry_hashtable</code>，每一个元素其实还是一个链表，该链表保存了具有相同hash值的目录项。VFS提供了一个通用hash算法，具体的文件系统也可以自己设计一套更优秀的hash算法。函数<code>d_lookup()</code>就是利用哈希算法来查找目录项。
+</p>
+
+<p>
+除了上面提到的几个数据结构，还有几个数据结构，这里一并介绍一下：
+</p>
+<dl class="org-dl">
+<dt>file_system_type</dt><dd>这是一个用于管理内核中所有文件系统的数据结构，每个文件系统的设计者都需要注册一个这样的数据结构</dd>
+<dt>files_struct</dt><dd>这个数据结构保存一个进程打开的所有文件和文件描述符信息</dd>
+<dt>fs_struct</dt><dd>保存进程当前目录和根目录</dd>
+</dl>
+</div>
+</div>
+
+<div id="outline-container-orgheadline2" class="outline-2">
+<h2 id="orgheadline2">块设备层</h2>
+<div class="outline-text-2" id="text-orgheadline2">
+<p>
+文件系统底层实际上是调用块设备层提供的接口，块设备就是由固定大小的块组成的数据，一般都是512B，称之为扇区。在概念上，一个块可以有多个扇区，扇区的大小固定为512B。
+</p>
+
+<p>
+在Linux中用<code>buffer_head</code>来描述一个buffer，该数据结构的目的是映射磁盘上的块到内存中。在Linux早期，该数据结构还有一个功能，就是IO传输单元，当然这样存在两个问题，致使后来内核做了较大的修改。
+</p>
+<ol class="org-ol">
+<li>没有page好用，描述小于一个page的buffer是效率很低。</li>
+<li>数据结构过大，只能描述一个buffer，要用多buffer同时传输，就需要多个<code>buffer_head</code>，很耗内存。</li>
+</ol>
+
+<p>
+内核中用来作为IO传输的容器是bio，包括要传输的数据段，各buffer之间不需要在内存中连续。比较高明的地方是，内核允许buffers由多个块组成，也就是即便一个块中包含多个位置的数据，也能够进行IO操作，有一个术语叫<code>scatter-gather IO</code>。
+bio存在的目的就是表述正在传输的IO操作，它本身是一个容器，每一个传输单元用<code>bio_vec</code>表示。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-c"><span style="color: #800;">struct</span> <span style="color: #800;">bio_vec</span> {
+        <span style="color: #800;">struct</span> <span style="color: #800;">page</span> *<span style="color: #048;">bv_page</span>;
+        <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048;">bv_len</span>;
+        <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048;">bv_offset</span>;
+};
+</pre>
+</div>
+<p>
+也就是说每一个IO请求由一个bio表示，每个IO请求包含一个或多个传输块，每个传输块由<code>bio_vec</code>表示。
+</p>
+
+<p>
+对块设备的操作请求都被放到一个请求队列当中，即<code>request_queue</code>，实际是一个<code>request</code>双向链表。例如文件系统将用户请求做成一个请求加入到请求队列中去，只有请求队列不空，块设备驱动就会从请求队列抓取请求进行处理。在数据上存在如下关系：一个<code>request</code>可以包含多个<code>bio</code>，因为一个请求操作多个连续设备块，但是设备块连续并不意味着内存块也会连续。一个<code>bio</code>可以描述多个段。
+</p>
+</div>
+
+<div id="outline-container-orgheadline3" class="outline-3">
+<h3 id="orgheadline3">块设备事件</h3>
+<div class="outline-text-3" id="text-orgheadline3">
+<p>
+在内核空间对磁盘进行检测是在linux-2.6.38的时候才引入，主要是增加一个工作队列对所有磁盘进行轮询，如果磁盘状态发生改变就会通知用户。
+</p>
+</div>
+<div id="outline-container-orgheadline4" class="outline-4">
+<h4 id="orgheadline4">disk_event</h4>
+<div class="outline-text-4" id="text-orgheadline4">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">struct</span> <span style="color: #800;">disk_events</span> {
+    <span style="color: #800;">struct</span> <span style="color: #800;">list_head</span>    <span style="color: #048;">node</span>;
+    <span style="color: #800;">struct</span> <span style="color: #800;">gendisk</span>      *<span style="color: #048;">disk</span>;
+    <span style="color: #800;">spinlock_t</span>          <span style="color: #048;">lock</span>;
+    <span style="color: #800;">struct</span> <span style="color: #800;">mutex</span>        <span style="color: #048;">block_mutex</span>;
+    <span style="color: #800;">int</span>                 <span style="color: #048;">block</span>;
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span>        <span style="color: #048;">pending</span>;
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span>        <span style="color: #048;">clearing</span>;
+
+    <span style="color: #800;">long</span>                <span style="color: #048;">poll_msecs</span>;
+    <span style="color: #800;">struct</span> <span style="color: #800;">delayed_work</span> <span style="color: #048;">dwork</span>;
+};
+</pre>
+</div>
+<dl class="org-dl">
+<dt>node</dt><dd>每个磁盘的disk_events会被添加到一个全局的链表中，这个链表的名字就叫disk_events，和这个数据结构的名字相同，定义也在同一个文件。
+node用于将disk_events结构体插入到链表disk_events中。受disk_events_mutex保护。</dd>
+<dt>disk</dt><dd>代表一个分区</dd>
+<dt>lock</dt><dd>保护工作队列、clearing、pending、dwork(queue)等。</dd>
+<dt>block_mutex</dt><dd>用于防止在锁定的时候多次cancel轮询工作，因为cancel的时候要休眠，所以不能使用lock同步。插入工作的时候不会休眠，所以用的lock来同步。</dd>
+<dt>block</dt><dd>用于指示锁定深度，只要block大于0就不会启动轮询工作</dd>
+<dt>pending</dt><dd>已经发出去的事件</dd>
+<dt>clearing</dt><dd>正在清理的事件</dd>
+<dt>dwork</dt><dd>即disk_events_workfn</dd>
+</dl>
+
+<p>
+分配和添加磁盘事件都是在<code>add_disk()</code>这个重量级函数中调用的，都是用于初始化，只不过分配的时间比较早，此时初始化工作还没完成，不能立即开启轮询。所以将其分成两步来实现：
+</p>
+<ul class="org-ul">
+<li>分配磁盘事件
+<ul class="org-ul">
+<li>分配存储，设置block深度为1，也就是说初始状态是不会轮询的</li>
+<li>设置poll_msecs为-1</li>
+</ul></li>
+<li>添加磁盘事件
+<ul class="org-ul">
+<li>创建sysfs文件</li>
+<li>添加事件到全局链表</li>
+<li>解锁事件，此时开始轮询</li>
+</ul></li>
+</ul>
+
+<p>
+最后的释放过程类似：
+</p>
+<ul class="org-ul">
+<li>删除磁盘事件
+<ul class="org-ul">
+<li>锁定事件</li>
+<li>从全局链表中删除当前磁盘的事件</li>
+<li>删除sysfs文件</li>
+</ul></li>
+<li>释放磁盘事件
+<ul class="org-ul">
+<li>释放存储空间</li>
+</ul></li>
+</ul>
+
+<p>
+影响轮询间隔的有两个参数，一个是poll_msecs，这个是在每个磁盘内部拥有的，如果这个值小于0，就视为无效，此时使用全局的disk_events_dfl_poll_msecs。有一个函数disk_events_poll_jiffies()用于获取轮询间隔。
+</p>
+
+<p>
+在每个磁盘的sysfs文件系统目录下面都有一个叫events_poll_msecs的文件，该文件用与显示和设定间隔。除了这个文件，还有一个全局间隔设定文件，位于如下路径：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">/sys/module/block/parameters/events_dfl_poll_msecs
+</pre>
+</div>
+<p>
+我们一般不会去单独设定每个磁盘的轮询间隔，而是统一设定所有磁盘的轮询间隔。
+</p>
+
+<ul class="org-ul">
+<li>锁定磁盘事件
+<ul class="org-ul">
+<li>增加锁定深度，如果原来是开启的就关闭</li>
+</ul></li>
+<li>解锁磁盘事件
+<ul class="org-ul">
+<li>减少锁定深度，减少到0的时候才真正开启轮询</li>
+</ul></li>
+</ul>
+
+<p>
+轮询工作有两种调用方式，一种是以函数方式执行，一种是以工作队列方式执行。
+</p>
+<ul class="org-ul">
+<li>检查磁盘事件
+<ul class="org-ul">
+<li>调用fops-&gt;check_events()，获得events。在block_device_operations中有两个和磁盘检测有关的函数指针，其中的media_changed()已经被标识为待废除，将用check_events()替代。</li>
+<li>将获得的events去掉pending部分，并将新的events加入到pending</li>
+<li>如果未锁定，再度调度dwork</li>
+<li>如果接收到磁盘事件就填充环境变量，并发出uevent</li>
+</ul></li>
+
+<li>刷新磁盘事件刷新通过传递一个mask给clearing来实现，所以clearing就存储了要清除的事件。检查事件的时候要对clearing进行处理。如果当前在锁定状态，就仅将要刷新的值加入到clearing而已。</li>
+
+<li>清除磁盘事件
+<ul class="org-ul">
+<li>由参数提供一个mask，指定要清除的事件。</li>
+<li>阻塞事件，确保不会因为并发操作造成混乱</li>
+<li>提取clearing，调用检测函数，传递clearing给检测函数。提取的clearing是event-&gt;clearing和mask的并集，提取之后event-&gt;clearing将被清除，注意这里是调用函数而不是启动工作队列，因为这里必须要顺序进行。</li>
+<li>解锁磁盘事件</li>
+<li>返回pending事件。
+pending是event-&gt;pending和mask的交集，提取之后event-&gt;pending将清除mask部分。</li>
+</ul></li>
+</ul>
+</div>
+</div>
+</div>
+</div>

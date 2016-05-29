@@ -1,0 +1,385 @@
+---
+title: Linux多线程
+categories: linux
+tags: linux process thread
+author: 敬叶
+---
+<dl class="post-meta">
+<dt class="post-meta">2015-09-28</dt><dd>敬叶 初稿</dd>
+</dl>
+<hr><br>
+<div id="table-of-contents"><h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#orgheadline1">Linux POSIX线程</a>
+<ul>
+<li><a href="#orgheadline7">线程同步</a>
+<ul>
+<li><a href="#orgheadline2">互斥锁</a></li>
+<li><a href="#orgheadline3">读写锁</a></li>
+<li><a href="#orgheadline4">条件值</a></li>
+<li><a href="#orgheadline5">自旋锁</a></li>
+<li><a href="#orgheadline6">屏障</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline9">线程控制</a>
+<ul>
+<li><a href="#orgheadline8">可重入</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#orgheadline10">参考资料</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline1" class="outline-2">
+<h2 id="orgheadline1">Linux POSIX线程</h2>
+<div class="outline-text-2" id="text-orgheadline1">
+<!--abstract-begin-->
+<p>
+进程可以看作单个线程，多线程就是在一个进程中开启多个运行线程，每个进程使用各自的内存地址空间和文件描述符，但是线程不一样，同一进程下开启的线程自动继承相同的地址空间和文件描述符。
+</p>
+
+<p>
+Linux下有一个遵循POSIX.1-2001的线程接口，叫pthread。线程也有线程ID，叫TID。创建线程用如下函数。
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">pthread_create</span>(<span style="color: #800;">pthread_t</span> *<span style="color: #048;">restrict</span> tidp,
+                   <span style="color: #800;">const</span> <span style="color: #800;">pthread_attr_t</span> *<span style="color: #048;">restrict</span> attr,
+                   <span style="color: #800;">void</span> *(*<span style="color: #048;">thread_func</span>)(<span style="color: #800;">void</span> *), <span style="color: #800;">void</span> *<span style="color: #048;">restrict</span> arg);
+</pre>
+</div>
+<dl class="org-dl">
+<dt>tidp</dt><dd>用于保存创建线程的TID</dd>
+<dt>attr</dt><dd>用于设置线程的属性，可以传递NULL</dd>
+<dt>thread_func</dt><dd>即是当作线程执行的函数，线程继承地址空间和信号mask，但是pending信号被清除</dd>
+<dt>arg</dt><dd>即thread_func的参数</dd>
+</dl>
+<!--abstract-end-->
+
+<p>
+如果一个进程中的任何一个线程调用exit()，将会导致整个进程退出，单个进程的退出可以通过如下三种方式：
+</p>
+<ul class="org-ul">
+<li>通过return语句返回</li>
+<li>被同进程下的其它线程取消</li>
+<li>通过pthread_exit()函数退出</li>
+</ul>
+
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">pthread_exit</span>(<span style="color: #800;">void</span> *<span style="color: #048;">rval_ptr</span>);
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">pthread_join</span>(<span style="color: #800;">pthread_t</span> <span style="color: #048;">thread</span>, <span style="color: #800;">void</span> **<span style="color: #048;">rval_ptr</span>);
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">pthread_cancel</span>(<span style="color: #800;">pthread_t</span> <span style="color: #048;">tid</span>);      <span style="color: #666;">// </span><span style="color: #666;">will not wait terminate</span>
+</pre>
+</div>
+<dl class="org-dl">
+<dt>pthread_join</dt><dd>该函数会阻塞，直到指定线程调用<code>pthread_exit()</code>，这里的rval_ptr是为了获取线程的返回值。</dd>
+</dl>
+</div>
+
+<div id="outline-container-orgheadline7" class="outline-3">
+<h3 id="orgheadline7">线程同步</h3>
+<div class="outline-text-3" id="text-orgheadline7">
+</div><div id="outline-container-orgheadline2" class="outline-4">
+<h4 id="orgheadline2">互斥锁</h4>
+<div class="outline-text-4" id="text-orgheadline2">
+<p>
+为了保证线程之间对共享资源的正确访问，需要用到锁。
+mutex互斥机制是一个常用的锁。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">pthread_mutex_init</span>(<span style="color: #800;">pthread_mutex_t</span> *<span style="color: #048;">restrict</span> mutex,
+                       <span style="color: #800;">const</span> <span style="color: #800;">pthread_mutexattr_t</span> *<span style="color: #048;">restrict</span> attr);
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">pthread_mutex_destroy</span>(<span style="color: #800;">pthread_mutex_t</span> *<span style="color: #048;">mutex</span>);
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">pthread_mutex_lock</span>(<span style="color: #800;">pthread_mutex_t</span> *<span style="color: #048;">mutex</span>);
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">pthread_mutex_trylock</span>(<span style="color: #800;">pthread_mutex_t</span> *<span style="color: #048;">mutex</span>);
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">pthread_mutex_timedlock</span>(<span style="color: #800;">pthread_mutex_t</span> *<span style="color: #048;">restrict</span> mutex,
+                            <span style="color: #800;">const</span> <span style="color: #800;">struct</span> <span style="color: #800;">timespec</span> *<span style="color: #048;">restrict</span> tsptr);
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">pthread_mutex_unlock</span>(<span style="color: #800;">pthread_mutex_t</span> *<span style="color: #048;">mutex</span>);
+</pre>
+</div>
+
+<p>
+使用互斥锁一个常见问题是出现死锁，避免死锁需遵循如下两个原则：
+</p>
+<ul class="org-ul">
+<li>禁止在同一个线程锁两次，或者锁了之后不释放</li>
+<li>如果要锁两个锁，所有代码应遵循相同的加锁顺序</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline3" class="outline-4">
+<h4 id="orgheadline3">读写锁</h4>
+<div class="outline-text-4" id="text-orgheadline3">
+<p>
+读写锁能更细致处理读写工作，如果已经加上读锁，继续加读锁是允许的，但是如果要上写锁，就必须等待所有的读锁释放。这样做有一个潜在的问题，就是造成写入饥饿，为了解决这个问题，一般在实现上是这么考虑的，如果有人试图上写锁，那么新的读锁将被阻塞。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">pthread_rwlock_init</span>(<span style="color: #800;">pthread_rwlock_t</span> *<span style="color: #048;">restrict</span> rwlock,
+                        <span style="color: #800;">const</span> <span style="color: #800;">pthread_rwlockattr_t</span> *<span style="color: #048;">restrict</span> attr);
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">pthread_rwlock_destroy</span>(<span style="color: #800;">pthread_rwlock_t</span> *<span style="color: #048;">rwlock</span>);
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">pthread_rwlock_rdlock</span>(<span style="color: #800;">pthread_rwlock_t</span> *<span style="color: #048;">rwlock</span>);
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">pthread_rwlock_wrlock</span>(<span style="color: #800;">pthread_rwlock_t</span> *<span style="color: #048;">rwlock</span>);
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">pthread_rwlock_unlock</span>(<span style="color: #800;">pthread_rwlock_t</span> *<span style="color: #048;">rwlock</span>);
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">pthread_rwlock_tryrdlock</span>(<span style="color: #800;">pthread_rwlock_t</span> *<span style="color: #048;">rwlock</span>);
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">pthread_rwlock_trywrlock</span>(<span style="color: #800;">pthread_rwlock_t</span> *<span style="color: #048;">rwlock</span>);
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">pthread_rwlock_timedrdlock</span>(<span style="color: #800;">pthread_rwlock_t</span> *<span style="color: #048;">restrict</span> rwlock,
+                               <span style="color: #800;">const</span> <span style="color: #800;">struct</span> <span style="color: #800;">timespec</span> *<span style="color: #048;">restrict</span> tsptr);
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">pthread_rwlock_timedwrlock</span>(<span style="color: #800;">pthread_rwlock_t</span> *<span style="color: #048;">restrict</span> rwlock,
+                               <span style="color: #800;">const</span> <span style="color: #800;">struct</span> <span style="color: #800;">timespec</span> *<span style="color: #048;">restrict</span> tsptr);
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline4" class="outline-4">
+<h4 id="orgheadline4">条件值</h4>
+<div class="outline-text-4" id="text-orgheadline4">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">pthread_cond_init</span>(<span style="color: #800;">pthread_cond_t</span> *<span style="color: #048;">restrict</span> cond,
+                      <span style="color: #800;">const</span> <span style="color: #800;">pthread_condattr_t</span> *<span style="color: #048;">restrict</span> attr);
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">pthread_cond_destroy</span>(<span style="color: #800;">pthread_cond_t</span> *<span style="color: #048;">cond</span>);
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">pthread_cond_wait</span>(<span style="color: #800;">pthread_cond_t</span> *<span style="color: #048;">restrict</span> cond,
+                      <span style="color: #800;">pthread_mutex_t</span> *<span style="color: #048;">restrict</span> mutex);
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">pthread_cond_timedwait</span>(<span style="color: #800;">pthread_cond_t</span> *<span style="color: #048;">restrict</span> cond,
+                           <span style="color: #800;">pthread_mutex_t</span> *<span style="color: #048;">restrict</span> mutex,
+                           <span style="color: #800;">const</span> <span style="color: #800;">struct</span> <span style="color: #800;">timespec</span> *<span style="color: #048;">restrict</span> tsptr);
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">pthread_cond_signal</span>(<span style="color: #800;">pthread_cond_t</span> *<span style="color: #048;">cond</span>);
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">pthread_cond_broadcast</span>(<span style="color: #800;">pthread_cond_t</span> *<span style="color: #048;">cond</span>);
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline5" class="outline-4">
+<h4 id="orgheadline5">自旋锁</h4>
+<div class="outline-text-4" id="text-orgheadline5">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">pthread_spin_init</span>(<span style="color: #800;">pthread_spinlock_t</span> *<span style="color: #048;">lock</span>, <span style="color: #800;">int</span> <span style="color: #048;">pshared</span>);
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">pthread_spin_destroy</span>(<span style="color: #800;">pthread_spinlock_t</span> *<span style="color: #048;">lock</span>);
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">pthread_spin_lock</span>(<span style="color: #800;">pthread_spinlock_t</span> *<span style="color: #048;">lock</span>);
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">pthread_spin_trylock</span>(<span style="color: #800;">pthread_spinlock_t</span> *<span style="color: #048;">lock</span>);
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">pthread_spin_unlock</span>(<span style="color: #800;">pthread_spinlock_t</span> *<span style="color: #048;">lock</span>);
+</pre>
+</div>
+<dl class="org-dl">
+<dt>pshared</dt><dd>可以为：<code>PTHREAD_PROCESS_SHARED</code>和<code>PTHREAD_PROCESS_PRIVATE</code>，共享状态下，其它进程的线程也可以使用。</dd>
+</dl>
+</div>
+</div>
+
+<div id="outline-container-orgheadline6" class="outline-4">
+<h4 id="orgheadline6">屏障</h4>
+<div class="outline-text-4" id="text-orgheadline6">
+<p>
+屏障用于等待其它线程到达某个点，如<code>pthread_join</code>就是一个屏障。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">pthread_barrier_init</span>(<span style="color: #800;">pthread_barrier_t</span> *<span style="color: #048;">restrict</span> barrier,
+<span style="color: #800;">const</span> <span style="color: #800;">pthread_barrierattr_t</span> *<span style="color: #048;">restrict</span> attr,
+<span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048;">count</span>);
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">pthread_barrier_destroy</span>(<span style="color: #800;">pthread_barrier_t</span> *<span style="color: #048;">barrier</span>);
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">pthread_barrier_wait</span>(<span style="color: #800;">pthread_barrier_t</span> *<span style="color: #048;">barrier</span>);
+</pre>
+</div>
+<dl class="org-dl">
+<dt>count</dt><dd>需要抵达屏障点的线程个数</dd>
+<dt>attr</dt><dd>可以设置为NULL</dd>
+</dl>
+
+<p>
+该屏障的用法比较简单，任何调用wait的线程都将在调用点停下来，直到调用次数达到count，然后所有的线程都被唤醒。
+</p>
+</div>
+</div>
+</div>
+
+
+<div id="outline-container-orgheadline9" class="outline-3">
+<h3 id="orgheadline9">线程控制</h3>
+<div class="outline-text-3" id="text-orgheadline9">
+</div><div id="outline-container-orgheadline8" class="outline-4">
+<h4 id="orgheadline8">可重入</h4>
+<div class="outline-text-4" id="text-orgheadline8">
+<p>
+当一个函数可以在多线程中同时调用，就认为是线程安全的。下表所列函数不是线程安全的。
+</p>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<tbody>
+<tr>
+<td class="org-left">basename</td>
+<td class="org-left">getchar_unlocked</td>
+<td class="org-left">getservent</td>
+<td class="org-left">putc_unlocked</td>
+</tr>
+
+<tr>
+<td class="org-left">catgets</td>
+<td class="org-left">getdate</td>
+<td class="org-left">getutxent</td>
+<td class="org-left">putchar_unlocked</td>
+</tr>
+
+<tr>
+<td class="org-left">crypt</td>
+<td class="org-left">getenv</td>
+<td class="org-left">getutxid</td>
+<td class="org-left">putenv</td>
+</tr>
+
+<tr>
+<td class="org-left">dbm_clearerr</td>
+<td class="org-left">getgrent</td>
+<td class="org-left">getutxline</td>
+<td class="org-left">pututxline</td>
+</tr>
+
+<tr>
+<td class="org-left">dbm_close</td>
+<td class="org-left">getgrgid</td>
+<td class="org-left">gmtime</td>
+<td class="org-left">rand</td>
+</tr>
+
+<tr>
+<td class="org-left">dbm_delete</td>
+<td class="org-left">getgrnam</td>
+<td class="org-left">hcreate</td>
+<td class="org-left">readdir</td>
+</tr>
+
+<tr>
+<td class="org-left">dbm_error</td>
+<td class="org-left">gethostent</td>
+<td class="org-left">hdestroy</td>
+<td class="org-left">setenv</td>
+</tr>
+
+<tr>
+<td class="org-left">dbm_fetch</td>
+<td class="org-left">getlogin</td>
+<td class="org-left">hsearch</td>
+<td class="org-left">setgrent</td>
+</tr>
+
+<tr>
+<td class="org-left">dbm_firstkey</td>
+<td class="org-left">getnetbyaddr</td>
+<td class="org-left">inet_ntoa</td>
+<td class="org-left">setkey</td>
+</tr>
+
+<tr>
+<td class="org-left">dbm_nextkey</td>
+<td class="org-left">getnetbyname</td>
+<td class="org-left">l64a</td>
+<td class="org-left">setpwent</td>
+</tr>
+
+<tr>
+<td class="org-left">dbm_open</td>
+<td class="org-left">getnetent</td>
+<td class="org-left">lgamma</td>
+<td class="org-left">setutxent</td>
+</tr>
+
+<tr>
+<td class="org-left">dbm_store</td>
+<td class="org-left">getopt</td>
+<td class="org-left">lgammaf</td>
+<td class="org-left">strerror</td>
+</tr>
+
+<tr>
+<td class="org-left">dirname</td>
+<td class="org-left">getprotobyname</td>
+<td class="org-left">lgammal</td>
+<td class="org-left">strsignal</td>
+</tr>
+
+<tr>
+<td class="org-left">dlerror</td>
+<td class="org-left">getprotobynumber</td>
+<td class="org-left">localeconv</td>
+<td class="org-left">strtok</td>
+</tr>
+
+<tr>
+<td class="org-left">drand48</td>
+<td class="org-left">getprotoent</td>
+<td class="org-left">localtime</td>
+<td class="org-left">system</td>
+</tr>
+
+<tr>
+<td class="org-left">encrypt</td>
+<td class="org-left">getpwent</td>
+<td class="org-left">lrand48</td>
+<td class="org-left">ttyname</td>
+</tr>
+
+<tr>
+<td class="org-left">endgrent</td>
+<td class="org-left">getpwnam</td>
+<td class="org-left">mrand48</td>
+<td class="org-left">unsetenv</td>
+</tr>
+
+<tr>
+<td class="org-left">endpwent</td>
+<td class="org-left">getpwuid</td>
+<td class="org-left">nftw</td>
+<td class="org-left">wcstombs</td>
+</tr>
+
+<tr>
+<td class="org-left">endutxent</td>
+<td class="org-left">getservbyname</td>
+<td class="org-left">nl_langinfo</td>
+<td class="org-left">wctomb</td>
+</tr>
+
+<tr>
+<td class="org-left">getc_unlocked</td>
+<td class="org-left">getservbyport</td>
+<td class="org-left">ptsname</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline10" class="outline-2">
+<h2 id="orgheadline10">参考资料</h2>
+<div class="outline-text-2" id="text-orgheadline10">
+<ul class="org-ul">
+<li><a href="https://www.ibm.com/developerworks/cn/linux/kernel/l-thread/">Linux 线程实现机制分析</a></li>
+</ul>
+</div>
+</div>

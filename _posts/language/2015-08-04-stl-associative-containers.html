@@ -1,0 +1,313 @@
+---
+title: STL关联容器
+categories: language
+tags: C++ STL
+author: 敬叶
+---
+<dl class="post-meta">
+<dt class="post-meta">2015-08-04</dt><dd>敬叶 初稿</dd>
+</dl>
+<hr><br>
+<div id="table-of-contents"><h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#orgheadline1">数据结构</a>
+<ul>
+<li><a href="#orgheadline2">红黑树概念</a></li>
+<li><a href="#orgheadline3">红黑树实现</a></li>
+<li><a href="#orgheadline4">哈希表</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline1" class="outline-2">
+<h2 id="orgheadline1">数据结构</h2>
+<div class="outline-text-2" id="text-orgheadline1">
+<!--abstract-begin-->
+
+<p>
+STL关联容器包括<code>set</code>和<code>map</code>，二者底层都用红黑树实现，衍生体<code>multiset</code>和<code>multimap</code>也不例外。对应的有基于哈希表的实现，名字也很像，分别为：
+<code>hash_set</code>、<code>hash_map</code>、<code>hash_multiset</code>和<code>hash_multimap</code>。
+</p>
+
+<p>
+关联容器内部是一个平衡二叉树，平衡二叉树包括AVL-tree、
+RB-tree和AA-tree等等。红黑树应用比较广泛，Linux内核中内存管理也广泛用到红黑树。不同领域用到的树也是不尽相同的，如编译器需要表达式树，文件压缩要用哈夫曼编码树，数据库要用到复杂的B-tree。
+</p>
+
+<p>
+二叉搜索树在插入和删除操作之后失去平衡就会降低搜索效率，因此在实际应用中需要让结构保持平衡。
+</p>
+
+<!--abstract-end-->
+
+<p>
+AVL树要求高度差最大为1，插入时破坏平衡，可以调整插入点至根节点路径上破坏平衡的最深节点，假设该节点为X，根据插入节点和X的位置，可以有四种可能：
+X左节点左子树、X左节点右子树、X右节点左子树、X右节点右子树。
+</p>
+
+<p>
+外侧插入可以通过单旋转平衡：
+</p>
+
+<div class="org-center">
+
+<div class="figure">
+<p><img src="/resource/language/fig/stl/avl-rotate-1.png" alt="avl-rotate-1.png" />
+</p>
+</div>
+</div>
+
+<p>
+内侧插入可以通过双旋转平衡：
+</p>
+<div class="org-center">
+
+<div class="figure">
+<p><img src="/resource/language/fig/stl/avl-rotate-2.png" alt="avl-rotate-2.png" />
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline2" class="outline-3">
+<h3 id="orgheadline2">红黑树概念</h3>
+<div class="outline-text-3" id="text-orgheadline2">
+<p>
+红黑树需要满足如下规则：
+</p>
+<ol class="org-ol">
+<li>根结点和NULL节点是黑色</li>
+<li>如果节点为红，子节点为黑</li>
+<li>任意节点至NULL节点的任意路径包含的黑色节点数相同</li>
+</ol>
+
+<p>
+根据规则3，新增节点必为红色，根据规则2，新增节点的父节点必为黑色。考虑如下情形，新插入节点会破坏规则，需要作出调整。
+</p>
+<div class="org-center">
+
+<div class="figure">
+<p><img src="/resource/language/fig/stl/rb-insert.png" alt="rb-insert.png" />
+</p>
+</div>
+</div>
+
+<p>
+情况1，对P、G做一次单旋转，并修改颜色：
+</p>
+<div class="org-center">
+
+<div class="figure">
+<p><img src="/resource/language/fig/stl/rb-rotate-1.png" alt="rb-rotate-1.png" />
+</p>
+</div>
+</div>
+
+<p>
+情况2，第一步对P、X单旋转，修改G、X颜色。第二步对G做一次单旋转。
+</p>
+<div class="org-center">
+
+<div class="figure">
+<p><img src="/resource/language/fig/stl/rb-rotate-2.png" alt="rb-rotate-2.png" />
+</p>
+</div>
+</div>
+
+<p>
+情况3，对P、G做单旋转，修改X颜色，如果旋转后P的父节点为黑色，无需动作，否则看情况4。
+</p>
+<div class="org-center">
+
+<div class="figure">
+<p><img src="/resource/language/fig/stl/rb-rotate-3.png" alt="rb-rotate-3.png" />
+</p>
+</div>
+</div>
+
+<p>
+情况4，对P、G做单旋转，修改X颜色，此时P的父节点为红色，继续向上做相同的操作。
+</p>
+<div class="org-center">
+
+<div class="figure">
+<p><img src="/resource/language/fig/stl/rb-rotate-4.png" alt="rb-rotate-4.png" />
+</p>
+</div>
+</div>
+
+<p>
+对于情况4，递归向上处理会降低效率，采用如下的方式来加速：假定新插入A，沿着A向上，发现一个节点X两个子节点为红色，就将该节点和子节点反色。
+</p>
+<div class="org-center">
+
+<div class="figure">
+<p><img src="/resource/language/fig/stl/rb-rotate-5.png" alt="rb-rotate-5.png" />
+</p>
+</div>
+</div>
+
+<p>
+再对上图中的G、P右旋转并反色即可，注意下图有个标注错误，X和A标记反了：
+</p>
+<div class="org-center">
+
+<div class="figure">
+<p><img src="/resource/language/fig/stl/rb-rotate-6.png" alt="rb-rotate-6.png" />
+</p>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline3" class="outline-3">
+<h3 id="orgheadline3">红黑树实现</h3>
+<div class="outline-text-3" id="text-orgheadline3">
+<p>
+为了简化边界处理，SGI STL引入了一个头节点<code>header</code>，初始状态其父节点指向NULL，表示没有根节点，左右子节点均指向自己。当有节点时，父节点指向<code>root</code>，即二者互为父节点，左右子节点分别指向最左和最右节点。
+</p>
+
+
+<p>
+任何插入都会调用调整函数以满足红黑树规范。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span class="linenr"> 1: </span><span style="color: #800;">inline</span> <span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">__rb_tree_rebalance</span>(<span style="color: #800;">__rb_tree_node_base</span> *<span style="color: #048;">x</span>,
+<span class="linenr"> 2: </span>    <span style="color: #800;">__rb_tree_node_base</span> *&amp;<span style="color: #048;">root</span>)
+<span class="linenr"> 3: </span>{
+<span class="linenr"> 4: </span>    x-&gt;color = __rb_tree_red;
+<span class="linenr"> 5: </span>    <span style="color: #800;">while</span> (x != root &amp;&amp; x-&gt;parent-&gt;color == _rb_tree_red) {
+<span class="linenr"> 6: </span>        <span style="color: #800;">if</span> (x-&gt;parent == x-&gt;parent-&gt;parent-&gt;left) {
+<span class="linenr"> 7: </span>            <span style="color: #800;">__rb_tree_node_base</span> *<span style="color: #048;">y</span> = x-&gt;parent-&gt;parent-&gt;right;
+<span class="linenr"> 8: </span>            <span style="color: #800;">if</span> (y &amp;&amp; y-&gt;color == __rb_tree_red) {
+<span class="linenr"> 9: </span>                x-&gt;parent-&gt;color = __rb_tree_black;
+<span class="linenr">10: </span>                y-&gt;color = __rb_tree_black;
+<span class="linenr">11: </span>                x-&gt;parent-&gt;parent-&gt;color = __rb_tree_red;
+<span class="linenr">12: </span>                x = x-&gt;parent-&gt;parent;
+<span class="linenr">13: </span>            }
+<span class="linenr">14: </span>            <span style="color: #800;">else</span> {
+<span class="linenr">15: </span>                <span style="color: #800;">if</span> (x == x-&gt;parent-&gt;right) {
+<span class="linenr">16: </span>                    x = x-&gt;parent;
+<span class="linenr">17: </span>                    __rb_tree_rotate_left(x, root);
+<span class="linenr">18: </span>                }
+<span class="linenr">19: </span>                x-&gt;parent-&gt;color = __rb_tree_black;
+<span class="linenr">20: </span>                x-&gt;parent-&gt;parent-&gt;color = __rb_tree_red;
+<span class="linenr">21: </span>                __rb_tree_rotate_right(x-&gt;parent-&gt;parent, root);
+<span class="linenr">22: </span>            }
+<span class="linenr">23: </span>        }
+<span class="linenr">24: </span>        <span style="color: #800;">else</span> {
+<span class="linenr">25: </span>            <span style="color: #800;">__rb_tree_node_base</span> *<span style="color: #048;">y</span> = x-&gt;parent-&gt;parent-&gt;left;
+<span class="linenr">26: </span>            <span style="color: #800;">if</span> (y &amp;&amp; y-&gt;color == __rb_tree_red) {
+<span class="linenr">27: </span>                x-&gt;parent-&gt;color == __rb_tree_black;
+<span class="linenr">28: </span>                y-&gt;color = __rb_tree_black;
+<span class="linenr">29: </span>                x-&gt;parent-&gt;parent-&gt;color = __rb_tree_red;
+<span class="linenr">30: </span>                x = x-&gt;parent-&gt;parent;
+<span class="linenr">31: </span>            }
+<span class="linenr">32: </span>            <span style="color: #800;">else</span> {
+<span class="linenr">33: </span>                <span style="color: #800;">if</span> (x == x-&gt;parent-&gt;left) {
+<span class="linenr">34: </span>                    x = x-&gt;parent;
+<span class="linenr">35: </span>                    __rb_tree_rotate_right(x, root);
+<span class="linenr">36: </span>                }
+<span class="linenr">37: </span>                x-&gt;parent-&gt;color =  __rb_tree_black;
+<span class="linenr">38: </span>                x-&gt;parent-&gt;parent-&gt;color = __rb_tree_red;
+<span class="linenr">39: </span>                __rb_tree_rotate_left(x-&gt;parent-&gt;parent, root);
+<span class="linenr">40: </span>            }
+<span class="linenr">41: </span>        }
+<span class="linenr">42: </span>    }
+<span class="linenr">43: </span>    root-&gt;color = __rb_tree_black;
+<span class="linenr">44: </span>}
+</pre>
+</div>
+<dl class="org-dl">
+<dt>4</dt><dd>根据规则3，新节点颜色必为红色</dd>
+<dt>5</dt><dd>父节点必为红色，否则没有调整的必要</dd>
+<dt>6</dt><dd>父节点是左节点，即包含左左、左右两种情况</dd>
+<dt>8-11</dt><dd>父节点和伯父节点都是红色，要执行反色操作</dd>
+<dt>12</dt><dd>向上追溯</dd>
+<dt>14-22</dt><dd>不追溯情况，执行旋转后退出循环，因为x-&gt;parent-&gt;color已经不满足循环条件</dd>
+<dt>15-18</dt><dd>左右情况：先左旋后右旋，即情况2</dd>
+<dt>19-21</dt><dd>左左情况：只需右旋，即情况1</dd>
+<dt>24-41</dt><dd>这和<code>6-23</code>刚好互为对称操作</dd>
+</dl>
+</div>
+</div>
+<div id="outline-container-orgheadline4" class="outline-3">
+<h3 id="orgheadline4">哈希表</h3>
+<div class="outline-text-3" id="text-orgheadline4">
+<p>
+哈希表首先要解决的问题是如何将一个很大的域映射到一个可以接受的范围内。这个可接受的范围实际就是允许哈希数组的大小。另一个问题就是如何解决碰撞，这里简单说明常见方法。
+</p>
+
+<p>
+线性探测：
+</p>
+<ul class="org-ul">
+<li>插入时向下找空位</li>
+<li>查询时向下遍历，直到空位，很显然效率低</li>
+<li>删除时标记已删除即可，待整理时对其操作</li>
+</ul>
+
+<p>
+二次探测：插入时向下找空位：\( H + i^2 \)
+其它操作和线性探测方法上是相同。
+</p>
+
+<p>
+有几个问题：
+</p>
+<ul class="org-ul">
+<li>线性探测可以保证每次探测都是不同的值，二次探测可否满足</li>
+<li>如果没有X，插入是否保证成功</li>
+<li>表格能否动态增长</li>
+</ul>
+
+<p>
+只要保证长度为质数，负载因子在0.5以下，插入新元素探测次数小于3。
+</p>
+
+<p>
+不过比较有趣的是二次探测可以在设计上化简：
+\[
+H_i = H_0 + i^2 (mod N)
+\]
+</p>
+
+<p>
+\[
+H_{i-1} = H_0 + (i-1)^2 (mod N)
+\]
+</p>
+
+<p>
+化简可得：
+\[
+H_i = H_{i-1} + 2i - 1 (mod N)
+\]
+</p>
+
+<p>
+开链法：即相同哈希值的元素插入到同一个链表中。
+SGI和Linux内核都采用这种方法。
+</p>
+
+<p>
+对于字符串的哈希算法，SGI提供了如下函数：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">inline</span> <span style="color: #800;">size_t</span> <span style="color: #048; font-weight: bold;">__stl_hash_string</span>(<span style="color: #800;">const</span> <span style="color: #800;">char</span> *<span style="color: #048;">s</span>)
+{
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">long</span> <span style="color: #048;">h</span> = 0;
+    <span style="color: #800;">for</span> (; *s; s++)
+        h = 5 * h + *s;
+    <span style="color: #800;">return</span> h;
+}
+</pre>
+</div>
+</div>
+</div>
+</div>

@@ -1,0 +1,1111 @@
+---
+title: Linux内核数据结构
+categories: kernel
+tags: linux kernel data-structure
+author: 敬叶
+---
+<dl class="post-meta">
+<dt class="post-meta">2015-06-02</dt><dd>敬叶 初稿</dd>
+</dl>
+<hr><br>
+<div id="table-of-contents"><h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#orgheadline1">Linux基本数据结构</a></li>
+<li><a href="#orgheadline10">链表</a>
+<ul>
+<li><a href="#orgheadline2">双向链表</a>
+<ul>
+<li><a href="#orgheadline3">生命周期</a></li>
+<li><a href="#orgheadline4">基本操作</a></li>
+<li><a href="#orgheadline5">高级操作</a></li>
+<li><a href="#orgheadline6">链表遍历</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline7">哈希链表</a>
+<ul>
+<li><a href="#orgheadline8">生命周期</a></li>
+<li><a href="#orgheadline9">基本操作</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#orgheadline11">队列 - kfifo</a>
+<ul>
+<li><a href="#orgheadline12">基本用法</a></li>
+<li><a href="#orgheadline18">源码分析</a>
+<ul>
+<li><a href="#orgheadline13">数据结构</a></li>
+<li><a href="#orgheadline14">静态定义</a></li>
+<li><a href="#orgheadline15">动态分配</a></li>
+<li><a href="#orgheadline16">入队</a></li>
+<li><a href="#orgheadline17">出队</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#orgheadline19">映射 - idr</a>
+<ul>
+<li><a href="#orgheadline23">基本用法</a>
+<ul>
+<li><a href="#orgheadline20">创建与销毁</a></li>
+<li><a href="#orgheadline21">分配ID</a></li>
+<li><a href="#orgheadline22">查询迭代</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline24">源码分析</a>
+<ul>
+<li><a href="#orgheadline25">数据结构</a></li>
+<li><a href="#orgheadline26">idr_alloc</a></li>
+<li><a href="#orgheadline27">idr_get_empty_slot</a></li>
+<li><a href="#orgheadline28">idr_layer_alloc</a></li>
+<li><a href="#orgheadline29">sub_alloc</a></li>
+<li><a href="#orgheadline30">idr_fill_slot</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline1" class="outline-2">
+<h2 id="orgheadline1">Linux基本数据结构</h2>
+<div class="outline-text-2" id="text-orgheadline1">
+<!--abstract-begin-->
+
+<p>
+在Linux内核中经常用到的数据结构有链表、队列、映射和二叉树。这里介绍的链表包括双向链表和哈希链表，队列是内核提供kfifo。映射是idr，所谓idr就是根据整数查询指针。
+</p>
+
+<!--abstract-end-->
+</div>
+</div>
+
+<div id="outline-container-orgheadline10" class="outline-2">
+<h2 id="orgheadline10">链表</h2>
+<div class="outline-text-2" id="text-orgheadline10">
+</div><div id="outline-container-orgheadline2" class="outline-3">
+<h3 id="orgheadline2">双向链表</h3>
+<div class="outline-text-3" id="text-orgheadline2">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">#include</span> <span style="color: #800;">&lt;linux/list.h&gt;</span>
+<span style="color: #800;">struct</span> <span style="color: #800;">list_head</span> {
+    <span style="color: #800;">struct</span> <span style="color: #800;">list_head</span> *<span style="color: #048;">next</span>, *<span style="color: #048;">prev</span>;
+};
+</pre>
+</div>
+<p>
+双向链表的结构只有两个指针，那么如何保存数据呢，和其他嵌入式数据结构一样，双向链表嵌入到其他数据结构中，可以根据二者在内存中的位置关系利用链表地址反向计算数据地址。计算的函数如下。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">list_entry</span>(<span style="color: #048;">ptr</span>, <span style="color: #048;">type</span>, <span style="color: #048;">member</span>) container_of(ptr, type, member)
+<span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">container_of</span>(<span style="color: #048;">ptr</span>, <span style="color: #048;">type</span>, <span style="color: #048;">member</span>)                         \
+    (<span style="color: #800;">type</span> *)((<span style="color: #800;">char</span> *)(ptr) - (<span style="color: #800;">char</span> *) &amp;((<span style="color: #800;">type</span> *)0)-&gt;member)
+</pre>
+</div>
+<p>
+根据提供的链表指针ptr，包含的数据类型type，以及链表在type的成员名字member，就可以反向计算出type的地址。
+</p>
+</div>
+<div id="outline-container-orgheadline3" class="outline-4">
+<h4 id="orgheadline3">生命周期</h4>
+<div class="outline-text-4" id="text-orgheadline3">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #666;">// </span><span style="color: #666;">&#23558;&#38142;&#34920;&#21021;&#22987;&#21270;&#65292;&#20063;&#23601;&#26159;prev&#21644;next&#37117;&#25351;&#21521;&#33258;&#36523;</span>
+<span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">LIST_HEAD_INIT</span>(<span style="color: #048;">name</span>) { &amp;(name), &amp;(name) }
+<span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">LIST_HEAD</span>(<span style="color: #048;">name</span>) \               <span style="color: #666;">// </span><span style="color: #666;">&#38745;&#24577;&#23450;&#20041;&#19968;&#20010;&#21452;&#21521;&#38142;&#34920;</span>
+<span style="color: #800;">struct</span> <span style="color: #800;">list_head</span> <span style="color: #048;">name</span> = LIST_HEAD_INIT(name)
+<span style="color: #666;">// </span><span style="color: #666;">&#21644;LIST_HEAD_INIT&#21151;&#33021;&#19968;&#26679;&#65292;&#36825;&#37324;&#20256;&#36882;&#30340;&#26159;&#25351;&#38024;&#65292;&#32780;&#21069;&#38754;&#20256;&#36882;&#30340;&#26159;&#23545;&#35937;</span>
+<span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">INIT_LIST_HEAD</span>(<span style="color: #800;">struct</span> <span style="color: #800;">list_head</span> *<span style="color: #048;">list</span>);
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline4" class="outline-4">
+<h4 id="orgheadline4">基本操作</h4>
+<div class="outline-text-4" id="text-orgheadline4">
+<p>
+读者不妨思考一下下面这些函数为什么这么定义，以及如何实现这些函数。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #666;">// </span><span style="color: #666;">&#20026;&#20102;&#31616;&#20415;&#65292;entry&#21644;head&#22343;&#34920;&#31034;struct list_head *</span>
+<span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">list_add</span>(entry, head);             <span style="color: #666;">// </span><span style="color: #666;">add entry after head</span>
+<span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">list_add_tail</span>(entry, head);        <span style="color: #666;">// </span><span style="color: #666;">add entry before head</span>
+<span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">list_del</span>(entry);                   <span style="color: #666;">// </span><span style="color: #666;">delete entry</span>
+<span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">list_del_init</span>(entry);              <span style="color: #666;">// </span><span style="color: #666;">delete and init entry</span>
+<span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">list_replace</span>(old_entry, new_entry);
+<span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">list_replace_init</span>(old_entry, new_entry); <span style="color: #666;">// </span><span style="color: #666;">init old_entry</span>
+<span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">list_move</span>(entry, head);            <span style="color: #666;">// </span><span style="color: #666;">move entry after head</span>
+<span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">list_move_tail</span>(entry, head);       <span style="color: #666;">// </span><span style="color: #666;">move entry before head</span>
+<span style="color: #800;">bool</span> <span style="color: #048; font-weight: bold;">list_empty</span>(head);                  <span style="color: #666;">// </span><span style="color: #666;">check if empty by next</span>
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">list_empty_careful</span>(head);           <span style="color: #666;">// </span><span style="color: #666;">check if empty by next &amp; prev</span>
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">list_is_last</span>(entry, head);          <span style="color: #666;">// </span><span style="color: #666;">check if last entry</span>
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">list_is_singular</span>(head);             <span style="color: #666;">// </span><span style="color: #666;">check if only on entry</span>
+<span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">list_rotate_left</span>(head);            <span style="color: #666;">// </span><span style="color: #666;">move first to last</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline5" class="outline-4">
+<h4 id="orgheadline5">高级操作</h4>
+<div class="outline-text-4" id="text-orgheadline5">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #666;">// </span><span style="color: #666;">&#20026;&#20102;&#31616;&#20415;&#65292;entry&#21644;head&#22343;&#34920;&#31034;struct list_head *</span>
+<span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">list_cut_position</span>(<span style="color: #800;">list</span>, head, entry); <span style="color: #666;">// </span><span style="color: #666;">list = [head, entry]</span>
+                                           <span style="color: #666;">// </span><span style="color: #666;">head = [entry-&gt;next, tail]</span>
+<span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">list_splice</span>(<span style="color: #800;">list</span>, head);           <span style="color: #666;">// </span><span style="color: #666;">insert list after head</span>
+                                        <span style="color: #666;">// </span><span style="color: #666;">list self is head, so not insert</span>
+<span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">list_splice_tail</span>(<span style="color: #800;">list</span>, head);      <span style="color: #666;">// </span><span style="color: #666;">insert list before head</span>
+<span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">list_splice_init</span>(<span style="color: #800;">list</span>, head);      <span style="color: #666;">// </span><span style="color: #666;">insert after head, init list</span>
+<span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">list_splice_tail_init</span>(<span style="color: #800;">list</span>, head); <span style="color: #666;">// </span><span style="color: #666;">insert before head, init list</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline6" class="outline-4">
+<h4 id="orgheadline6">链表遍历</h4>
+<div class="outline-text-4" id="text-orgheadline6">
+<p>
+在使用双向链表的时候要遵循一个规则，那就是链表头不能嵌入到数据中，也就是说链表头和普通的链表节点是不一样的。所以不能对链表头调用list_entry()，而必须使用下面的宏。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">list_first_entry</span>(<span style="color: #048;">ptr</span>, <span style="color: #048;">type</span>, <span style="color: #048;">member</span>)     \
+    list_entry((ptr)-&gt;next, type, member)
+<span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">list_last_entry</span>(<span style="color: #048;">ptr</span>, <span style="color: #048;">type</span>, <span style="color: #048;">member</span>)      \
+    list_entry((ptr)-&gt;prev, type, member)
+</pre>
+</div>
+
+<p>
+另外比较常用的操作是迭代链表，主要可以用如下一些宏。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">__container_of</span>(<span style="color: #048;">ptr</span>, <span style="color: #048;">sample</span>, <span style="color: #048;">member</span>)                     \
+    (<span style="color: #800;">void</span> *)container_of((ptr), typeof(*(sample)), member)
+</pre>
+</div>
+<p>
+这个宏的特殊之处在于我们不是去指定链表保存的数据类型，而是直接传递数据指针，由typeof去帮我们提取数据类型。
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">list_for_each_entry</span>(<span style="color: #048;">pos</span>, <span style="color: #048;">head</span>, <span style="color: #048;">member</span>)                  \
+    <span style="color: #800;">for</span> (pos = __container_of((head)-&gt;next, pos, member);       \
+         &amp;pos-&gt;member != (head);                                \
+         pos = __container_of(pos-&gt;member.next, pos, member))
+<span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">list_for_each_entry_safe</span>(<span style="color: #048;">pos</span>, <span style="color: #048;">tmp</span>, <span style="color: #048;">head</span>, <span style="color: #048;">member</span>);
+</pre>
+</div>
+<p>
+pos是我们想要得到的数据指针，head是链表头，所以必须从next开始获取，结束条件是我们拿到了head的数据，显然这个数据是无效的。一旦我们有了pos，往后面迭代的时候就不需要使用head，而直接可以使用pos-&gt;member了。当然，如果我们在迭代过程中将当前节点删除，还不会有什么问题，但是一旦我们删除后有对当前节点初始化，那么迭代就会终止。更可怕的是如果我们将当前节点移动到了别的地方，那么就会产生致命错误，极可能系统崩溃。安全版本可以删除当前元素，因为已经用tmp记录了下一个元素的位置。
+</p>
+
+<p>
+此外还可以进行反向迭代。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">list_for_each_entry_reverse</span>(<span style="color: #048;">pos</span>, <span style="color: #048;">head</span>, <span style="color: #048;">member</span>);
+<span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">list_for_each_entry_safe_reverse</span>(<span style="color: #048;">pos</span>, <span style="color: #048;">tmp</span>, <span style="color: #048;">head</span>, <span style="color: #048;">member</span>);
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline7" class="outline-3">
+<h3 id="orgheadline7">哈希链表</h3>
+<div class="outline-text-3" id="text-orgheadline7">
+<p>
+哈希链表本质上还是双向链表，当next为NULL的时候就是链表尾部，但是又可以通过pprev来改变前一个节点。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">#include</span> <span style="color: #800;">&lt;linux/list.h&gt;</span>
+<span style="color: #800;">struct</span> <span style="color: #800;">hlist_head</span> {
+    <span style="color: #800;">struct</span> <span style="color: #800;">hlist_node</span> *<span style="color: #048;">first</span>;
+};
+<span style="color: #800;">struct</span> <span style="color: #800;">hlist_node</span> {
+    <span style="color: #800;">struct</span> <span style="color: #800;">hlist_node</span> *<span style="color: #048;">next</span>, **<span style="color: #048;">pprev</span>;
+};
+</pre>
+</div>
+<p>
+哈希表的本质是hlist_head的一个数组，既然是数组，长度就是固定的。每当要向表中一个位置添加节点时，就将hlist_node加入到hlist_head所指定的链表中。这里和双向链表的设计思路完全一样，链表头不用来存放数据，仅仅作为重要的参照标志。为了节省空间，链表头只包含一个指针。
+</p>
+
+<p>
+这里出现了一个pprev指针，它指向上一个hlist_node的next指针的地址，如果前一个节点是hlist_head，那么就是hlist_head的first的地址。之所以要用这么一个指针，而不是是像链表一样直接用prev，是存在技术上的困难，因为prev可能是hlist_head也可以是hlist_node，但是如果将其含义修改为上一节点的next指针地址，就可以用统一的hlist_node二级指针表示。
+</p>
+</div>
+
+<div id="outline-container-orgheadline8" class="outline-4">
+<h4 id="orgheadline8">生命周期</h4>
+<div class="outline-text-4" id="text-orgheadline8">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">HLIST_HEAD</span>(<span style="color: #048;">name</span>) <span style="color: #800;">struct</span> <span style="color: #800;">hlist_head</span> <span style="color: #048;">name</span> = { .first = <span style="color: #800;">NULL</span> }
+<span style="color: #800;">#define</span> <span style="color: #048;">HLIST_HEAD_INIT</span> { .first = <span style="color: #800;">NULL</span> }
+<span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">INIT_HLIST_HEAD</span>(<span style="color: #048;">ptr</span>) ((ptr)-&gt;first = <span style="color: #800;">NULL</span>)
+<span style="color: #800;">static</span> <span style="color: #800;">inline</span> <span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">INIT_HLIST_NODE</span>(<span style="color: #800;">struct</span> <span style="color: #800;">hlist_node</span> *<span style="color: #048;">h</span>)
+{
+    h-&gt;next = <span style="color: #800;">NULL</span>;
+    h-&gt;pprev = <span style="color: #800;">NULL</span>;
+}
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline9" class="outline-4">
+<h4 id="orgheadline9">基本操作</h4>
+<div class="outline-text-4" id="text-orgheadline9">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #666;">// </span><span style="color: #666;">&#20026;&#20102;&#31616;&#20415;&#65292;node&#34920;&#31034;struct hlist_node *&#65292;head&#34920;&#31034;struct hlist_head *</span>
+<span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">hlist_entry</span>(<span style="color: #048;">ptr</span>, <span style="color: #048;">type</span>, <span style="color: #048;">member</span>); <span style="color: #666;">// </span><span style="color: #666;">ref list_entry()</span>
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">hlist_unhashed</span>(node);               <span style="color: #666;">// </span><span style="color: #666;">check if inserted hash table</span>
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">hlist_empty</span>(head);                  <span style="color: #666;">// </span><span style="color: #666;">check if empty</span>
+<span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">hlist_del</span>(node);                   <span style="color: #666;">// </span><span style="color: #666;">delete node</span>
+<span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">hlist_del_init</span>(node);              <span style="color: #666;">// </span><span style="color: #666;">delete and init node</span>
+<span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">hlist_add_head</span>(node, head);        <span style="color: #666;">// </span><span style="color: #666;">insert to head-&gt;first</span>
+<span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">hlist_add_before</span>(node, pos);       <span style="color: #666;">// </span><span style="color: #666;">insert node before pos</span>
+<span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">hlist_add_behind</span>(node, pos);       <span style="color: #666;">// </span><span style="color: #666;">insert node behind pos</span>
+<span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">hlist_move_list</span>(head, new_head);   <span style="color: #666;">// </span><span style="color: #666;">move list to new_head</span>
+                                        <span style="color: #666;">// </span><span style="color: #666;">head-&gt;first will be NULL</span>
+</pre>
+</div>
+
+<p>
+哈希链表的遍历和双向链表工作原理一样，不过实现上要复杂一点，并且没有反向迭代的版本。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">hlist_for_each_entry</span>(<span style="color: #048;">pos</span>, <span style="color: #048;">head</span>, <span style="color: #048;">member</span>);
+<span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">hlist_for_each_entry_safe</span>(<span style="color: #048;">pos</span>, <span style="color: #048;">tmp</span>, <span style="color: #048;">head</span>, <span style="color: #048;">member</span>);
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline11" class="outline-2">
+<h2 id="orgheadline11">队列 - kfifo</h2>
+<div class="outline-text-2" id="text-orgheadline11">
+<p>
+FIFO就是先进先出的意思，一般用队列表示，Linux Kernel实现了一个通用的FIFO，称之为KFIFO。
+</p>
+
+<p>
+本文参照linux-kernel-3.19，由于代码相对于老的接口有一些变动，所以对于用户来说需要作出如下一些更变。
+</p>
+
+<ul class="org-ul">
+<li>将类型声明由<code>struct kfifo *</code>变为<code>struct kfifo</code></li>
+<li>使用<code>kfifo_alloc()</code>或<code>kfifo_init()</code>初始化</li>
+<li><code>kfifo_in/kfifo_out</code>替代<code>__kfifo_put/__kfifo_get</code>表示免锁算法</li>
+<li><code>kfifo_in_spinlocked/kfifo_out_spinlocked</code>替代<code>kfifo_put/kfifo_get</code>表示要加锁的算法</li>
+<li><code>__kfifo_*</code>函数被更名为<code>kfifo_*</code></li>
+</ul>
+
+<p>
+如果只有一个写入者，一个读取者，是不需要锁的。对于多个写入者，一个读取者，只需要对写入者上锁。反之，如果有多个读取者，一个写入者，只需要对读取者上锁。
+</p>
+
+<p>
+另外在实现上用到了比较特殊的技巧，内核实现了两类KFIFO，一种就是<code>struct kfifo</code>，也就是动态KFIFO，data段动态分配，这里称之为动态KFIFO。一种是匿名KFIFO，buf段长度不为0，data段指向buf，静态分配，这里称之为静态KFIFO。这也是为什么几乎所有的方法都用宏定义，这样可以避免类型检查。
+</p>
+</div>
+
+<div id="outline-container-orgheadline12" class="outline-3">
+<h3 id="orgheadline12">基本用法</h3>
+<div class="outline-text-3" id="text-orgheadline12">
+<p>
+一般用法是在结构体中嵌入一个kfifo结构，可以是静态KFIFO也可以是动态KFIFO。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #666;">// </span><span style="color: #666;">all fifo is a pointer</span>
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">kfifo_alloc</span>(fifo, <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048;">size</span>, <span style="color: #800;">gfp_t</span> <span style="color: #048;">gfp_mask</span>);
+<span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">kfifo_free</span>(fifo);
+<span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">kfifo_size</span>(fifo);          <span style="color: #666;">// </span><span style="color: #666;">mask + 1</span>
+<span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">kfifo_len</span>(fifo);           <span style="color: #666;">// </span><span style="color: #666;">in - out</span>
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">kfifo_is_empty</span>(fifo);               <span style="color: #666;">// </span><span style="color: #666;">in == out</span>
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">kfifo_is_full</span>(fifo);                <span style="color: #666;">// </span><span style="color: #666;">len &gt; mask</span>
+<span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">kfifo_avail</span>(fifo);
+<span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">kfifo_reset</span>(fifo);         <span style="color: #666;">// </span><span style="color: #666;">in = out = 0</span>
+<span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">kfifo_reset_out</span>(fifo);             <span style="color: #666;">// </span><span style="color: #666;">out = in</span>
+<span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">kfifo_unused</span>(fifo);        <span style="color: #666;">// </span><span style="color: #666;">len - (in - out)</span>
+<span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">kfifo_in</span>(fifo, <span style="color: #800;">void</span> *<span style="color: #048;">buf</span>, <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048;">num</span>);
+<span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">kfifo_out</span>(fifo, <span style="color: #800;">void</span> *<span style="color: #048;">buf</span>, <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048;">num</span>);
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline18" class="outline-3">
+<h3 id="orgheadline18">源码分析</h3>
+<div class="outline-text-3" id="text-orgheadline18">
+</div><div id="outline-container-orgheadline13" class="outline-4">
+<h4 id="orgheadline13">数据结构</h4>
+<div class="outline-text-4" id="text-orgheadline13">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">#include</span> <span style="color: #800;">&lt;linux/kfifo.h&gt;</span>
+<span style="color: #800;">struct</span> <span style="color: #800;">__kfifo</span> {
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span>    <span style="color: #048;">in</span>;                 <span style="color: #666;">// </span><span style="color: #666;">point to head</span>
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span>    <span style="color: #048;">out</span>;                <span style="color: #666;">// </span><span style="color: #666;">point to tail</span>
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span>    <span style="color: #048;">mask</span>;               <span style="color: #666;">// </span><span style="color: #666;">FIFO total size</span>
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span>    <span style="color: #048;">esize</span>;              <span style="color: #666;">// </span><span style="color: #666;">element size</span>
+    <span style="color: #800;">void</span>            *<span style="color: #048;">data</span>;              <span style="color: #666;">// </span><span style="color: #666;">data buffer</span>
+};
+</pre>
+</div>
+
+<p>
+环形队列如下图所示，读取者将out向右推，写入者将in向右推。
+</p>
+
+
+<div class="figure">
+<p><img src="/resource/kernel/fig/kds/ringbuffer.png" alt="ringbuffer.png" />
+</p>
+</div>
+
+<p>
+但是到目前为止，还没有看到struct kfifo的定义，实际上它是由一组宏来定义的。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">__STRUCT_KFIFO_COMMON</span>(<span style="color: #048;">datatype</span>, <span style="color: #048;">recsize</span>, <span style="color: #048;">ptrtype</span>)       \
+    <span style="color: #800;">union</span> {                                                     \
+        <span style="color: #800;">struct</span> <span style="color: #800;">__kfifo</span>  <span style="color: #048;">kfifo</span>;                                  \
+        <span style="color: #800;">datatype</span>        *<span style="color: #048;">type</span>;                                  \
+        <span style="color: #800;">const</span> <span style="color: #800;">datatype</span>  *<span style="color: #048;">const_type</span>;                            \
+        <span style="color: #800;">char</span>            (*<span style="color: #048;">rectype</span>)[recsize];                    \
+        <span style="color: #800;">ptrtype</span>         *<span style="color: #048;">ptr</span>;                                   \
+        <span style="color: #800;">ptrtype</span> <span style="color: #800;">const</span>   *<span style="color: #048;">ptr_const</span>;                             \
+    }
+<span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">__STRUCT_KFIFO_PTR</span>(<span style="color: #048;">type</span>, <span style="color: #048;">recsize</span>, <span style="color: #048;">ptrtype</span>)      \
+    {                                                   \
+        __STRUCT_KFIFO_COMMON(type, recsize, ptrtype);  \
+        <span style="color: #800;">type</span>            <span style="color: #048;">buf</span>[0];                         \
+    }
+<span style="color: #800;">struct</span> <span style="color: #800;">kfifo</span> <span style="color: #048; font-weight: bold;">__STRUCT_KFIFO_PTR</span>(<span style="color: #800;">unsigned</span> <span style="color: #800;">char</span>, 0, <span style="color: #800;">void</span>);
+</pre>
+</div>
+<dl class="org-dl">
+<dt>type</dt><dd>实际就是队列元素的类型，kfifo以unsigned char作为元素类型</dd>
+<dt>recsize</dt><dd>全称叫record size，很显然kfifo的record size为0.
+因此下文不再讨论recsize不为0的情况。</dd>
+</dl>
+
+<p>
+这段代码设计非常精巧，我们知道kfifo中并不包含元素数据类型，元素指针类型，那么如何利用kfifo来确定相关数据类型呢？共同体为我们保存了这些信息，例如我们要想知道fifo的元素类型，就可以通过<code>typeof(*fifo-&gt;type)</code>获取。也就是除了buf是直接用于存储数据以外，其它的字段是为了获取类型。也就是说共同体内部处理fifo之外，我们并不会去关注其它变量，即便用其它变量也不过是利用它们获取类型，而绝不会使用它们的值。
+</p>
+
+<p>
+另外有个宏用于判断指针是否为kfifo。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">__is_kfifo_ptr</span>(<span style="color: #048;">fifo</span>)    (<span style="color: #800;">sizeof</span>(*fifo) == <span style="color: #800;">sizeof</span>(<span style="color: #800;">struct</span> <span style="color: #800;">__kfifo</span>))
+</pre>
+</div>
+<p>
+这个宏在很多地方都有用到，这也是设计者考虑问题比较复杂所致，如果是kfifo，就意味着fifo-&gt;buf数组长度为0，data部分单独分配。如果是其它fifo，fifo-&gt;buf长度不为0，data就会指向这部分。这里说其它fifo是指匿名结构体，它和kfifo唯一不同之处是buf的长度不为0。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline14" class="outline-4">
+<h4 id="orgheadline14">静态定义</h4>
+<div class="outline-text-4" id="text-orgheadline14">
+<p>
+kfifo的实现中运用了大量的宏，并且比较复杂，因此先找一个比较简单的切入口，逐步分析。
+DECLARE_KFIFO用于静态声明一个kfifo对象。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">__STRUCT_KFIFO</span>(<span style="color: #048;">type</span>, <span style="color: #048;">size</span>, <span style="color: #048;">recsize</span>, <span style="color: #048;">ptrtype</span>)                    \
+    {                                                                   \
+        __STRUCT_KFIFO_COMMON(type, recsize, ptrtype);                  \
+        <span style="color: #800;">type</span> <span style="color: #048;">buf</span>[((size &lt; 2) || (size &amp; (size - 1))) ? -1 : size];      \
+    }
+<span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">STRUCT_KFIFO</span>(<span style="color: #048;">type</span>, <span style="color: #048;">size</span>)                \
+    <span style="color: #800;">struct</span> <span style="color: #800;">__STRUCT_KFIFO</span>(type, size, 0, type)
+<span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">DECLARE_KFIFO</span>(<span style="color: #048;">fifo</span>, <span style="color: #048;">type</span>, <span style="color: #048;">size</span>) STRUCT_KFIFO(type, size) fifo
+</pre>
+</div>
+<dl class="org-dl">
+<dt>fifo</dt><dd>要定义的kfifo的名字</dd>
+<dt>type</dt><dd>元素的类型</dd>
+<dt>size</dt><dd>kfifo可容纳的元素个数，必须是2的幂</dd>
+<dt>buf</dt><dd>用于存放元素，<code>size &amp; (size - 1)</code>用于检测大小是否为2的幂</dd>
+</dl>
+
+<p>
+如果你仔细看就会发现DECLARE_KFIFO是一个匿名结构体，它和kfifo不是一回事！这也是为什么很多地方都要用到<code>__is_kfifo_ptr</code>的原因。
+</p>
+
+<p>
+DECLARE_KFIFO只是声明一个变量，初始化用如下宏，注意看下面就应该知道，之所以用typeof而不是直接用<code>struct kfifo *</code>就是因为两者不是一回事。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">INIT_KFIFO</span>(<span style="color: #048;">fifo</span>)                                                \
+    (<span style="color: #800;">void</span>)({                                                            \
+            typeof(&amp;(fifo)) __tmp = &amp;(fifo);                            \
+            <span style="color: #800;">struct</span> <span style="color: #800;">__kfifo</span> *<span style="color: #048;">__kfifo</span> = &amp;__tmp-&gt;kfifo;                    \
+            __kfifo-&gt;in = 0;                                            \
+            __kfifo-&gt;out = 0;                                           \
+            __kfifo-&gt;mask = __is_kfifo_ptr(__tmp) ? 0 :                 \
+                ARRAY_SIZE(__tmp-&gt;buf) - 1;                             \
+            __kfifo-&gt;esize = <span style="color: #800;">sizeof</span>(*__tmp-&gt;buf);                       \
+            __kfifo-&gt;data = __is_kfifo_ptr(__tmp) ? <span style="color: #800;">NULL</span> : __tmp-&gt;buf;  \
+        })
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline15" class="outline-4">
+<h4 id="orgheadline15">动态分配</h4>
+<div class="outline-text-4" id="text-orgheadline15">
+<p>
+静态分配的情况其实比较少见，更多的是动态的分配。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span class="linenr">1: </span><span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">kfifo_alloc</span>(<span style="color: #048;">fifo</span>, <span style="color: #048;">size</span>, <span style="color: #048;">gfp_mask</span>)                               \
+<span class="linenr">2: </span>    __kfifo_int_must_check_helper(({                                    \
+<span class="linenr">3: </span>        typeof((fifo) + 1) __tmp = (fifo);                              \
+<span class="linenr">4: </span>        <span style="color: #800;">struct</span> <span style="color: #800;">__kfifo</span> *<span style="color: #048;">__kfifo</span> = &amp;__tmp-&gt;kfifo;                        \
+<span class="linenr">5: </span>        __is_kfifo_ptr(__tmp) ?                                         \
+<span class="linenr">6: </span>            __kfifo_alloc(__kfifo, size, <span style="color: #800;">sizeof</span>(*__tmp-&gt;type), gfp_mask) : \
+<span class="linenr">7: </span>            -EINVAL;                                                    \
+<span class="linenr">8: </span>    }))
+</pre>
+</div>
+<dl class="org-dl">
+<dt>4</dt><dd><code>typeof((fifo) + 1)</code>这里为什么要加1呢，主要的好处是帮助确定传递的参数类型是否正确，如果传递的是结构体会产生编译错误。如果传递的是数组名，如<code>int fifo[4]</code>，<code>typeof(fifo)</code>的结果为<code>int [4]</code>，而使用<code>typeof(fifo + 1)</code>结果为<code>int *</code>。所以可以认为主要是为了转换数组类型为指针类型。</dd>
+<dt>6</dt><dd>给fifo-&gt;data分配空间</dd>
+</dl>
+</div>
+</div>
+
+<div id="outline-container-orgheadline16" class="outline-4">
+<h4 id="orgheadline16">入队</h4>
+<div class="outline-text-4" id="text-orgheadline16">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">static</span> <span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">kfifo_copy_in</span>(<span style="color: #800;">struct</span> <span style="color: #800;">__kfifo</span> *<span style="color: #048;">fifo</span>, <span style="color: #800;">const</span> <span style="color: #800;">void</span> *<span style="color: #048;">src</span>,
+                          <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048;">len</span>, <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048;">off</span>)
+{
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048;">size</span> = fifo-&gt;mask + 1;
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048;">esize</span> = fifo-&gt;esize;
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048;">l</span>;
+
+    off &amp;= fifo-&gt;mask;
+    <span style="color: #800;">if</span> (esize != 1) {
+        off *= esize; size *= esize; len *= esize;
+    }
+    l = min(len, size - off);
+
+    memcpy(fifo-&gt;data + off, src, l);
+    memcpy(fifo-&gt;data, src + l, len - l);
+    smp_wmb(); <span style="color: #666;">// </span><span style="color: #666;">update data before increase fifo-&gt;in</span>
+}
+<span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">__kfifo_in</span>(<span style="color: #800;">struct</span> <span style="color: #800;">__kfifo</span> *<span style="color: #048;">fifo</span>,
+                        <span style="color: #800;">const</span> <span style="color: #800;">void</span> *<span style="color: #048;">buf</span>, <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048;">len</span>)
+{
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048;">l</span>;
+
+    l = kfifo_unused(fifo);
+    <span style="color: #800;">if</span> (len &gt; l)
+        len = l;
+
+    kfifo_copy_in(fifo, buf, len, fifo-&gt;in);
+    fifo-&gt;in += len;
+    <span style="color: #800;">return</span> len;
+}
+<span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">kfifo_in</span>(<span style="color: #048;">fifo</span>, <span style="color: #048;">buf</span>, <span style="color: #048;">n</span>)                          \
+    ({                                                  \
+        typeof((fifo) + 1) __tmp = (fifo);              \
+        typeof(__tmp-&gt;ptr_const) __buf = (buf);         \
+        <span style="color: #800;">unsigned</span> <span style="color: #800;">long</span> <span style="color: #048;">__n</span> = (n);                        \
+        <span style="color: #800;">struct</span> <span style="color: #800;">__kfifo</span> *<span style="color: #048;">__kfifo</span> = &amp;__tmp-&gt;kfifo;        \
+        __kfifo_in(__kfifo, __buf, __n);                \
+    })
+<span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">kfifo_in_spinlocked</span>(<span style="color: #048;">fifo</span>, <span style="color: #048;">buf</span>, <span style="color: #048;">n</span>, <span style="color: #048;">lock</span>) \
+    ({                                          \
+        <span style="color: #800;">unsigned</span> <span style="color: #800;">long</span> <span style="color: #048;">__flags</span>;                  \
+        <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048;">__ret</span>;                     \
+        spin_lock_irqsave(lock, __flags);       \
+        __ret = kfifo_in(fifo, buf, n);         \
+        spin_unlock_irqrestore(lock, __flags);  \
+        __ret;                                  \
+    })
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline17" class="outline-4">
+<h4 id="orgheadline17">出队</h4>
+<div class="outline-text-4" id="text-orgheadline17">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">static</span> <span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">kfifo_copy_out</span>(<span style="color: #800;">struct</span> <span style="color: #800;">__kfifo</span> *<span style="color: #048;">fifo</span>, <span style="color: #800;">void</span> *<span style="color: #048;">dst</span>,
+                           <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048;">len</span>, <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048;">off</span>)
+{
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048;">size</span> = fifo-&gt;mask + 1;
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048;">esize</span> = fifo-&gt;esize;
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048;">l</span>;
+
+    off &amp;= fifo-&gt;mask;
+    <span style="color: #800;">if</span> (esize != 1) {
+        off *= esize; size *= esize; len *= esize;
+    }
+    l = min(len, size - off);
+
+    memcpy(dst, fifo-&gt;data + off, l);
+    memcpy(dst + l, fifo-&gt;data, len - l);
+    smp_wmb(); <span style="color: #666;">// </span><span style="color: #666;">copy data before increase fifo-&gt;out</span>
+}
+<span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">__kfifo_out_peek</span>(<span style="color: #800;">struct</span> <span style="color: #800;">__kfifo</span> *<span style="color: #048;">fifo</span>,
+                              <span style="color: #800;">void</span> *<span style="color: #048;">buf</span>, <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048;">len</span>)
+{
+    <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048;">l</span>;
+
+    l = fifo-&gt;in - fifo-&gt;out;
+    <span style="color: #800;">if</span> (len &gt; l)
+        len = l;
+
+    kfifo_copy_out(fifo, buf, len, fifo-&gt;out);
+    <span style="color: #800;">return</span> len;
+}
+<span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">__kfifo_out</span>(<span style="color: #800;">struct</span> <span style="color: #800;">__kfifo</span> *<span style="color: #048;">fifo</span>,
+                         <span style="color: #800;">void</span> *<span style="color: #048;">buf</span>, <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048;">len</span>)
+{
+    len = __kfifo_out_peek(fifo, buf, len);
+    fifo-&gt;out += len;
+    <span style="color: #800;">return</span> len;
+}
+<span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">kfifo_out</span>(<span style="color: #048;">fifo</span>, <span style="color: #048;">buf</span>, <span style="color: #048;">n</span>)                         \
+    __kfifo_uint_must_check_helper(({                   \
+        typeof((fifo) + 1) __tmp = (fifo);              \
+        typeof(__tmp-&gt;ptr) __buf = (buf);               \
+        <span style="color: #800;">unsigned</span> <span style="color: #800;">long</span> <span style="color: #048;">__n</span> = (n);                        \
+        <span style="color: #800;">struct</span> <span style="color: #800;">__kfifo</span> *<span style="color: #048;">__kfifo</span> = &amp;__tmp-&gt;kfifo;        \
+        __kfifo_out(__kfifo, __buf, __n);               \
+    }))
+
+<span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">kfifo_out_spinlocked</span>(<span style="color: #048;">fifo</span>, <span style="color: #048;">buf</span>, <span style="color: #048;">n</span>, <span style="color: #048;">lock</span>) \
+    __kfifo_uint_must_check_helper(({            \
+        <span style="color: #800;">unsigned</span> <span style="color: #800;">long</span> <span style="color: #048;">__flags</span>;                   \
+        <span style="color: #800;">unsigned</span> <span style="color: #800;">int</span> <span style="color: #048;">__ret</span>;                      \
+        spin_lock_irqsave(lock, __flags);        \
+        __ret = kfifo_out(fifo, buf, n);         \
+        spin_unlock_irqrestore(lock, __flags);   \
+        __ret;                                   \
+    }))
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline19" class="outline-2">
+<h2 id="orgheadline19">映射 - idr</h2>
+<div class="outline-text-2" id="text-orgheadline19">
+<p>
+在Linux中，IDR是一个Small id to pointer translation service，用于管理整数ID，将整数和指针映射。使用的时候首先为一个数据结构的指针分配一个整数ID，接下来通过ID可以快速查找对应的指针。
+</p>
+
+<p>
+数组和链表也能用于这样的转换，但是数组不能用于查询范围很大的情况，链表的迭代效率很低，因此不能用于映射量很大的情况。某些情况下可以用hash表来替代IDR，但是IDR相比于hash表来说不必预分配一个很大的数组，并且最坏情况要比hash表好。平衡二叉树能更好的控制最坏情况，但是IDR处理的情况比较特殊，只需要管理整数和指针，所以可以实现出比平衡二叉树更优的算法，不论在存储上还是在查询上都表现更好。
+IDR也是一种radix tree，每个节点有256个分支，通过一些技巧性的位运算可以得到很高的查询效率。
+</p>
+</div>
+
+<div id="outline-container-orgheadline23" class="outline-3">
+<h3 id="orgheadline23">基本用法</h3>
+<div class="outline-text-3" id="text-orgheadline23">
+</div><div id="outline-container-orgheadline20" class="outline-4">
+<h4 id="orgheadline20">创建与销毁</h4>
+<div class="outline-text-4" id="text-orgheadline20">
+<p>
+静态初始化接口如下所示。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">IDR_INIT</span>(<span style="color: #048;">name</span>) {.lock = __SPIN_LOCK_UNLOCKED(name.lock),}
+<span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">DEFINE_IDR</span>(<span style="color: #048;">name</span>) <span style="color: #800;">struct</span> <span style="color: #800;">idr</span> <span style="color: #048;">name</span> = IDR_INIT(name)
+</pre>
+</div>
+
+<p>
+动态初始化接口如下所示。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">idr_init</span>(<span style="color: #800;">struct</span> <span style="color: #800;">idr</span> *<span style="color: #048;">idp</span>)
+{
+    memset(idp, 0, <span style="color: #800;">sizeof</span>(<span style="color: #800;">struct</span> <span style="color: #800;">idr</span>));
+    spin_lock_init(&amp;idp-&gt;lock);
+}
+</pre>
+</div>
+
+<p>
+释放接口如下：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">idr_remove</span>(<span style="color: #800;">struct</span> <span style="color: #800;">idr</span> *<span style="color: #048;">idp</span>, <span style="color: #800;">int</span> <span style="color: #048;">id</span>);
+<span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">idr_destroy</span>(<span style="color: #800;">struct</span> <span style="color: #800;">idr</span> *<span style="color: #048;">idp</span>);
+</pre>
+</div>
+<dl class="org-dl">
+<dt>idr_remove</dt><dd>删除id并释放相关数据。</dd>
+<dt>idr_destroy</dt><dd>释放所有的id映射和层。</dd>
+</dl>
+</div>
+</div>
+
+<div id="outline-container-orgheadline21" class="outline-4">
+<h4 id="orgheadline21">分配ID</h4>
+<div class="outline-text-4" id="text-orgheadline21">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">idr_preload</span>(<span style="color: #800;">gfp_t</span> <span style="color: #048;">gfp_mask</span>);
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">idr_alloc</span>(<span style="color: #800;">struct</span> <span style="color: #800;">idr</span> *<span style="color: #048;">idp</span>, <span style="color: #800;">void</span> *<span style="color: #048;">ptr</span>, <span style="color: #800;">int</span> <span style="color: #048;">start</span>, <span style="color: #800;">int</span> <span style="color: #048;">end</span>, <span style="color: #800;">gfp_t</span> <span style="color: #048;">gfp_mask</span>);
+<span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">idr_preload_end</span>(<span style="color: #800;">void</span>);
+</pre>
+</div>
+<dl class="org-dl">
+<dt>idr_preload</dt><dd>调用idr_alloc之前需要调用idr_preload，用于载入percpu层缓冲，并且只能在进程上下文使用。当然idr_preload还做了一件重要的事情就是禁止抢占。</dd>
+<dt>idr_alloc</dt><dd>用于分配一个ID和指针关联，分配的值区间为[start, end)。当我们指定end的数值小于等于0的时候，默认就视为INT_MAX。</dd>
+<dt>idr_preload_end</dt><dd>启用内核抢占。</dd>
+</dl>
+
+<p>
+基本上使用IDR的流程如下所示。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #666;">// </span><span style="color: #666;">alloc idr...</span>
+idr_init(idr);
+
+idr_preload(GFP_KERNEL);
+spin_lock(lock);
+
+id = idr_alloc(idr, ptr, start, end, GFP_NOWAIT);
+
+spin_unlock(lock);
+idr_preload_end();
+
+<span style="color: #800;">if</span> (id &lt; 0)
+    error;
+
+idr_remove(idr, id);
+idr_destroy(idr);
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline22" class="outline-4">
+<h4 id="orgheadline22">查询迭代</h4>
+<div class="outline-text-4" id="text-orgheadline22">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">static</span> <span style="color: #800;">inline</span> <span style="color: #800;">void</span> *<span style="color: #048; font-weight: bold;">idr_find</span>(<span style="color: #800;">struct</span> <span style="color: #800;">idr</span> *<span style="color: #048;">idp</span>, <span style="color: #800;">int</span> <span style="color: #048;">id</span>);
+<span style="color: #800;">void</span> *<span style="color: #048; font-weight: bold;">idr_replace</span>(<span style="color: #800;">struct</span> <span style="color: #800;">idr</span> *<span style="color: #048;">idp</span>, <span style="color: #800;">void</span> *<span style="color: #048;">ptr</span>, <span style="color: #800;">int</span> <span style="color: #048;">id</span>);
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">idr_for_each</span>(<span style="color: #800;">struct</span> <span style="color: #800;">idr</span> *<span style="color: #048;">idp</span>,
+                 <span style="color: #800;">int</span> (*<span style="color: #048;">fn</span>)(<span style="color: #800;">int</span> <span style="color: #048;">id</span>, <span style="color: #800;">void</span> *<span style="color: #048;">p</span>, <span style="color: #800;">void</span> *<span style="color: #048;">data</span>),
+                 <span style="color: #800;">void</span> *<span style="color: #048;">data</span>);
+<span style="color: #800;">bool</span> <span style="color: #048; font-weight: bold;">idr_is_empty</span>(<span style="color: #800;">struct</span> <span style="color: #800;">idr</span> *<span style="color: #048;">idp</span>);
+</pre>
+</div>
+<dl class="org-dl">
+<dt>idr_find</dt><dd>根据指定的ID查找指针。</dd>
+<dt>idr_replace</dt><dd>相当于更新id对应的指针。</dd>
+<dt>idr_for_each</dt><dd>fn函数的参数p将由迭代时的idr_layer指针代入，
+fn函数的data即是idr_for_each的最后一个参数，这里设计要求fn返回0表示成功，返回非0表示失败，最终idr_for_each如果全部执行成功返回0，否则就返回非0。</dd>
+<dt>idr_is_empty</dt><dd>该函数设计基于idr_for_each实现，只要idr中有一个元素，那么迭代就会调用fn，我们只需要设计一个fn始终返回1的函数，并调用idr_for_each即可。因为idr_for_each()在调用fn时发现返回非0，就会停止迭代并返回该值。</dd>
+</dl>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline24" class="outline-3">
+<h3 id="orgheadline24">源码分析</h3>
+<div class="outline-text-3" id="text-orgheadline24">
+<p>
+假设我们要查找0x515，0x515/0x256 = 2，表示位于第1层的编号2，
+0x515%0x256 = 3，表示位于第0层的编号3，如下图所示。
+</p>
+
+
+<div class="figure">
+<p><img src="/resource/kernel/fig/kds/idr-tree.png" alt="idr-tree.png" />
+</p>
+</div>
+</div>
+<div id="outline-container-orgheadline25" class="outline-4">
+<h4 id="orgheadline25">数据结构</h4>
+<div class="outline-text-4" id="text-orgheadline25">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">#define</span> <span style="color: #048;">IDR_BITS</span> 8
+<span style="color: #800;">#define</span> <span style="color: #048;">IDR_SIZE</span> (1 &lt;&lt; IDR_BITS)
+<span style="color: #800;">#define</span> <span style="color: #048;">IDR_MASK</span> ((1 &lt;&lt; IDR_BITS)-1)
+<span style="color: #800;">struct</span> <span style="color: #800;">idr_layer</span> {
+    <span style="color: #800;">int</span>                     <span style="color: #048;">prefix</span>;   <span style="color: #666;">// </span><span style="color: #666;">&#21069;&#32512;&#65292;&#21363;&#39640;&#20301;&#65292;&#29992;&#20110;&#21028;&#26029;&#22823;&#33539;&#22260;</span>
+    <span style="color: #800;">int</span>                     <span style="color: #048;">layer</span>;    <span style="color: #666;">// </span><span style="color: #666;">&#28145;&#24230;&#65292;&#21040;&#21494;&#33410;&#28857;&#36317;&#31163;</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">idr_layer</span> <span style="color: #800;">__rcu</span>  *<span style="color: #048;">ary</span>[1&lt;&lt;IDR_BITS]; <span style="color: #666;">// </span><span style="color: #666;">&#25351;&#21521;&#23376;&#33410;&#28857;</span>
+    <span style="color: #800;">int</span>                     <span style="color: #048;">count</span>;    <span style="color: #666;">// </span><span style="color: #666;">&#24341;&#29992;&#35745;&#25968;&#65292;&#23376;&#33410;&#28857;&#20010;&#25968;</span>
+    <span style="color: #800;">union</span> {
+        DECLARE_BITMAP(bitmap, IDR_SIZE); <span style="color: #666;">// </span><span style="color: #666;">ary&#20351;&#29992;&#24773;&#20917;</span>
+        <span style="color: #800;">struct</span> <span style="color: #800;">rcu_head</span>         <span style="color: #048;">rcu_head</span>;
+    };
+};
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">struct</span> <span style="color: #800;">idr</span> {
+    <span style="color: #800;">struct</span> <span style="color: #800;">idr_layer</span> <span style="color: #800;">__rcu</span>  *<span style="color: #048;">hint</span>;      <span style="color: #666;">// </span><span style="color: #666;">&#26368;&#36817;&#20351;&#29992;&#30340;&#23618;</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">idr_layer</span> <span style="color: #800;">__rcu</span>  *<span style="color: #048;">top</span>;       <span style="color: #666;">// </span><span style="color: #666;">&#26641;&#26681;&#65292;&#28145;&#24230;&#26368;&#22823;&#30340;&#23618;</span>
+    <span style="color: #800;">int</span>                     <span style="color: #048;">layers</span>;     <span style="color: #666;">// </span><span style="color: #666;">&#26641;&#39640;&#65292;&#26368;&#22823;&#23618;&#21495;&#21152;1</span>
+    <span style="color: #800;">int</span>                     <span style="color: #048;">cur</span>;        <span style="color: #666;">// </span><span style="color: #666;">&#29992;&#20110;&#24490;&#29615;&#20998;&#37197;&#30340;&#24403;&#21069;&#20301;&#32622;</span>
+    <span style="color: #800;">spinlock_t</span>              <span style="color: #048;">lock</span>;
+    <span style="color: #800;">int</span>                     <span style="color: #048;">id_free_cnt</span>; <span style="color: #666;">// </span><span style="color: #666;">&#31354;&#38386;&#38142;&#34920;&#30340;idr_layer&#25968;</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">idr_layer</span>        *<span style="color: #048;">id_free</span>;    <span style="color: #666;">// </span><span style="color: #666;">&#31354;&#38386;&#38142;&#34920;&#22836;</span>
+};
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline26" class="outline-4">
+<h4 id="orgheadline26">idr_alloc</h4>
+<div class="outline-text-4" id="text-orgheadline26">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span class="linenr"> 1: </span><span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">idr_alloc</span>(<span style="color: #800;">struct</span> <span style="color: #800;">idr</span> *<span style="color: #048;">idr</span>, <span style="color: #800;">void</span> *<span style="color: #048;">ptr</span>, <span style="color: #800;">int</span> <span style="color: #048;">start</span>, <span style="color: #800;">int</span> <span style="color: #048;">end</span>, <span style="color: #800;">gfp_t</span> <span style="color: #048;">gfp_mask</span>)
+<span class="linenr"> 2: </span>{
+<span class="linenr"> 3: </span>    <span style="color: #800;">int</span> <span style="color: #048;">max</span> = end &gt; 0 ? end - 1 : INT_MAX;
+<span class="linenr"> 4: </span>    <span style="color: #800;">struct</span> <span style="color: #800;">idr_layer</span> *<span style="color: #048;">pa</span>[MAX_IDR_LEVEL + 1];
+<span class="linenr"> 5: </span>    <span style="color: #800;">int</span> <span style="color: #048;">id</span>;
+<span class="linenr"> 6: </span>
+<span class="linenr"> 7: </span>    might_sleep_if(gfp_mask &amp; __GFP_WAIT);
+<span class="linenr"> 8: </span>
+<span class="linenr"> 9: </span>    <span style="color: #800;">if</span> (WARN_ON_ONCE(start &lt; 0))
+<span class="linenr">10: </span>        <span style="color: #800;">return</span> -EINVAL;
+<span class="linenr">11: </span>    <span style="color: #800;">if</span> (unlikely(max &lt; start))
+<span class="linenr">12: </span>        <span style="color: #800;">return</span> -ENOSPC;
+<span class="linenr">13: </span>
+<span class="linenr">14: </span>    id = idr_get_empty_slot(idr, start, pa, gfp_mask, <span style="color: #800;">NULL</span>);
+<span class="linenr">15: </span>    <span style="color: #800;">if</span> (unlikely(id &lt; 0))
+<span class="linenr">16: </span>        <span style="color: #800;">return</span> id;
+<span class="linenr">17: </span>    <span style="color: #800;">if</span> (unlikely(id &gt; max))
+<span class="linenr">18: </span>        <span style="color: #800;">return</span> -ENOSPC;
+<span class="linenr">19: </span>
+<span class="linenr">20: </span>    idr_fill_slot(idr, ptr, id, pa);
+<span class="linenr">21: </span>    <span style="color: #800;">return</span> id;
+<span class="linenr">22: </span>}
+</pre>
+</div>
+<dl class="org-dl">
+<dt>3</dt><dd>确定整数区间，注意范围是[start, end)</dd>
+<dt>4</dt><dd>MAX_IDR_LEVEL具体有多大这里就不关心了，32位机上应该为4，
+\(2^{8\times4}\) 正好是32位机能表示的最大长度。</dd>
+<dt>7</dt><dd>用于调试</dd>
+<dt>14</dt><dd>分配ID，注意这里并没有指定最后一个参数layer_idr，因此不会调用get_from_free_list()从空闲链表分配</dd>
+<dt>20</dt><dd>填充</dd>
+</dl>
+</div>
+</div>
+
+<div id="outline-container-orgheadline27" class="outline-4">
+<h4 id="orgheadline27">idr_get_empty_slot</h4>
+<div class="outline-text-4" id="text-orgheadline27">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span class="linenr"> 1: </span><span style="color: #800;">static</span> <span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">idr_get_empty_slot</span>(<span style="color: #800;">struct</span> <span style="color: #800;">idr</span> *<span style="color: #048;">idp</span>, <span style="color: #800;">int</span> <span style="color: #048;">starting_id</span>,
+<span class="linenr"> 2: </span>                              <span style="color: #800;">struct</span> <span style="color: #800;">idr_layer</span> **<span style="color: #048;">pa</span>, <span style="color: #800;">gfp_t</span> <span style="color: #048;">gfp_mask</span>,
+<span class="linenr"> 3: </span>                              <span style="color: #800;">struct</span> <span style="color: #800;">idr</span> *<span style="color: #048;">layer_idr</span>)
+<span class="linenr"> 4: </span>{
+<span class="linenr"> 5: </span>    <span style="color: #800;">struct</span> <span style="color: #800;">idr_layer</span> *<span style="color: #048;">p</span>, *<span style="color: #800;">new</span>;
+<span class="linenr"> 6: </span>    <span style="color: #800;">int</span> <span style="color: #048;">layers</span>, <span style="color: #048;">v</span>, <span style="color: #048;">id</span>;
+<span class="linenr"> 7: </span>    <span style="color: #800;">unsigned</span> <span style="color: #800;">long</span> <span style="color: #048;">flags</span>;
+<span class="linenr"> 8: </span>
+<span class="linenr"> 9: </span>    id = starting_id;
+<span class="linenr">10: </span><span style="color: #800;">build_up</span>:
+<span class="linenr">11: </span>    p = idp-&gt;top;
+<span class="linenr">12: </span>    layers = idp-&gt;layers;
+<span class="linenr">13: </span>    <span style="color: #800;">if</span> (unlikely(<span style="color: #c00;">!</span>p)) {
+<span class="linenr">14: </span>        <span style="color: #800;">if</span> (<span style="color: #c00;">!</span>(p = idr_layer_alloc(gfp_mask, layer_idr)))
+<span class="linenr">15: </span>            <span style="color: #800;">return</span> -ENOMEM;
+<span class="linenr">16: </span>        p-&gt;layer = 0;
+<span class="linenr">17: </span>        layers = 1;
+<span class="linenr">18: </span>    }
+<span class="linenr">19: </span>
+<span class="linenr">20: </span>    <span style="color: #800;">while</span> (id &gt; idr_max(layers)) {
+<span class="linenr">21: </span>        layers++;
+<span class="linenr">22: </span>        <span style="color: #800;">if</span> (<span style="color: #c00;">!</span>p-&gt;count) {
+<span class="linenr">23: </span>            p-&gt;layer++;
+<span class="linenr">24: </span>            WARN_ON_ONCE(p-&gt;prefix);
+<span class="linenr">25: </span>            <span style="color: #800;">continue</span>;
+<span class="linenr">26: </span>        }
+<span class="linenr">27: </span>        <span style="color: #800;">if</span> (<span style="color: #c00;">!</span>(<span style="color: #800;">new</span> = idr_layer_alloc(gfp_mask, layer_idr))) {
+<span class="linenr">28: </span>            spin_lock_irqsave(&amp;idp-&gt;lock, flags);
+<span class="linenr">29: </span>            <span style="color: #800;">for</span> (<span style="color: #800;">new</span> = p; p &amp;&amp; p != idp-&gt;top; <span style="color: #800;">new</span> = p) {
+<span class="linenr">30: </span>                p = p-&gt;ary[0];
+<span class="linenr">31: </span>                <span style="color: #800;">new</span>-&gt;ary[0] = <span style="color: #800;">NULL</span>;
+<span class="linenr">32: </span>                <span style="color: #800;">new</span>-&gt;count = 0;
+<span class="linenr">33: </span>                bitmap_clear(<span style="color: #800;">new</span>-&gt;bitmap, 0, IDR_SIZE);
+<span class="linenr">34: </span>                __move_to_free_list(idp, <span style="color: #800;">new</span>);
+<span class="linenr">35: </span>            }
+<span class="linenr">36: </span>            spin_unlock_irqrestore(&amp;idp-&gt;lock, flags);
+<span class="linenr">37: </span>            <span style="color: #800;">return</span> -ENOMEM;
+<span class="linenr">38: </span>        }
+<span class="linenr">39: </span>        <span style="color: #800;">new</span>-&gt;ary[0] = p;
+<span class="linenr">40: </span>        <span style="color: #800;">new</span>-&gt;count = 1;
+<span class="linenr">41: </span>        <span style="color: #800;">new</span>-&gt;layer = layers-1;
+<span class="linenr">42: </span>        <span style="color: #800;">new</span>-&gt;prefix = id &amp; idr_layer_prefix_mask(<span style="color: #800;">new</span>-&gt;layer);
+<span class="linenr">43: </span>        <span style="color: #800;">if</span> (bitmap_full(p-&gt;bitmap, IDR_SIZE))
+<span class="linenr">44: </span>            __set_bit(0, <span style="color: #800;">new</span>-&gt;bitmap);
+<span class="linenr">45: </span>        p = <span style="color: #800;">new</span>;
+<span class="linenr">46: </span>    }
+<span class="linenr">47: </span>    rcu_assign_pointer(idp-&gt;top, p);
+<span class="linenr">48: </span>    idp-&gt;layers = layers;
+<span class="linenr">49: </span>    v = sub_alloc(idp, &amp;id, pa, gfp_mask, layer_idr);
+<span class="linenr">50: </span>    <span style="color: #800;">if</span> (v == -EAGAIN)
+<span class="linenr">51: </span>        <span style="color: #800;">goto</span> <span style="color: #800;">build_up</span>;
+<span class="linenr">52: </span>    <span style="color: #800;">return</span>(v);
+<span class="linenr">53: </span>}
+</pre>
+</div>
+<dl class="org-dl">
+<dt>layer_idr</dt><dd>该参数表示从指定位置分配，也就是利用空闲链表。</dd>
+<dt>13</dt><dd>如果没有根节点就会分配一个根节点层。</dd>
+<dt>16-17</dt><dd>p-&gt;layer是索引，很显然层数始终比索引要大1，如果一开始一层都没有，那么首次分配的层号为0。</dd>
+<dt>20</dt><dd>当id超过当前idr所能表示的最大值时，就需要分配新的层，也就是增加树的高度。计算idr_max()也比较简单。
+\(256^{layers} - 1\) ，这里为什么要减1呢，因为idr_max表示的是最大编号，而不是可表示的编号个数。</dd>
+<dt>23</dt><dd>如果当前层无人使用，我们可以直接增大当前层的深度。很显然只有当idr中一层都没有的时候才会出现此种情况，否则我们一定是从叶节点成长起来的，也就是说只有刚刚建立的top才有机会执行这样的高效算法。</dd>
+<dt>27</dt><dd>分配一个新的层</dd>
+<dt>28-38</dt><dd>处理分配出错的情况，如果分配失败，
+top指向的idr_layer要全部重新初始化，并移到idp的空闲链表中。</dd>
+<dt>39-45</dt><dd>初始化新分配的层。</dd>
+<dt>39</dt><dd>将new设为p的父节点，这也是前面讲idr是从叶节点长起来的原因。</dd>
+<dt>40</dt><dd>既然是从儿子长起来，就必然有人引用，引用计数要设置为1。</dd>
+<dt>41</dt><dd>最大层号始终比层数小1。</dd>
+<dt>42</dt><dd>设置prefix，这也是一个精妙的算法，
+idr_layer_prefix_mask的算法很简单，就是<code>~idr_max(layer + 1)</code>，注意这里的layer是层号，因此调用idr_max()时要加1，如第0层mask为~0xFF，第1层mask为~0xFFFF，依次类推。很显然，prefix就是该层所能表示的范围之外的部分，之所以和id求与，是为了减少不必要的分支。</dd>
+<dt>43-44</dt><dd>这也是一个精妙的设计，如果子节点的位图已经填满，那么表示new-&gt;ary[0]下起始已经没有可用的空间了，因此需要把父节点的对应位图填1，如果我们从上往下搜索，发现某个节点bitmap对应位为1，就表示该位对应以下的所有节点都被用光，极大的节省搜索时间。</dd>
+<dt>45</dt><dd>将p指向new，也就是新的top，如此循环下去，直到树的高度满足要求，就停止循环。</dd>
+<dt>47</dt><dd>用p去替换top，只要理解新分配的作为父节点，就能理解这里为什么直接替换top了。</dd>
+<dt>49</dt><dd>从top指向的idr_layer树中获取ID号，分配路径记录到pa中，这个函数不会去增加树的高度，但是会在必要的时候分配新的层，
+idr_get_empty_slot()是从下往上长，而sub_alloc()则是生长必要的枝叶。</dd>
+<dt>50-51</dt><dd>这是Linux内核中比较常见的一种做法，这里特别定义了<code>-EAGAIN</code>的语义，首先要想一下为什么会出现这种情况，比较明显的一个例子是，树的高度虽然够了，能够足够表示starting_id，但是所有的ID已经被别人用光了，这种情况就不得不增加树的高度。
+sub_alloc()返回<code>-EAGAIN</code>正是遇到了这种情况。</dd>
+</dl>
+</div>
+</div>
+<div id="outline-container-orgheadline28" class="outline-4">
+<h4 id="orgheadline28">idr_layer_alloc</h4>
+<div class="outline-text-4" id="text-orgheadline28">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span class="linenr"> 1: </span><span style="color: #800;">static</span> <span style="color: #800;">struct</span> <span style="color: #800;">idr_layer</span> *<span style="color: #048; font-weight: bold;">idr_layer_alloc</span>(<span style="color: #800;">gfp_t</span> <span style="color: #048;">gfp_mask</span>, <span style="color: #800;">struct</span> <span style="color: #800;">idr</span> *<span style="color: #048;">layer_idr</span>)
+<span class="linenr"> 2: </span>{
+<span class="linenr"> 3: </span>    <span style="color: #800;">struct</span> <span style="color: #800;">idr_layer</span> *<span style="color: #800;">new</span>;
+<span class="linenr"> 4: </span>
+<span class="linenr"> 5: </span>    <span style="color: #800;">if</span> (layer_idr)
+<span class="linenr"> 6: </span>        <span style="color: #800;">return</span> get_from_free_list(layer_idr);
+<span class="linenr"> 7: </span>
+<span class="linenr"> 8: </span>    <span style="color: #800;">new</span> = kmem_cache_zalloc(idr_layer_cache, gfp_mask | __GFP_NOWARN);
+<span class="linenr"> 9: </span>    <span style="color: #800;">if</span> (<span style="color: #800;">new</span>)
+<span class="linenr">10: </span>        <span style="color: #800;">return</span> <span style="color: #800;">new</span>;
+<span class="linenr">11: </span>
+<span class="linenr">12: </span>    <span style="color: #800;">if</span> (<span style="color: #c00;">!</span>in_interrupt()) {
+<span class="linenr">13: </span>        preempt_disable();
+<span class="linenr">14: </span>        <span style="color: #800;">new</span> = __this_cpu_read(idr_preload_head);
+<span class="linenr">15: </span>        <span style="color: #800;">if</span> (<span style="color: #800;">new</span>) {
+<span class="linenr">16: </span>            __this_cpu_write(idr_preload_head, <span style="color: #800;">new</span>-&gt;ary[0]);
+<span class="linenr">17: </span>            __this_cpu_dec(idr_preload_cnt);
+<span class="linenr">18: </span>            <span style="color: #800;">new</span>-&gt;ary[0] = <span style="color: #800;">NULL</span>;
+<span class="linenr">19: </span>        }
+<span class="linenr">20: </span>        preempt_enable();
+<span class="linenr">21: </span>        <span style="color: #800;">if</span> (<span style="color: #800;">new</span>)
+<span class="linenr">22: </span>            <span style="color: #800;">return</span> <span style="color: #800;">new</span>;
+<span class="linenr">23: </span>    }
+<span class="linenr">24: </span>
+<span class="linenr">25: </span>    <span style="color: #800;">return</span> kmem_cache_zalloc(idr_layer_cache, gfp_mask);
+<span class="linenr">26: </span>}
+</pre>
+</div>
+<dl class="org-dl">
+<dt>5</dt><dd>如果指定了layer_id，就从layer_id获取，也就是合理利用空闲链表。</dd>
+<dt>8</dt><dd>从slab cache分配一个idr_layer，这个idr_layer_cache实际上是在start_kernel的时候创建的。正常情况下这里成功分配就应该返回了。</dd>
+<dt>12</dt><dd>如果从slab分配失败，就尝试从PERCPU获取。</dd>
+<dt>25</dt><dd>如果所有分配方式都失败了，就加上警告选项再从slab分配一次，如果这次失败，会体现出相应的错误信息。</dd>
+</dl>
+</div>
+</div>
+
+<div id="outline-container-orgheadline29" class="outline-4">
+<h4 id="orgheadline29">sub_alloc</h4>
+<div class="outline-text-4" id="text-orgheadline29">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">static</span> <span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">sub_alloc</span>(<span style="color: #800;">struct</span> <span style="color: #800;">idr</span> *<span style="color: #048;">idp</span>, <span style="color: #800;">int</span> *<span style="color: #048;">starting_id</span>, <span style="color: #800;">struct</span> <span style="color: #800;">idr_layer</span> **<span style="color: #048;">pa</span>,
+                     <span style="color: #800;">gfp_t</span> <span style="color: #048;">gfp_mask</span>, <span style="color: #800;">struct</span> <span style="color: #800;">idr</span> *<span style="color: #048;">layer_idr</span>)
+{
+    <span style="color: #800;">int</span> <span style="color: #048;">n</span>, <span style="color: #048;">m</span>, <span style="color: #048;">sh</span>;
+    <span style="color: #800;">struct</span> <span style="color: #800;">idr_layer</span> *<span style="color: #048;">p</span>, *<span style="color: #800;">new</span>;
+    <span style="color: #800;">int</span> <span style="color: #048;">l</span>, <span style="color: #048;">id</span>, <span style="color: #048;">oid</span>;
+
+    id = *starting_id;
+<span style="color: #800;">restart</span>:
+    p = idp-&gt;top;
+    l = idp-&gt;layers;
+    pa[l--] = <span style="color: #800;">NULL</span>;
+    <span style="color: #800;">while</span> (1) {
+        n = (id &gt;&gt; (IDR_BITS*l)) &amp; IDR_MASK;
+        m = find_next_zero_bit(p-&gt;bitmap, IDR_SIZE, n);
+        <span style="color: #800;">if</span> (m == IDR_SIZE) {
+            l++;
+            oid = id;
+            id = (id | ((1 &lt;&lt; (IDR_BITS * l)) - 1)) + 1;
+
+            <span style="color: #800;">if</span> (id &gt; idr_max(idp-&gt;layers)) {
+                *starting_id = id;
+                <span style="color: #800;">return</span> -EAGAIN;
+            }
+            p = pa[l];
+            BUG_ON(<span style="color: #c00;">!</span>p);
+
+            sh = IDR_BITS * (l + 1);
+            <span style="color: #800;">if</span> (oid &gt;&gt; sh == id &gt;&gt; sh)
+                <span style="color: #800;">continue</span>;
+            <span style="color: #800;">else</span>
+                <span style="color: #800;">goto</span> <span style="color: #800;">restart</span>;
+        }
+        <span style="color: #800;">if</span> (m != n) {
+            sh = IDR_BITS*l;
+            id = ((id &gt;&gt; sh) ^ n ^ m) &lt;&lt; sh;
+        }
+        <span style="color: #800;">if</span> ((id &gt;= MAX_IDR_BIT) || (id &lt; 0))
+            <span style="color: #800;">return</span> -ENOSPC;
+        <span style="color: #800;">if</span> (l == 0)
+            <span style="color: #800;">break</span>;
+
+        <span style="color: #800;">if</span> (<span style="color: #c00;">!</span>p-&gt;ary[m]) {
+            <span style="color: #800;">new</span> = idr_layer_alloc(gfp_mask, layer_idr);
+            <span style="color: #800;">if</span> (<span style="color: #c00;">!</span><span style="color: #800;">new</span>)
+                <span style="color: #800;">return</span> -ENOMEM;
+            <span style="color: #800;">new</span>-&gt;layer = l-1;
+            <span style="color: #800;">new</span>-&gt;prefix = id &amp; idr_layer_prefix_mask(<span style="color: #800;">new</span>-&gt;layer);
+            rcu_assign_pointer(p-&gt;ary[m], <span style="color: #800;">new</span>);
+            p-&gt;count++;
+        }
+        pa[l--] = p;
+        p = p-&gt;ary[m];
+    }
+
+    pa[l] = p;
+    <span style="color: #800;">return</span> id;
+}
+</pre>
+</div>
+<dl class="org-dl">
+<dt>12</dt><dd>将l减1，就得到对应的层号。</dd>
+<dt>14</dt><dd>该行很好理解，就是id在l层对应的编号。</dd>
+<dt>15</dt><dd>从n开始找位图中为0的位置，前面已经提到，如果某个位图为1，就表该位置以下所有节点被用光了。</dd>
+<dt>16-32</dt><dd>处理特殊情况：该层大于starting_id的位置都被占用，已经没有空闲位置可用。</dd>
+<dt>17</dt><dd>层加层编号，向更高层进军，因为当前层已经被用光了。</dd>
+<dt>19</dt><dd>增加id编号，让其进入其兄长区间，或者父亲区间。</dd>
+<dt>21-23</dt><dd>如果新的id超过当前idr所能表示的范围，就更新starting_id，并返回<code>-EAGAIN</code>，这样调用该函数的idr_get_empty_slot()就会去增加树高。</dd>
+<dt>28-32</dt><dd>如果没有注释，恐怕没几个人能看得明白这是要干什么，这也是作者在这里秀技巧，如果相等，说明需要进入到上一层，这个时候只需要继续循环即可。如果不相等，说明不用进入上一层，这种情况需要重头开始。</dd>
+<dt>34-36</dt><dd>这里也是在秀技巧，完全看不懂要干嘛。</dd>
+<dt>38-41</dt><dd>检查有效性，如果l=0，那么就意味着已经抵达叶节点，可以退出循环。</dd>
+<dt>43-53</dt><dd>如果ary[m]没有子节点，就需要分配一个层，并初始化。</dd>
+<dt>52</dt><dd>保存当前层，减小层号。</dd>
+<dt>53</dt><dd>进入子节点。</dd>
+<dt>56</dt><dd>保存当前层。</dd>
+<dt>57</dt><dd>返回实际找到的ID。</dd>
+</dl>
+</div>
+</div>
+
+<div id="outline-container-orgheadline30" class="outline-4">
+<h4 id="orgheadline30">idr_fill_slot</h4>
+<div class="outline-text-4" id="text-orgheadline30">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">static</span> <span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">idr_fill_slot</span>(<span style="color: #800;">struct</span> <span style="color: #800;">idr</span> *<span style="color: #048;">idr</span>, <span style="color: #800;">void</span> *<span style="color: #048;">ptr</span>, <span style="color: #800;">int</span> <span style="color: #048;">id</span>,
+                          <span style="color: #800;">struct</span> <span style="color: #800;">idr_layer</span> **<span style="color: #048;">pa</span>)
+{
+    rcu_assign_pointer(idr-&gt;hint, pa[0]);
+
+    rcu_assign_pointer(pa[0]-&gt;ary[id &amp; IDR_MASK], (<span style="color: #800;">struct</span> <span style="color: #800;">idr_layer</span> *)ptr);
+    pa[0]-&gt;count++;
+    idr_mark_full(pa, id);
+}
+</pre>
+</div>
+<dl class="org-dl">
+<dt>hint</dt><dd>用于保存最近使用的层。</dd>
+<dt>pa[0]-&gt;ary[id &amp; IDR_MASK]</dt><dd>用于保存所指定的指针。</dd>
+</dl>
+
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">static</span> <span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">idr_mark_full</span>(<span style="color: #800;">struct</span> <span style="color: #800;">idr_layer</span> **<span style="color: #048;">pa</span>, <span style="color: #800;">int</span> <span style="color: #048;">id</span>)
+{
+    <span style="color: #800;">struct</span> <span style="color: #800;">idr_layer</span> *<span style="color: #048;">p</span> = pa[0];
+    <span style="color: #800;">int</span> <span style="color: #048;">l</span> = 0;
+
+    __set_bit(id &amp; IDR_MASK, p-&gt;bitmap);
+    <span style="color: #666;">/*</span>
+<span style="color: #666;">     * If this layer is full mark the bit in the layer above to</span>
+<span style="color: #666;">     * show that this part of the radix tree is full.  This may</span>
+<span style="color: #666;">     * complete the layer above and require walking up the radix</span>
+<span style="color: #666;">     * tree.</span>
+<span style="color: #666;">     */</span>
+    <span style="color: #800;">while</span> (bitmap_full(p-&gt;bitmap, IDR_SIZE)) {
+        <span style="color: #800;">if</span> (<span style="color: #c00;">!</span>(p = pa[++l]))
+            <span style="color: #800;">break</span>;
+        id = id &gt;&gt; IDR_BITS;
+        __set_bit((id &amp; IDR_MASK), p-&gt;bitmap);
+    }
+}
+</pre>
+</div>
+<dl class="org-dl">
+<dt>idr_mark_full</dt><dd>向上追溯标记占用情况，也就是字节点占用满了就标记其父节点对应的位，如果父节点也全部占用满了就标记爷爷对应的位，依次类推。</dd>
+</dl>
+</div>
+</div>
+</div>
+</div>

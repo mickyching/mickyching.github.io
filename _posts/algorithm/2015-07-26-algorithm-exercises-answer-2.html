@@ -1,0 +1,152 @@
+---
+title: 算法习题解答2
+categories: algorithm
+author: 敬叶
+---
+<dl class="post-meta">
+<dt class="post-meta">2015-07-26</dt><dd>敬叶 初稿</dd>
+</dl>
+<hr><br>
+<div id="table-of-contents"><h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#orgheadline5">算法问题</a>
+<ul>
+<li><a href="#orgheadline1">排序与搜索</a></li>
+<li><a href="#orgheadline2">递归算法</a></li>
+<li><a href="#orgheadline3">大数据处理提示</a></li>
+<li><a href="#orgheadline4">复杂算法</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline5" class="outline-2">
+<h2 id="orgheadline5">算法问题</h2>
+<div class="outline-text-2" id="text-orgheadline5">
+</div><div id="outline-container-orgheadline1" class="outline-3">
+<h3 id="orgheadline1">排序与搜索</h3>
+<div class="outline-text-3" id="text-orgheadline1">
+<ol class="org-ol">
+<li>这是编程珠玑开篇的一题，采用位图来标记每个整数，如果知道输入数据最大重复数小于某个值，那么可以让每个整数占据多位。当然这种方法不能用于排序包含大量重复数的问题。这个题目还可以进一步问如果要限定内存大小怎么办，处理方式是可以找到中位数，将数值分成两半排序，或者分为多段排序。</li>
+<li>思路很简单，把比较函数替换为比较字符串的标准变位词即可。</li>
+<li>将搜索限制在一个区间，并计算区间的中位索引，[beg, mid, end]，通过判断要查找的数和这三个数之间的关系，以及这三个数本身的关系，确定会落在哪个区间。</li>
+<li>还是可以通过二分搜索来做，如果找到的中位是空字符串，就去向右找非空，否则搜索左半部。</li>
+<li>不能用二分法查找，从<code>A[0][N-1]</code>开始搜索，比给定小就往下走，比给定大就往左走。</li>
+</ol>
+</div>
+</div>
+
+<div id="outline-container-orgheadline2" class="outline-3">
+<h3 id="orgheadline2">递归算法</h3>
+<div class="outline-text-3" id="text-orgheadline2">
+<ol class="org-ol">
+<li>计算Fibonacci可以保存前两个值来求解下一个值，避免 \( f(n) = f(n-1) + f(n-2) \)
+产生重复计算。算法导论中提出了一个用矩阵恒等式求解的方法，对矩阵
+\( \begin{pmatrix} 1 & 1 \\ 1 & 0 \end{pmatrix} \)
+自乘，依次可得 \( \begin{pmatrix} 2 & 1 \\ 1 & 1 \end{pmatrix} \)，
+\( \begin{pmatrix} 3 & 2 \\ 1 & 1 \end{pmatrix} \)，
+\( \begin{pmatrix} 5 & 3 \\ 2 & 1 \end{pmatrix} \)</li>
+<li><p>
+在编程珠玑上给出两种很好的解决方法。
+</p>
+
+<p>
+第一种方法是逐位移动，取出 \( a_1 \)，将该移动到 \( a_1 \)的元素A移动到指定位置，再依次将B移到A，C移到B，最后空出的位置即可放入 \( a_1 \)，再用类似的方法取出 \( a_2 \)、\( a_3 \)等
+</p>
+
+<p>
+第二种方法称之为翻手法，翻手法用到一个简单的数学公式：假定将\( ab \)循环移位得到 \( ba \)，那么可以简单的将 \( a \)反转得到 \( a^r \)，再将 \( b \)反转得到 \( b^r \)，最后再进行一次反转 \( (a^rb^r)^r \)就得到 \( ba \)
+</p></li>
+</ol>
+</div>
+</div>
+
+<div id="outline-container-orgheadline3" class="outline-3">
+<h3 id="orgheadline3">大数据处理提示</h3>
+<div class="outline-text-3" id="text-orgheadline3">
+<ol class="org-ol">
+<li><p>
+将文件按照hash(IP) % 1024拆分为1024个文件，对每个文件中出现的IP建立hash集合，遍历文件统计每个IP出现次数。然后对每个文件中的访问按照次数排序，再归并，即可找到最大的10个IP。如果只需要找到最大的IP是不需要排序的。
+</p>
+
+<p>
+排序并不是最好的方法，对于TOP K问题最好是利用堆这个数据结构，维护一个规模为K的小根堆。遍历过程中发现元素出现次数大于堆根就更新堆。
+</p></li>
+
+<li>对每个文件根据hash映射划分为小文件，得到 \( a_1a_2 ... \)
+和 \( b_1b_2 ... \)，接下来可以将 \(a_1\) 作为一个hash_set，查询 \(b_1\) 中的URL是否在 \( a_1 \) 中出现，依次查询 \(a_2b_2，a_3b_3\) 等等即可。</li>
+<li>假定<code>unsigned int</code>长度为32位，可以申请 \(\frac{2^{32}}{8} = 512M\)
+   的空间用于建立位图，要判断某个整数是否存在，只需要确定位图中对应位是否为1。</li>
+<li>假定内存可以存放1M个整数，那么我们可以将整数划分为10K个范围，统计出每个范围内整数的个数，这样就可以确定出中位数出现在哪个范围中。如果对应范围中的整数个数仍然太多，可以进一步细分，最后通过对小范围内排序找到中位数。</li>
+<li>利用hash运算使得相同的元素保存在同一台电脑，然后统计每台电脑的前10个，最后归并。</li>
+<li>将数据划分到N个范围中，对每个范围用bitmap统计。</li>
+</ol>
+</div>
+</div>
+<div id="outline-container-orgheadline4" class="outline-3">
+<h3 id="orgheadline4">复杂算法</h3>
+<div class="outline-text-3" id="text-orgheadline4">
+<ol class="org-ol">
+<li><p>
+该问题有很多种解法，时间效率也不同。
+</p>
+<dl class="org-dl">
+<dt>穷举法</dt><dd>\( 0 \le i \le j \le n \) 的子序列，复杂度为 \( O(n^3) \)</dd>
+<dt>穷举法</dt><dd>在迭代j的时候利用sum(i, j-1)的结果可以将复杂度降低为 \( O(n^2) \)</dd>
+<dt>穷举法</dt><dd>构建一个sum序列，计算sum(i, j-1)可以由s[j]-s[i]得到，同样可以将时间复杂度降低为 \( O(n^2) \)</dd>
+<dt>分治法</dt><dd>这种方法比较经典，将数组从中间分成两半，分别计算左半部、右半部和跨中间值的最大子序列，这种递归算法的效率需要解递推式： \( T(n) = 2T(n/2) + O(n) \)，结果为 \( O(nlgn) \)。</dd>
+<dt>扫描法</dt><dd>想办法从A[0..i-1]得到A[0..i]的最大子序列，最大子序列要么在A[0..i-1]中，要么在以A[i]结束的序列中。</dd>
+</dl>
+<div class="org-src-container">
+
+<pre class="src src-python"><span style="color: #800;">def</span> <span style="color: #048; font-weight: bold;">max_subseq</span>(A):
+    <span style="color: #048;">max0</span>, <span style="color: #048;">maxi</span> = (A[0], 0), A[0]
+    <span style="color: #800;">for</span> i <span style="color: #800;">in</span> <span style="color: #800;">range</span>(1, <span style="color: #800;">len</span>(A)):
+        <span style="color: #048;">maxi</span> = <span style="color: #800;">max</span>(maxi + A[i], A[i])
+        <span style="color: #800;">if</span> maxi &gt; max0[0]:
+            <span style="color: #048;">max0</span> = (maxi, i)
+    <span style="color: #800;">print</span> <span style="color: #800;">"max {} last index {}"</span>.<span style="color: #800;">format</span>(max0[0], max0[1])
+max_subseq([-1, 2, 3, -3, 4, -7, 8, 9, 20, -3])
+</pre>
+</div>
+
+<pre class="example">
+max 37 last index 8
+</pre></li>
+
+<li><p>
+在编程珠玑中对此问题做了比较详尽的叙述，这里列出两种经典方法：第一种方法难以想出来，第二种方法设计很精巧。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-python"><span style="color: #800;">import</span> random
+<span style="color: #800;">def</span> <span style="color: #048; font-weight: bold;">randoms_1</span>(n, m):
+    random.seed(0)
+    <span style="color: #048;">balls</span> = []
+    <span style="color: #800;">for</span> i <span style="color: #800;">in</span> <span style="color: #800;">range</span>(n):
+        <span style="color: #800;">if</span> (random.randint(0, n) % (n - i) &lt; m):
+            balls.append(i)
+            <span style="color: #048;">m</span> -= 1
+    <span style="color: #800;">return</span> balls
+<span style="color: #800;">def</span> <span style="color: #048; font-weight: bold;">randoms_2</span>(n, m):
+    random.seed(0)
+    <span style="color: #048;">balls</span> = [i <span style="color: #800;">for</span> i <span style="color: #800;">in</span> <span style="color: #800;">range</span>(n)]
+    <span style="color: #800;">for</span> i <span style="color: #800;">in</span> <span style="color: #800;">range</span>(m):
+        <span style="color: #048;">j</span> = random.randint(0, n)
+        balls[i], <span style="color: #048;">balls</span>[j] = balls[j], balls[i]
+    <span style="color: #800;">return</span> balls[:m]
+<span style="color: #800;">print</span> randoms_1(20, 10)
+<span style="color: #800;">print</span> randoms_2(20, 10)
+</pre>
+</div>
+
+<pre class="example">
+[2, 3, 6, 7, 9, 11, 13, 14, 15, 19]
+[17, 15, 8, 5, 10, 2, 7, 16, 4, 12]
+</pre></li>
+</ol>
+</div>
+</div>
+</div>

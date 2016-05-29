@@ -1,0 +1,97 @@
+---
+title: 算法习题2
+categories: algorithm
+tags: algorithm
+author: 敬叶
+---
+<dl class="post-meta">
+<dt class="post-meta">2015-07-26</dt><dd>敬叶 初稿</dd>
+</dl>
+<hr><br>
+<div id="table-of-contents"><h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#orgheadline5">算法问题</a>
+<ul>
+<li><a href="#orgheadline1">排序与搜索</a></li>
+<li><a href="#orgheadline2">递归算法</a></li>
+<li><a href="#orgheadline3">大数据处理</a></li>
+<li><a href="#orgheadline4">复杂算法</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline5" class="outline-2">
+<h2 id="orgheadline5">算法问题</h2>
+<div class="outline-text-2" id="text-orgheadline5">
+</div><div id="outline-container-orgheadline1" class="outline-3">
+<h3 id="orgheadline1">排序与搜索</h3>
+<div class="outline-text-3" id="text-orgheadline1">
+<!--abstract-begin-->
+
+<ol class="org-ol">
+<li>有限正整数排序问题，给定一个文件，包含正整数，最大值小于 \( 10^7 \)，将其排序。</li>
+<li>给定一个字符串数组，通过排序将变位词排到一起。</li>
+<li>给定一个数组，数组是已经排序但经过旋转的，给定一个整数，用 \(O(lgn)\) 的效率查找。</li>
+<li>给定一个字符串数组，该数组经过排序，但是中间随机插入了很多空字符串，如何从中搜索某个字符串。</li>
+<li>给定一个 \(N \times N\) 的矩阵，行和列都是排序好的，查找给定数字。</li>
+</ol>
+
+<!--abstract-end-->
+</div>
+</div>
+
+<div id="outline-container-orgheadline2" class="outline-3">
+<h3 id="orgheadline2">递归算法</h3>
+<div class="outline-text-3" id="text-orgheadline2">
+<ol class="org-ol">
+<li>计算第n个Fibonacci数，如何扩展数据类型以支持无限大小。</li>
+<li>设计一个向量循环移位的算法，如 \( a_1a_2a_3b_1b_2b_3... \)，向左循环移动三位变为 \( b_1b_2b_3...a_1a_2a_3 \)</li>
+<li>给定一个 \( X\times{Y} \) 的方格，机器人从左上角走到右下角出去，有多少种走法。</li>
+<li>获取一个集合的所有子集。</li>
+<li>计算一个字符串的排列。</li>
+<li>计算一个n重括号的有效组合。</li>
+<li>给定一个屏幕，每个像素表示一个颜色。给定一个点和一个颜色，将该点附近和该点相同的颜色替换为指定颜色。</li>
+<li>给定不限数量的钱币，面值为：25、10、5和1。计算n元面值的所有组合。</li>
+<li>八皇后问题，每个皇后在行、列和斜线上都不和其它皇后见面。</li>
+</ol>
+</div>
+</div>
+
+<div id="outline-container-orgheadline3" class="outline-3">
+<h3 id="orgheadline3">大数据处理</h3>
+<div class="outline-text-3" id="text-orgheadline3">
+<ol class="org-ol">
+<li><b>TOP K问题</b> 给定一个巨大文件，如1T，每行包含访问某个网站的IP，找出访问次数最多的10个IP。</li>
+<li><b>文件查重</b> 两个文件每行保存一个URL记录，大小都是50G，找出两个文件同时出现的URL记录。</li>
+<li><b>位图查找</b> 给40亿个不重复的<code>unsigned int</code>，没有排序，如何给定整数是否在这40亿个给定的数中。</li>
+<li><b>中位数</b> 一个文件中有10G个整数，未排序，找出中位数，内存限制为2G。</li>
+<li><b>分布TOP K问题</b> 海量数据分布在10台电脑，统计出现的前10个。</li>
+<li><b>重复统计</b> 给定10亿个整数，统计不重复的整数个数，假定内存不够用。</li>
+<li><b>MapReduce</b> 原理</li>
+<li><b>BloomFilter</b> 原理</li>
+<li><b>Trie树</b> 原理</li>
+</ol>
+</div>
+</div>
+
+<div id="outline-container-orgheadline4" class="outline-3">
+<h3 id="orgheadline4">复杂算法</h3>
+<div class="outline-text-3" id="text-orgheadline4">
+<ol class="org-ol">
+<li>给定一个数组，包含浮点数，找出一个子序列，子序列的和是最大的。
+<ul class="org-ul">
+<li>如果输入元素是[-1, 1]的随机数，期望值是多少</li>
+<li>将问题改为总和最接近0如何求解</li>
+<li>将问题进一步扩展，给定一个 \( n \times n \) 的矩形数组，求解最大子矩形</li>
+</ul></li>
+<li>给定整数 \( m \) 和 \( n \)，\( 0 < m \le n \)，如何生成在范围 \( [0, n) \) 中的\( m \)个随机数
+<ul class="org-ul">
+<li>当 \( n \) 很大，而 \( m \) 很接近 \( n \) 时，如何设计可以提高速度</li>
+</ul></li>
+</ol>
+</div>
+</div>
+</div>

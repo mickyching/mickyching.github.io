@@ -1,0 +1,1094 @@
+---
+title: Linux Shell实用工具
+categories: linux
+tags: linux shell
+author: 敬叶
+---
+<dl class="post-meta">
+<dt class="post-meta">2015-05-01</dt><dd>敬叶 初稿</dd>
+</dl>
+<hr><br>
+<div id="table-of-contents"><h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#orgheadline1">shell脚本</a>
+<ul>
+<li><a href="#orgheadline2">分支语句</a></li>
+<li><a href="#orgheadline6">循环语句</a>
+<ul>
+<li><a href="#orgheadline3">for语句</a></li>
+<li><a href="#orgheadline4">while语句</a></li>
+<li><a href="#orgheadline5">until语句</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#orgheadline12">文本处理工具</a>
+<ul>
+<li><a href="#orgheadline7">grep</a></li>
+<li><a href="#orgheadline8">sed</a>
+<ul>
+<li><a href="#orgheadline9">文本替换</a></li>
+<li><a href="#orgheadline10">实用操作</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline11">awk</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline18">系统工具</a>
+<ul>
+<li><a href="#orgheadline17">系统性能分析</a>
+<ul>
+<li><a href="#orgheadline13">top</a></li>
+<li><a href="#orgheadline14">free</a></li>
+<li><a href="#orgheadline15">vmstat</a></li>
+<li><a href="#orgheadline16">mpstat</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#orgheadline23">其它工具</a>
+<ul>
+<li><a href="#orgheadline19">find</a>
+<ul>
+<li><a href="#orgheadline20">正确含有空格的文件名</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline22">远程登录</a>
+<ul>
+<li><a href="#orgheadline21">ssh</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#orgheadline24">参考资料</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline1" class="outline-2">
+<h2 id="orgheadline1">shell脚本</h2>
+<div class="outline-text-2" id="text-orgheadline1">
+<!--abstract-begin-->
+<p>
+Shell是一个命令解释器。它不仅是操作系统内核与用户之间的绝缘层，同时也是一种功能相当强大的编程语言。一个Shell程序，通常称为脚本，它是一个由系统调用，命令工具，软件包和已编译的二进制包"粘合" 起来的极易使用的工具。事实上，整个UNIX系统命令，软件包和工具都能由一个shell脚本调用。如果这还不够，Shell的内部命令，比如测试和循环结构，都使Shell脚本更强大和更有弹性。Shell脚本在系统管理任务表现非常的出色，并且对于日常反复性的处理工作避免了使用那些结构过于复杂的程序语言。
+</p>
+<!--abstract-end-->
+</div>
+
+<div id="outline-container-orgheadline2" class="outline-3">
+<h3 id="orgheadline2">分支语句</h3>
+<div class="outline-text-3" id="text-orgheadline2">
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #048;">num</span>=100
+<span style="color: #800;">if</span> [ $<span style="color: #048;">num</span> -lt 60 ]
+<span style="color: #800;">then</span>
+    <span style="color: #800;">echo</span> <span style="color: #800;">"C"</span>
+<span style="color: #800;">elif</span> [ $<span style="color: #048;">num</span> -lt 80 ] &amp;&amp; [ $<span style="color: #048;">num</span> -ge 60 ]
+<span style="color: #800;">then</span>
+    <span style="color: #800;">echo</span> <span style="color: #800;">"B"</span>
+<span style="color: #800;">elif</span> [[ $<span style="color: #048;">num</span> -lt 90 &amp;&amp; $<span style="color: #048;">num</span> -ge 80 ]]
+<span style="color: #800;">then</span>
+    <span style="color: #800;">echo</span> <span style="color: #800;">"A"</span>
+<span style="color: #800;">elif</span> (( $<span style="color: #048;">num</span> &lt;= 100 )) &amp;&amp; (( $<span style="color: #048;">num</span> &gt;= 90 ))
+<span style="color: #800;">then</span>
+    <span style="color: #800;">echo</span> <span style="color: #800;">"A+"</span>
+<span style="color: #800;">else</span>
+    <span style="color: #800;">echo</span> <span style="color: #800;">"NA"</span>
+<span style="color: #800;">fi</span>
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #048;">stage</span>=A
+<span style="color: #800;">case</span> $<span style="color: #048;">stage</span><span style="color: #800;"> in</span>
+    A)
+        <span style="color: #800;">echo</span> <span style="color: #800;">"90-100"</span>
+        ;;
+    B)
+        <span style="color: #800;">echo</span> <span style="color: #800;">"80-90"</span>
+        ;;
+    C)
+        <span style="color: #800;">echo</span> <span style="color: #800;">"60-80"</span>
+        ;;
+    *)
+        <span style="color: #800;">echo</span> <span style="color: #800;">"BAD"</span>
+        ;;
+<span style="color: #800;">esac</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline6" class="outline-3">
+<h3 id="orgheadline6">循环语句</h3>
+<div class="outline-text-3" id="text-orgheadline6">
+</div><div id="outline-container-orgheadline3" class="outline-4">
+<h4 id="orgheadline3">for语句</h4>
+<div class="outline-text-4" id="text-orgheadline3">
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #800;">for</span> x<span style="color: #800;"> in</span> one two three four
+<span style="color: #800;">do</span>
+    <span style="color: #800;">echo</span> number $<span style="color: #048;">x</span>
+<span style="color: #800;">done</span>
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #800;">for</span> x<span style="color: #800;"> in</span> /var/log/*
+<span style="color: #800;">do</span>
+    <span style="color: #800;">echo</span> $(<span style="font-weight: bold;">basename</span> $<span style="color: #048;">x</span>) is a file living<span style="color: #800;"> in</span> /var/log
+<span style="color: #800;">done</span>
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #800;">for</span> j<span style="color: #800;"> in</span> $(<span style="font-weight: bold;">seq</span> 1 5)
+<span style="color: #800;">do</span>
+    <span style="color: #800;">echo</span> $<span style="color: #048;">j</span>
+<span style="color: #800;">done</span>
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #800;">for</span> (( <span style="color: #048;">i</span>=1; i&lt;=5; i++ ))
+<span style="color: #800;">do</span>
+    <span style="color: #800;">echo</span> <span style="color: #800;">"i=$i"</span>
+<span style="color: #800;">done</span>
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-orgheadline4" class="outline-4">
+<h4 id="orgheadline4">while语句</h4>
+<div class="outline-text-4" id="text-orgheadline4">
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #048;">i</span>=1
+<span style="color: #800;">while</span> [ $<span style="color: #048;">i</span> -le 10 ]
+<span style="color: #800;">do</span>
+    <span style="color: #800;">echo</span> $<span style="color: #048;">i</span>
+    <span style="color: #048;">i</span>=<span style="font-weight: bold;">`expr $i + 1`</span>;
+    <span style="color: #666;"># </span><span style="color: #666;">let i+=1;</span>
+    <span style="color: #666;"># </span><span style="color: #666;">((i++));</span>
+    <span style="color: #666;"># </span><span style="color: #666;">i=$[$i+1];</span>
+    <span style="color: #666;"># </span><span style="color: #666;">i=$(( $i + 1 ))</span>
+<span style="color: #800;">done</span>
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-orgheadline5" class="outline-4">
+<h4 id="orgheadline5">until语句</h4>
+<div class="outline-text-4" id="text-orgheadline5">
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #048;">i</span>=1
+<span style="color: #800;">until</span> [ $<span style="color: #048;">i</span> -gt 10 ]
+<span style="color: #800;">do</span>
+    <span style="color: #800;">echo</span> $<span style="color: #048;">i</span>
+    <span style="color: #048;">i</span>=$(( $<span style="color: #048;">i</span> + 1 ))
+<span style="color: #800;">done</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline12" class="outline-2">
+<h2 id="orgheadline12">文本处理工具</h2>
+<div class="outline-text-2" id="text-orgheadline12">
+</div><div id="outline-container-orgheadline7" class="outline-3">
+<h3 id="orgheadline7">grep</h3>
+<div class="outline-text-3" id="text-orgheadline7">
+<div class="org-src-container">
+
+<pre class="src src-sh">grep -c &lt;pattern&gt; &lt;filename&gt;            <span style="color: #666;"># </span><span style="color: #666;">&#32479;&#35745;&#20986;&#29616;&#27425;&#25968;</span>
+grep -v &lt;pattern&gt; &lt;filename&gt;            <span style="color: #666;"># </span><span style="color: #666;">&#21305;&#37197;&#21462;&#21453;</span>
+grep -E &lt;pattern1&gt;|&lt;pattern2&gt; &lt;filename&gt; <span style="color: #666;"># </span><span style="color: #666;">or</span>
+grep -E &lt;pattern1&gt;.*&lt;pattern2&gt; &lt;filename&gt; <span style="color: #666;"># </span><span style="color: #666;">and</span>
+grep -w &lt;pattern&gt; &lt;filename&gt;            <span style="color: #666;"># </span><span style="color: #666;">&#25353;&#21333;&#35789;&#36793;&#30028;&#26597;&#25214;&#65292;&#38750;&#24120;&#22909;&#29992;</span>
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-orgheadline8" class="outline-3">
+<h3 id="orgheadline8">sed</h3>
+<div class="outline-text-3" id="text-orgheadline8">
+<p>
+关于sed的使用，强烈推荐阅读文档：<a href="http://www.grymoire.com/Unix/Sed.html">http://www.grymoire.com/Unix/Sed.html</a>。本文是该文档的摘录。另外必须要熟悉sed<a href="http://www.gnu.org/software/sed/manual/html_node/Regular-Expressions.html">正则表达式</a>。
+</p>
+
+<p>
+sed一般采用<code>/</code>作为分界符，分界符可以用其它字符，例如要操作的字符串包含<code>/</code>，那么可以用<code>:</code>作为分界符来避免引入转义字符。
+</p>
+
+<p>
+sed的语法结构为：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">sed options <span style="color: #800;">'addr cmd/arg1/arg2/flags'</span> filename
+</pre>
+</div>
+<ol class="org-ol">
+<li><p>
+常用选项
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<tbody>
+<tr>
+<td class="org-left">-E</td>
+<td class="org-left">扩展正则表达式</td>
+</tr>
+
+<tr>
+<td class="org-left">-n</td>
+<td class="org-left">只输出匹配的行</td>
+</tr>
+
+<tr>
+<td class="org-left">-e</td>
+<td class="org-left">脚本表达法，可以执行多条命令</td>
+</tr>
+
+<tr>
+<td class="org-left">-f</td>
+<td class="org-left">指定脚本名字</td>
+</tr>
+
+<tr>
+<td class="org-left">-i</td>
+<td class="org-left">就地处理，不产生副本</td>
+</tr>
+</tbody>
+</table></li>
+
+<li><p>
+addr写法
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">number                                  <span style="color: #666;"># </span><span style="color: #666;">match the only number line</span>
+$                                       <span style="color: #666;"># </span><span style="color: #666;">match last line</span>
+/regexp/                                <span style="color: #666;"># </span><span style="color: #666;">match regexp</span>
+addr1,addr2                             <span style="color: #666;"># </span><span style="color: #666;">[addr1, addr2]</span>
+addr1,+N                                <span style="color: #666;"># </span><span style="color: #666;">[addr1, addr1+N]</span>
+</pre>
+</div></li>
+
+<li><p>
+常用命令
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">命令</th>
+<th scope="col" class="org-left">功能</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">=</td>
+<td class="org-left">打印匹配行号</td>
+</tr>
+
+<tr>
+<td class="org-left">a\text</td>
+<td class="org-left">将文本插入匹配行之后</td>
+</tr>
+
+<tr>
+<td class="org-left">i\text</td>
+<td class="org-left">将文本插入匹配行之前</td>
+</tr>
+
+<tr>
+<td class="org-left">c\text</td>
+<td class="org-left">将匹配行替换为制定文本</td>
+</tr>
+
+<tr>
+<td class="org-left">d</td>
+<td class="org-left">删除匹配行</td>
+</tr>
+
+<tr>
+<td class="org-left">p</td>
+<td class="org-left">打印匹配行</td>
+</tr>
+
+<tr>
+<td class="org-left">s/expr1/expr2/</td>
+<td class="org-left">将匹配行expr1替换为expr2</td>
+</tr>
+
+<tr>
+<td class="org-left">y/expr1/expr2/</td>
+<td class="org-left">将匹配行中expr1中字符替换为expr2中字符，没什么用</td>
+</tr>
+</tbody>
+</table></li>
+
+<li><p>
+常用标志
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<tbody>
+<tr>
+<td class="org-left">g</td>
+<td class="org-left">作用于全局</td>
+</tr>
+
+<tr>
+<td class="org-left">I</td>
+<td class="org-left">忽略大小写</td>
+</tr>
+
+<tr>
+<td class="org-left">p</td>
+<td class="org-left">打印</td>
+</tr>
+
+<tr>
+<td class="org-left">w fname</td>
+<td class="org-left">输出到文件</td>
+</tr>
+</tbody>
+</table></li>
+</ol>
+
+<p>
+可以用如下的方式来写sed脚本，如果要指定选项，必须将选项放到<code>-f</code>之前：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #666;">#</span><span style="color: #666;">!/bin/</span><span style="color: #800;">sed</span><span style="color: #666;"> -nf</span>
+s/a/A/g
+s/e/E/g
+</pre>
+</div>
+</div>
+
+<div id="outline-container-orgheadline9" class="outline-4">
+<h4 id="orgheadline9">文本替换</h4>
+<div class="outline-text-4" id="text-orgheadline9">
+<div class="org-src-container">
+
+<pre class="src src-sh">sed <span style="color: #800;">'s/src/dst/flags'</span> fname &gt; fname.sed
+</pre>
+</div>
+
+<p>
+在sed中，特殊符号<code>&amp;</code>用于引用匹配字符串，在下面例子中要注意贪婪算法。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh"><span class="linenr">1: </span><span style="color: #800;">echo</span> <span style="color: #800;">"123 abc"</span> | sed <span style="color: #800;">'s/[0-9]*/&amp; &amp;/'</span>    <span style="color: #666;"># </span><span style="color: #666;">123 123 abc</span>
+<span class="linenr">2: </span><span style="color: #800;">echo</span> <span style="color: #800;">"abc 123"</span> | sed <span style="color: #800;">'s/[0-9]*/&amp; &amp;/'</span>    <span style="color: #666;"># </span><span style="color: #666;">abc 123</span>
+<span class="linenr">3: </span><span style="color: #800;">echo</span> <span style="color: #800;">"abc 123"</span> | sed -E <span style="color: #800;">'s/[0-9]+/&amp; &amp;/'</span> <span style="color: #666;"># </span><span style="color: #666;">abc 123 123</span>
+</pre>
+</div>
+
+<p>
+分组表达式是非常重要的特性，每个小括号创建一个分组，用<code>\1</code>、<code>\2</code>等引用分组，最多可引用分组为9个。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #800;">echo</span> hello123 | sed -E <span style="color: #800;">'s/([a-z]*).*/\1/'</span>               <span style="color: #666;"># </span><span style="color: #666;">hello</span>
+<span style="color: #800;">echo</span> hello world | sed -E <span style="color: #800;">'s/([a-z]+) ([a-z]+)/\2 \1/'</span>  <span style="color: #666;"># </span><span style="color: #666;">world hello</span>
+<span style="color: #800;">echo</span> hello hello world | sed -E <span style="color: #800;">'s/([a-z]+) \1/\1/'</span>     <span style="color: #666;"># </span><span style="color: #666;">hello world</span>
+</pre>
+</div>
+
+<p>
+如果只想修改第n次出现，可以用如下表达式：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #800;">echo</span> 1b 2b 3b 4b | sed -E <span style="color: #800;">'s/b/?/3'</span>     <span style="color: #666;"># </span><span style="color: #666;">1b 2b 3? 4b</span>
+<span style="color: #800;">echo</span> 1b 2b 3b 4b | sed -E <span style="color: #800;">'s/b/?/3g'</span>    <span style="color: #666;"># </span><span style="color: #666;">1b 2b 3? 4?</span>
+</pre>
+</div>
+
+<p>
+指定行号范围：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">sed -nE <span style="color: #800;">'10,20 p'</span>                       <span style="color: #666;"># </span><span style="color: #666;">print line 10-20</span>
+sed -nE <span style="color: #800;">'10,20 !p'</span>                      <span style="color: #666;"># </span><span style="color: #666;">print line not in 10-20</span>
+sed -nE <span style="color: #800;">'/^#/ s/[0-9]+//gp'</span>             <span style="color: #666;"># </span><span style="color: #666;">del num in #line</span>
+sed -nE <span style="color: #800;">'10,/^#/ s/[0-9]+//gp'</span>          <span style="color: #666;"># </span><span style="color: #666;">del num from 10line to #line</span>
+sed -nE <span style="color: #800;">'10,/^#/ d'</span>                     <span style="color: #666;"># </span><span style="color: #666;">del line from 10line to #line</span>
+sed -nE <span style="color: #800;">'10,/^#/ !d'</span>                    <span style="color: #666;"># </span><span style="color: #666;">del line not in 10line to #line</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline10" class="outline-4">
+<h4 id="orgheadline10">实用操作</h4>
+<div class="outline-text-4" id="text-orgheadline10">
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #666;"># </span><span style="color: #666;">Windows line to Unix(remove ^M)</span>
+sed -i <span style="color: #800;">'s/\r//'</span> fname
+
+<span style="color: #666;"># </span><span style="color: #666;">upper to lower</span>
+sed <span style="color: #800;">'y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/'</span> fname
+
+<span style="color: #666;"># </span><span style="color: #666;">grep line begin with cp or scp</span>
+sed -n <span style="color: #800;">'/^s*cp / p'</span> fname
+sed -n <span style="color: #800;">'/^s*cp / ='</span> fname                       <span style="color: #666;"># </span><span style="color: #666;">print line-number only</span>
+
+<span style="color: #666;"># </span><span style="color: #666;">delete line begin with cp or scp</span>
+sed -n <span style="color: #800;">'/^s*cp / d'</span> fname
+
+<span style="color: #666;"># </span><span style="color: #666;">del begin whitespace in line</span>
+sed -i <span style="color: #800;">'s/^[ \t]*//g'</span> fname
+
+<span style="color: #666;"># </span><span style="color: #666;">del trailing whitespace in line</span>
+sed -i <span style="color: #800;">'s/[ \t]*$//g'</span> fname
+
+<span style="color: #800;">echo</span> world | sed <span style="color: #800;">'/world/ i\hello '</span>             <span style="color: #666;"># </span><span style="color: #666;">insert before world-line</span>
+<span style="color: #800;">echo</span> world | sed <span style="color: #800;">'/world/ a\hello \nend'</span>        <span style="color: #666;"># </span><span style="color: #666;">append after world-line</span>
+<span style="color: #800;">echo</span> world | sed <span style="color: #800;">'/world/ c\hello '</span>             <span style="color: #666;"># </span><span style="color: #666;">change line to hello-line</span>
+ls -lF | sed -nE <span style="color: #800;">'/^total\ |.*\/$/ !p'</span>          <span style="color: #666;"># </span><span style="color: #666;">show file except directory</span>
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #666;">#</span><span style="color: #666;">!/bin/</span><span style="color: #800;">bash</span>
+
+<span style="color: #048;">fname</span>=$<span style="color: #048;">1</span>
+<span style="color: #800;">function</span> <span style="color: #048; font-weight: bold;">del_cpp_comment</span>()
+{
+    <span style="color: #666;"># </span><span style="color: #666;">del //... in line begin</span>
+    sed -i <span style="color: #800;">'/^[ \t]*\/\// d'</span> $<span style="color: #048;">fname</span>
+
+    <span style="color: #666;"># </span><span style="color: #666;">del //... in line end</span>
+    sed -i <span style="color: #800;">"s/[ \t]*\/\/[^\"]*$//"</span> $<span style="color: #048;">fname</span>
+
+    <span style="color: #666;"># </span><span style="color: #666;">del single line only have /*...*/</span>
+    sed -i <span style="color: #800;">'/^[ \t]*\/\*.*\*\/[ \t]*$/ d'</span> $<span style="color: #048;">fname</span>
+
+    <span style="color: #666;"># </span><span style="color: #666;">del single line /*...*/</span>
+    sed -i <span style="color: #800;">'s/[ \t]*\/\*.*\*\///'</span> $<span style="color: #048;">fname</span>
+
+    <span style="color: #666;"># </span><span style="color: #666;">del multi line /*...*/</span>
+    sed -i <span style="color: #800;">'/^[ \t]*\/\*/,/.*\*\// d'</span> $<span style="color: #048;">fname</span>
+}
+del_cpp_comment
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline11" class="outline-3">
+<h3 id="orgheadline11">awk</h3>
+<div class="outline-text-3" id="text-orgheadline11">
+<p>
+参考教程：<a href="http://www.grymoire.com/Unix/Awk.html">http://www.grymoire.com/Unix/Awk.html</a>
+</p>
+
+<p>
+sed的强项是自动化编辑文本，awk的强项是分析数据生成报告。相比于sed，awk更像是一门语言，和C语言有很相似的语法结构。
+awk的默认工作流程是读取每一条记录，按照空格分解为子项目，用<code>$1</code>、<code>$2</code>这样的方式引用子项，注意<code>$0</code>表示所有子项。可以用<code>-F ':'</code>这样的选项将默认的空格分隔符改变为使用冒号作为分隔符。
+awk有许多内置变量，并且可以被修改：
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<tbody>
+<tr>
+<td class="org-left">ARGC</td>
+<td class="org-left">命令行参数个数</td>
+</tr>
+
+<tr>
+<td class="org-left">ARGV</td>
+<td class="org-left">命令行参数排列</td>
+</tr>
+
+<tr>
+<td class="org-left">ENVIRON</td>
+<td class="org-left">支持队列中系统环境变量的使用</td>
+</tr>
+
+<tr>
+<td class="org-left">FILENAME</td>
+<td class="org-left">awk浏览的文件名</td>
+</tr>
+
+<tr>
+<td class="org-left">FNR</td>
+<td class="org-left">浏览文件的记录数</td>
+</tr>
+
+<tr>
+<td class="org-left">FS</td>
+<td class="org-left">设置输入域分隔符，等价于命令行-F选项</td>
+</tr>
+
+<tr>
+<td class="org-left">NF</td>
+<td class="org-left">浏览记录的域的个数</td>
+</tr>
+
+<tr>
+<td class="org-left">NR</td>
+<td class="org-left">已读的记录数</td>
+</tr>
+
+<tr>
+<td class="org-left">OFS</td>
+<td class="org-left">输出域分隔符</td>
+</tr>
+
+<tr>
+<td class="org-left">ORS</td>
+<td class="org-left">输出记录分隔符</td>
+</tr>
+
+<tr>
+<td class="org-left">RS</td>
+<td class="org-left">控制记录分隔符</td>
+</tr>
+</tbody>
+</table>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">ls -l | awk <span style="color: #800;">'{print $3,$9}'</span>
+cat /etc/passwd | awk -F <span style="color: #800;">':'</span> <span style="color: #800;">'BEGIN {print "name\tshell"}{print $1"\t"$7}'</span>
+awk -F <span style="color: #800;">':'</span> <span style="color: #800;">'{printf("file:%10s %s %s: %s\n",FILENAME,NR,NF,$0)}'</span> /etc/passwd
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline18" class="outline-2">
+<h2 id="orgheadline18">系统工具</h2>
+<div class="outline-text-2" id="text-orgheadline18">
+</div><div id="outline-container-orgheadline17" class="outline-3">
+<h3 id="orgheadline17">系统性能分析</h3>
+<div class="outline-text-3" id="text-orgheadline17">
+</div><div id="outline-container-orgheadline13" class="outline-4">
+<h4 id="orgheadline13">top</h4>
+<div class="outline-text-4" id="text-orgheadline13">
+<p>
+该指令的命令行格式为：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">top -hv|-bcHiOSs -d secs -n max -u|U user -p pid -o fld -w [cols]
+</pre>
+</div>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<tbody>
+<tr>
+<td class="org-left">h/v</td>
+<td class="org-left">帮助/版本信息</td>
+</tr>
+
+<tr>
+<td class="org-left">b</td>
+<td class="org-left">批量模式</td>
+</tr>
+
+<tr>
+<td class="org-left">d</td>
+<td class="org-left">延迟时间：如0.1表示0.1s</td>
+</tr>
+
+<tr>
+<td class="org-left">H</td>
+<td class="org-left">线程单独显示，而不是依附到进程内部</td>
+</tr>
+
+<tr>
+<td class="org-left">i</td>
+<td class="org-left">不显示空闲进程</td>
+</tr>
+
+<tr>
+<td class="org-left">n</td>
+<td class="org-left">刷新指定帧数之后退出</td>
+</tr>
+
+<tr>
+<td class="org-left">o</td>
+<td class="org-left">用于更改排序优先级，+降低，-增加</td>
+</tr>
+
+<tr>
+<td class="org-left">p</td>
+<td class="org-left">指定观察进程</td>
+</tr>
+</tbody>
+</table>
+
+<pre class="example">
+top - 09:38:06 up 4 days, 16:58,  7 users,  load average: 0.72, 0.23, 0.19
+Tasks: 251 total,   3 running, 248 sleeping,   0 stopped,   0 zombie
+%Cpu(s): 26.7 us,  2.2 sy, 44.1 ni,  1.5 id, 25.3 wa,  0.0 hi,  0.2 si,  0.0 st
+KiB Mem:   5998076 total,  5797400 used,   200676 free,   127412 buffers
+KiB Swap:  7916540 total,    28824 used,  7887716 free.  3143600 cached Mem
+</pre>
+<dl class="org-dl">
+<dt>user/us</dt><dd>用户进程使用占比</dd>
+<dt>sys/sy</dt><dd>内核进程使用占比</dd>
+<dt>nic/ni</dt><dd>nice用户进程使用占比</dd>
+<dt>idle/id</dt><dd>空闲时间占比，如果这个值过低，表示CPU存在瓶颈</dd>
+<dt>io/wa</dt><dd>等待IO的占比，如果这个值过高，表示IO存在瓶颈</dd>
+<dt>irq/hi</dt><dd>中断占比</dd>
+<dt>sirq/si</dt><dd>软中断占比</dd>
+<dt>steal/st</dt><dd>虚拟CPU使用占比，一般在虚拟机中才能看到</dd>
+</dl>
+
+<pre class="example">
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+ 1286 root      20   0  362848  63316  32652 S   1.0  1.1  34:57.79 Xorg
+ 1855 micky     20   0 1136568  84168  24656 S   1.0  1.4  49:49.06 compiz
+23997 micky     20   0  556880  94936  18764 S   0.7  1.6   0:26.23 emacs
+   54 root      20   0       0      0      0 S   0.3  0.0   0:38.91 kworker/1:1
+23969 micky     20   0  593700  23772  13896 S   0.3  0.4   0:02.94 gnome-terminal
+24492 micky     20   0   29168   1768   1184 R   0.3  0.0   0:00.03 top
+</pre>
+<dl class="org-dl">
+<dt>PID</dt><dd>进程ID</dd>
+<dt>USER</dt><dd>effective USER名</dd>
+<dt>PR</dt><dd>优先级</dd>
+<dt>NI</dt><dd>nice值</dd>
+<dt>VIRT</dt><dd>虚拟内存大小</dd>
+<dt>RES</dt><dd>驻留内存大小，即使用的不可交换物理内存</dd>
+<dt>SHR</dt><dd>共享内存大小</dd>
+<dt>%CPU</dt><dd>CPU占用率</dd>
+<dt>%MEM</dt><dd>MEM占用率</dd>
+<dt>TIME</dt><dd>已执行时间</dd>
+<dt>COMMAND</dt><dd>命令行</dd>
+</dl>
+
+<p>
+此外top命令还有很多交互式命令，如下所示：
+</p>
+<pre class="example">
+4a. Global-Commands
+      &lt;Ent/Sp&gt; ?, =, 0,
+      A, B, d, E, e, g, h, H, I, k, q, r, s, W, X, Y, Z
+4b. Summary-Area-Commands
+      C, l, t, m, 1, 2, 3
+4c. Task-Area-Commands
+      Appearance:  b, J, j, x, y, z
+      Content:     c, f, F, o, O, S, u, U, V
+      Size:        #, i, n
+      Sorting:     &lt;, &gt;, f, F, R
+4d. Color-Mapping
+      &lt;Ret&gt;, a, B, b, H, M, q, S, T, w, z, 0 - 7
+5b. Commands-for-Windows
+      -, _, =, +, A, a, g, G, w
+5c. Scrolling-a-Window
+      C, Up, Dn, Left, Right, PgUp, PgDn, Home, End
+5d. Searching-in-a-Window
+      L, &amp;
+</pre>
+<p>
+这里介绍几个实用的命令：
+</p>
+<dl class="org-dl">
+<dt>M</dt><dd>进程列表按内存使用大小降序排序</dd>
+<dt>P</dt><dd>进程列表按CPU使用大小降序排序</dd>
+</dl>
+</div>
+</div>
+<div id="outline-container-orgheadline14" class="outline-4">
+<h4 id="orgheadline14">free</h4>
+<div class="outline-text-4" id="text-orgheadline14">
+<p>
+free命令的数据都是从<code>/proc/meminfo</code>中读取的。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">$ free
+             total       used       free     shared    buffers     cached
+Mem:       5998076    5771648     226428     437208     372552    3365820
+-/+ buffers/cache:    2033276    3964800
+Swap:      7916540     263972    7652568
+</pre>
+</div>
+<dl class="org-dl">
+<dt>Mem</dt><dd>从操作系统来看，显示的是物理内存，
+buffers表示要写入到磁盘的数据，cached表示从磁盘缓存的数据，可以用<code>echo 3 &gt; /proc/sys/vm/drop_caches</code>清除缓存</dd>
+</dl>
+</div>
+</div>
+<div id="outline-container-orgheadline15" class="outline-4">
+<h4 id="orgheadline15">vmstat</h4>
+<div class="outline-text-4" id="text-orgheadline15">
+<p>
+用于统计虚拟内存信息：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">vmstat [options] [delay [count]]
+</pre>
+</div>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<tbody>
+<tr>
+<td class="org-left">a</td>
+<td class="org-left">显示active/inactive内存</td>
+</tr>
+
+<tr>
+<td class="org-left">f</td>
+<td class="org-left">显示总forks数目</td>
+</tr>
+
+<tr>
+<td class="org-left">m</td>
+<td class="org-left">显示slabinfo</td>
+</tr>
+
+<tr>
+<td class="org-left">n</td>
+<td class="org-left">只显示header一次，而不是周期性刷新</td>
+</tr>
+
+<tr>
+<td class="org-left">s</td>
+<td class="org-left">以表格形式显示各事件统计信息</td>
+</tr>
+
+<tr>
+<td class="org-left">d</td>
+<td class="org-left">磁盘统计信息</td>
+</tr>
+
+<tr>
+<td class="org-left">D</td>
+<td class="org-left">磁盘统计信息概要</td>
+</tr>
+
+<tr>
+<td class="org-left">p partition</td>
+<td class="org-left">分区统计信息</td>
+</tr>
+
+<tr>
+<td class="org-left">S unit</td>
+<td class="org-left">指定单位，k/K，m/M</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="outline-container-orgheadline16" class="outline-4">
+<h4 id="orgheadline16">mpstat</h4>
+<div class="outline-text-4" id="text-orgheadline16">
+<div class="org-src-container">
+
+<pre class="src src-sh">mpstat [-A] [-u] [-V] [-I {SUM|CPU|SCPU|ALL}] [-P {cpu [,...]|ON|ALL}] [interval[count]]
+</pre>
+</div>
+<dl class="org-dl">
+<dt>-A</dt><dd>等价于<code>-u -I ALL -P ALL</code></dd>
+<dt>-I {SUM|CPU|SCPU|ALL}</dt><dd>中断统计信息</dd>
+<dt>-P {cpu [,&#x2026;]|ON|ALL}</dt><dd>指定要报告的CPU</dd>
+</dl>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline23" class="outline-2">
+<h2 id="orgheadline23">其它工具</h2>
+<div class="outline-text-2" id="text-orgheadline23">
+</div><div id="outline-container-orgheadline19" class="outline-3">
+<h3 id="orgheadline19">find</h3>
+<div class="outline-text-3" id="text-orgheadline19">
+<p>
+find命令可以用<code>-type</code>指定文件类型：
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<tbody>
+<tr>
+<td class="org-left">b</td>
+<td class="org-left">Block special file</td>
+</tr>
+
+<tr>
+<td class="org-left">c</td>
+<td class="org-left">Character special file</td>
+</tr>
+
+<tr>
+<td class="org-left">d</td>
+<td class="org-left">Directory</td>
+</tr>
+
+<tr>
+<td class="org-left">f</td>
+<td class="org-left">Plain file</td>
+</tr>
+
+<tr>
+<td class="org-left">p</td>
+<td class="org-left">Named Pipe File</td>
+</tr>
+
+<tr>
+<td class="org-left">l</td>
+<td class="org-left">Symbolic link</td>
+</tr>
+
+<tr>
+<td class="org-left">s</td>
+<td class="org-left">Socket</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+可以用<code>-size</code>指定文件大小：
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<tbody>
+<tr>
+<td class="org-left">27</td>
+<td class="org-left">固定大小</td>
+</tr>
+
+<tr>
+<td class="org-left">+10000c</td>
+<td class="org-left">大于10000字节</td>
+</tr>
+
+<tr>
+<td class="org-left">-10000c</td>
+<td class="org-left">小于10000字节</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+可以用<code>-mtime</code>指定修改时间，用<code>-atime</code>指定访问时间：
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-right" />
+
+<col  class="org-left" />
+</colgroup>
+<tbody>
+<tr>
+<td class="org-right">7</td>
+<td class="org-left">7天前修改</td>
+</tr>
+
+<tr>
+<td class="org-right">+7</td>
+<td class="org-left">7天之前修改</td>
+</tr>
+
+<tr>
+<td class="org-right">-7</td>
+<td class="org-left">7天以内修改</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+可以用<code>-perm</code>指定文件权限：
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-right" />
+
+<col  class="org-left" />
+</colgroup>
+<tbody>
+<tr>
+<td class="org-right">664</td>
+<td class="org-left">文件访问权限为664</td>
+</tr>
+
+<tr>
+<td class="org-right">-020</td>
+<td class="org-left">对020取按位与操作，不为0即所查找</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+另外可以用<code>-user</code>和<code>-group</code>用户和组，后面可以是名字也可以是编号。
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">find . -print                           <span style="color: #666;"># </span><span style="color: #666;">print all files in curdir</span>
+ls -ld <span style="font-weight: bold;">`find . -print`</span>                  <span style="color: #666;"># </span><span style="color: #666;">print all files long list</span>
+find . -name <span style="color: #800;">"*.c"</span> -o -name <span style="color: #800;">"*.cpp"</span>     <span style="color: #666;"># </span><span style="color: #666;">find c/c++ files</span>
+</pre>
+</div>
+</div>
+
+<div id="outline-container-orgheadline20" class="outline-4">
+<h4 id="orgheadline20">正确含有空格的文件名</h4>
+<div class="outline-text-4" id="text-orgheadline20">
+<p>
+ref: <a href="http://unix.stackexchange.com/questions/81349/">How do I use find when the filename contains spaces?</a>
+</p>
+
+<p>
+一种方法是使用<code>-print0</code>选项：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">find . -type f -print0 | xargs -0 echo
+find . -type f -print0 | xargs -0 -n 1 echo
+</pre>
+</div>
+
+<p>
+另一种方式是使用<code>-exec</code>选项：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">find . -type f -exec echo <span style="color: #800;">'{}'</span> +
+find . -type f -exec echo <span style="color: #800;">'{}'</span> <span style="color: #800;">\;</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline22" class="outline-3">
+<h3 id="orgheadline22">远程登录</h3>
+<div class="outline-text-3" id="text-orgheadline22">
+</div><div id="outline-container-orgheadline21" class="outline-4">
+<h4 id="orgheadline21">ssh</h4>
+<div class="outline-text-4" id="text-orgheadline21">
+<p>
+如果登录出现如下警告，需要更新<code>known_hosts</code>
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@    WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!     @
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+IT IS POSSIBLE THAT SOMEONE IS DOING SOMETHING NASTY!
+Someone could be eavesdropping on you right now (man-in-the-middle attack)<span style="color: #c00;">!</span>
+It is also possible that a host key has just been changed.
+The fingerprint for the RSA key sent by the remote host is
+6e:45:f9:a8:af:38:3d:a1:a5:c7:76:1d:02:f8:77:00.
+Please contact your system administrator.
+Add correct host key<span style="color: #800;"> in</span> /home/XX/.ssh/known_hosts to get rid of this message.
+Offending RSA key<span style="color: #800;"> in</span> /var/lib/sss/pubconf/known_hosts:4
+RSA host key for pong has changed and you have requested strict checking.
+Host key verification failed.
+</pre>
+</div>
+<div class="org-src-container">
+
+<pre class="src src-sh">ssh-keygen -R hostname
+ssh-keygen -R [23.34.56.76]:26          <span style="color: #666;"># </span><span style="color: #666;">&#25351;&#23450;&#31471;&#21475;&#30340;&#26684;&#24335;</span>
+</pre>
+</div>
+
+<p>
+可以利用配置<code>/etc/ssh/ssh_config</code>设置ssh行为。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">StrictHostKeyChecking no                <span style="color: #666;"># </span><span style="color: #666;">&#36991;&#20813;&#35810;&#38382;&#21152;&#20837;known_host</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline24" class="outline-2">
+<h2 id="orgheadline24">参考资料</h2>
+<div class="outline-text-2" id="text-orgheadline24">
+<ul class="org-ul">
+<li><a href="http://linuxtools-rst.readthedocs.org/zh_CN/latest/">Linux工具快速教程</a></li>
+<li><a href="http://www.grymoire.com/Unix/index.html">The Grymoire - home for UNIX wizards</a></li>
+<li><a href="http://c.biancheng.net/cpp/shell/">Linux Shell脚本教程：30分钟玩转Shell脚本编程</a></li>
+<li><a href="http://www.w3cschool.cc/linux/linux-shell.html">w3cschool：Shell 教程</a></li>
+<li><a href="http://wiki.ubuntu.org.cn/Shell%E7%BC%96%E7%A8%8B%E5%9F%BA%E7%A1%80">Shell编程基础</a></li>
+<li><a href="http://www.iteedu.com/os/linux/linuxcmd/bashmanual/index.php">Bash新手指南</a></li>
+<li><a href="http://manual.51yip.com/shell/">Advanced Bash-Scripting Guide: An in-depth exploration of the art of shell scripting</a></li>
+</ul>
+</div>
+</div>

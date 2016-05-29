@@ -1,0 +1,388 @@
+---
+title: Linux DMA-BUF
+categories: kernel
+tags: linux memory dma
+author: 敬叶
+---
+<dl class="post-meta">
+<dt class="post-meta">2015-09-28</dt><dd>敬叶 初稿</dd>
+</dl>
+<hr><br>
+<div id="table-of-contents"><h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#orgheadline5">DMA-BUF基本概念</a>
+<ul>
+<li><a href="#orgheadline1">简介</a></li>
+<li><a href="#orgheadline2">基本用法</a>
+<ul>
+<li><a href="#orgheadline3">使用步骤</a></li>
+<li><a href="#orgheadline4">注意事项</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#orgheadline8">工作原理</a>
+<ul>
+<li><a href="#orgheadline6">概念图</a></li>
+<li><a href="#orgheadline7">应用示例</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline9">参考资料</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline5" class="outline-2">
+<h2 id="orgheadline5">DMA-BUF基本概念</h2>
+<div class="outline-text-2" id="text-orgheadline5">
+</div><div id="outline-container-orgheadline1" class="outline-3">
+<h3 id="orgheadline1">简介</h3>
+<div class="outline-text-3" id="text-orgheadline1">
+<!--abstract-begin-->
+
+<p>
+如果设备驱动想要共享DMA缓冲区，可以让一个驱动来导出，一个驱动来使用。类似于消费者生产者模型，Linux DMA-BUF就是基于这种方式来实现的。
+</p>
+
+<p>
+Linux内核中的DMA BUF这部分代码主要由Sumit Semwal贡献，可以在Linux内核源码树目录下执行如下命令查看相关提交。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">git log --author=<span style="color: #800;">"Sumit Semwal"</span>
+</pre>
+</div>
+
+<p>
+生产者要完成的工作：
+</p>
+<ul class="org-ul">
+<li>实现对缓冲区的管理操作</li>
+<li>允许使用者通过<code>dma_buf</code>共享接口来共享内存</li>
+<li>管理内存分配的细节</li>
+<li>决定实际的存储位置</li>
+<li>管理散列表迁移</li>
+</ul>
+
+<p>
+使用者的好处：
+</p>
+<ul class="org-ul">
+<li>可以有很多使用者共用这部分内存</li>
+<li>不需要关心怎样分配，以及分配在何处</li>
+<li>需要一个入口去访问散列表，以映射到自己的地址空间</li>
+</ul>
+
+<!--abstract-end-->
+</div>
+</div>
+
+<div id="outline-container-orgheadline2" class="outline-3">
+<h3 id="orgheadline2">基本用法</h3>
+<div class="outline-text-3" id="text-orgheadline2">
+<p>
+DMA BUF只能操作设备DMA缓冲区，使用上包括如下步骤。
+</p>
+
+<ol class="org-ol">
+<li>生产者声明要导出缓冲</li>
+<li>用户空间获取关联缓冲区的文件描述符，将描述符传递给潜在的消费者</li>
+<li>在使用前，每个用户将自己连接到缓冲区</li>
+<li>需要使用时，用户向生产者申请访问缓冲</li>
+<li>使用结束时，用户向生产者通知EOD(end of DMA)</li>
+<li>当完全不需要使用缓冲区的时候，用户断开和缓冲区的连接</li>
+</ol>
+</div>
+
+<div id="outline-container-orgheadline3" class="outline-4">
+<h4 id="orgheadline3">使用步骤</h4>
+<div class="outline-text-4" id="text-orgheadline3">
+<p>
+<b>1. 导出缓冲</b>
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">struct</span> <span style="color: #800;">dma_buf</span> *<span style="color: #048; font-weight: bold;">dma_buf_export_named</span>(<span style="color: #800;">void</span> *<span style="color: #048;">priv</span>, <span style="color: #800;">struct</span> <span style="color: #800;">dma_buf_ops</span> *<span style="color: #048;">ops</span>,
+                                     <span style="color: #800;">size_t</span> <span style="color: #048;">size</span>, <span style="color: #800;">int</span> <span style="color: #048;">flags</span>,
+                                     <span style="color: #800;">const</span> <span style="color: #800;">char</span> *<span style="color: #048;">exp_name</span>);
+<span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">dma_buf_export</span>(<span style="color: #048;">priv</span>, <span style="color: #048;">ops</span>, <span style="color: #048;">size</span>, <span style="color: #048;">flags</span>)                  \
+    dma_buf_export_named(priv, ops, size, flags, __FILE__)
+</pre>
+</div>
+<dl class="org-dl">
+<dt>return</dt><dd>失败返回NULL</dd>
+<dt>exp_name</dt><dd>生产者的名字</dd>
+<dt>dma_buf_export()</dt><dd>最后一个参数传递<code>KBUILD_MODNAME</code></dd>
+</dl>
+
+<p>
+分配一个<code>dma_buf</code>将其加入到全局链表<code>db_list</code>中。
+</p>
+
+<p>
+<b>2. 获取文件描述符</b>
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">dma_buf_fd</span>(<span style="color: #800;">struct</span> <span style="color: #800;">dma_buf</span> *<span style="color: #048;">dmabuf</span>, <span style="color: #800;">int</span> <span style="color: #048;">flags</span>);
+</pre>
+</div>
+<dl class="org-dl">
+<dt>return</dt><dd>失败返回ERROR</dd>
+</dl>
+
+<p>
+获取一个空闲的文件描述符来管理<code>dmabuf-&gt;file</code>。
+</p>
+
+<p>
+<b>3. 连接缓冲</b>
+</p>
+
+<p>
+连接的作用是让生产者知道设备缓冲的约束。在这一步完成之后，生产者仍可以不实际分配存储，但是当使用者请求要访问的时候就必须要准备好存储。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">struct</span> <span style="color: #800;">dma_buf</span> *<span style="color: #048; font-weight: bold;">dma_buf_get</span>(<span style="color: #800;">int</span> <span style="color: #048;">fd</span>);
+<span style="color: #800;">struct</span> <span style="color: #800;">dma_buf_attachment</span> *<span style="color: #048; font-weight: bold;">dma_buf_attach</span>(<span style="color: #800;">struct</span> <span style="color: #800;">dma_buf</span> *<span style="color: #048;">dmabuf</span>,
+                                          <span style="color: #800;">struct</span> <span style="color: #800;">device</span> *<span style="color: #048;">dev</span>)
+</pre>
+</div>
+
+<p>
+<b>4. 申请访问</b>
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">struct</span> <span style="color: #800;">sg_table</span> * <span style="color: #048; font-weight: bold;">dma_buf_map_attachment</span>(<span style="color: #800;">struct</span> <span style="color: #800;">dma_buf_attachment</span> *,
+                                         <span style="color: #800;">enum</span> <span style="color: #800;">dma_data_direction</span>);
+<span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">dma_buf_unmap_attachment</span>(<span style="color: #800;">struct</span> <span style="color: #800;">dma_buf_attachment</span> *, <span style="color: #800;">struct</span> <span style="color: #800;">sg_table</span> *);
+</pre>
+</div>
+<p>
+这两个函数必须有生产者来实现，注意的是这两个函数将加锁的任务丢给生产者了。
+</p>
+
+<p>
+<b>6. 断开连接</b>
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">dma_buf_detach</span>(<span style="color: #800;">struct</span> <span style="color: #800;">dma_buf</span> *<span style="color: #048;">dmabuf</span>,
+                    <span style="color: #800;">struct</span> <span style="color: #800;">dma_buf_attachment</span> *<span style="color: #048;">dmabuf_attach</span>);
+<span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">dma_buf_put</span>(<span style="color: #800;">struct</span> <span style="color: #800;">dma_buf</span> *<span style="color: #048;">dmabuf</span>);
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline4" class="outline-4">
+<h4 id="orgheadline4">注意事项</h4>
+<div class="outline-text-4" id="text-orgheadline4">
+<p>
+连接和断开的目的是让生产者了解约束。如果在申请访问并已经分配好存储之后，需要迁移存储，而此时又有人试图连接，应当在此时允许连接。如果新的用户有更多的约束，那么应该在申请的时候阻塞，直到其它使用者通知结束，再将缓冲区移动到新的区域。如果生产者不能满足约束，那么在连接的时候就应该返回错误。
+</p>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline8" class="outline-2">
+<h2 id="orgheadline8">工作原理</h2>
+<div class="outline-text-2" id="text-orgheadline8">
+</div><div id="outline-container-orgheadline6" class="outline-3">
+<h3 id="orgheadline6">概念图</h3>
+<div class="outline-text-3" id="text-orgheadline6">
+<p>
+生产者和消费者模型如下所示，首先声明要导出缓冲区，并提供一个接口来导出文件描述符。因为是匿名文件，所以不论是用户空间还是内核空间，都没有办法直接看到文件描述符，要共享缓冲区又必须借助文件描述符。内核空间相对好办一点，可以直接调用生产者提供的接口来获取描述符，而用户空间要获取描述就没有标准接口可以使用，所以只好通过特定的ioctl来获取文件描述符。
+</p>
+
+<div class="org-center">
+
+<div class="figure">
+<p><img src="/resource/kernel/fig/dmabuf/dma-buf-mechanism.png" alt="dma-buf-mechanism.png" />
+</p>
+<p><span class="figure-number">Figure 1:</span> DMA BUF机理</p>
+</div>
+</div>
+
+<p>
+更形象的例子如下所示。
+</p>
+<div class="org-center">
+
+<div class="figure">
+<p><img src="/resource/kernel/fig/dmabuf/dmabuf-example.png" alt="dmabuf-example.png" />
+</p>
+<p><span class="figure-number">Figure 2:</span> DMA BUF示例</p>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline7" class="outline-3">
+<h3 id="orgheadline7">应用示例</h3>
+<div class="outline-text-3" id="text-orgheadline7">
+<p>
+以V4L2为例，核心数据结构为<code>vb2_mem_ops</code>，该结构的定义在<code>include/media/videobuf2-core.h</code>中，在<code>drivers/media/v4l2-core/videobuf2-dma-sg.c</code>中实现，在<code>drivers/media/v4l2-core/videobuf2-dma-contig.c</code>中也有实现。这里我们只讨论和DMA BUF相关的部分，并且以<code>videobuf2-dma-sg.c</code>为对象进行研究，由于<code>videobuf2-dma-contig.c</code>内存连续，相对更好处理，详细可以自行对比。
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">const</span> <span style="color: #800;">struct</span> <span style="color: #800;">vb2_mem_ops</span> <span style="color: #048;">vb2_dma_sg_memops</span> = {
+    .alloc         = vb2_dma_sg_alloc,
+    .put           = vb2_dma_sg_put,
+    .get_userptr   = vb2_dma_sg_get_userptr,
+    .put_userptr   = vb2_dma_sg_put_userptr,
+    .prepare       = vb2_dma_sg_prepare,
+    .finish        = vb2_dma_sg_finish,
+    .vaddr         = vb2_dma_sg_vaddr,
+    .mmap          = vb2_dma_sg_mmap,
+    .num_users     = vb2_dma_sg_num_users,
+    .get_dmabuf    = vb2_dma_sg_get_dmabuf,
+    .map_dmabuf    = vb2_dma_sg_map_dmabuf,
+    .unmap_dmabuf  = vb2_dma_sg_unmap_dmabuf,
+    .attach_dmabuf = vb2_dma_sg_attach_dmabuf,
+    .detach_dmabuf = vb2_dma_sg_detach_dmabuf,
+    .cookie        = vb2_dma_sg_cookie,
+};
+</pre>
+</div>
+
+<p>
+函数<code>vb2_expbuf()</code>用于以文件描述符导出缓冲区，这个函数就是调用<code>vb2_mem_ops-&gt;get_dmabuf</code>来进行导出的。
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">vb2_expbuf</span>(<span style="color: #800;">struct</span> <span style="color: #800;">vb2_queue</span> *<span style="color: #048;">q</span>, <span style="color: #800;">struct</span> <span style="color: #800;">v4l2_exportbuffer</span> *<span style="color: #048;">eb</span>)
+{
+    <span style="color: #666;">// </span><span style="color: #666;">no ERROR check</span>
+    <span style="color: #800;">struct</span> <span style="color: #800;">vb2_buffer</span> *<span style="color: #048;">vb</span> = <span style="color: #800;">NULL</span>;
+    <span style="color: #800;">struct</span> <span style="color: #800;">vb2_plane</span> *<span style="color: #048;">vb_plane</span>;
+    <span style="color: #800;">int</span> <span style="color: #048;">ret</span>;
+    <span style="color: #800;">struct</span> <span style="color: #800;">dma_buf</span> *<span style="color: #048;">dbuf</span>;
+
+    vb = q-&gt;bufs[eb-&gt;index];
+    vb_plane = &amp;vb-&gt;planes[eb-&gt;plane];
+
+    dbuf = call_memop(q, get_dmabuf, vb_plane-&gt;mem_priv);
+    ret = dma_buf_fd(dbuf, eb-&gt;flags);
+    dprintk(3, <span style="color: #800;">"buffer %d, plane %d exported as %d descriptor\n"</span>,
+            eb-&gt;index, eb-&gt;plane, ret);
+    eb-&gt;fd = ret;
+
+    <span style="color: #800;">return</span> 0;
+}
+<span style="color: #800;">static</span> <span style="color: #800;">struct</span> <span style="color: #800;">dma_buf</span> *<span style="color: #048; font-weight: bold;">vb2_dma_sg_get_dmabuf</span>(<span style="color: #800;">void</span> *<span style="color: #048;">buf_priv</span>,
+                                             <span style="color: #800;">unsigned</span> <span style="color: #800;">long</span> <span style="color: #048;">flags</span>)
+{
+    <span style="color: #800;">struct</span> <span style="color: #800;">vb2_dma_sg_buf</span> *<span style="color: #048;">buf</span> = buf_priv;
+    <span style="color: #800;">struct</span> <span style="color: #800;">dma_buf</span> *<span style="color: #048;">dbuf</span>;
+
+    <span style="color: #800;">if</span> (WARN_ON(<span style="color: #c00;">!</span>buf-&gt;dma_sgt))
+        <span style="color: #800;">return</span> <span style="color: #800;">NULL</span>;
+
+    dbuf = dma_buf_export(buf, &amp;vb2_dma_sg_dmabuf_ops, buf-&gt;size, flags, <span style="color: #800;">NULL</span>);
+    <span style="color: #800;">if</span> (IS_ERR(dbuf))
+        <span style="color: #800;">return</span> <span style="color: #800;">NULL</span>;
+
+    atomic_inc(&amp;buf-&gt;refcount);         <span style="color: #666;">// </span><span style="color: #666;">dmabuf keeps reference to vb2 buffer</span>
+
+    <span style="color: #800;">return</span> dbuf;
+}
+</pre>
+</div>
+
+<p>
+这里<code>vb2_dma_sg_buf</code>就是exporter的核心数据结构，这个数据结构中包括了用于管理缓冲区的<code>sg_table</code>，有必要可以了解一下这个结构体是如何初始化的，可以参考<code>vb2_mem_ops-&gt;alloc()</code>，也就是<code>vb2_dma_sg_alloc()</code>。比较上层的函数是<code>vb2_reqbufs()</code>，用于申请内存。
+</p>
+
+<p>
+要导出缓冲区，最关键是要定义一组缓冲区的操作方法供用户使用，这组操作方法便由<code>vb2_dma_sg_dmabuf_ops</code>提供。
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">static</span> <span style="color: #800;">struct</span> <span style="color: #800;">dma_buf_ops</span> <span style="color: #048;">vb2_dma_sg_dmabuf_ops</span> = {
+    .attach = vb2_dma_sg_dmabuf_ops_attach,
+    .detach = vb2_dma_sg_dmabuf_ops_detach,
+    .map_dma_buf = vb2_dma_sg_dmabuf_ops_map,
+    .unmap_dma_buf = vb2_dma_sg_dmabuf_ops_unmap,
+    .kmap = vb2_dma_sg_dmabuf_ops_kmap,
+    .kmap_atomic = vb2_dma_sg_dmabuf_ops_kmap,
+    .vmap = vb2_dma_sg_dmabuf_ops_vmap,
+    .mmap = vb2_dma_sg_dmabuf_ops_mmap,
+    .release = vb2_dma_sg_dmabuf_ops_release,
+};
+</pre>
+</div>
+<dl class="org-dl">
+<dt>map_dma_buf/unmap_dma_buf</dt><dd><p>
+     前面的attach和detach并没有获取锁，这是因为在函数<code>dma_buf_attach()</code>已经获取了锁了。而在<code>dma_buf_map_attachment()</code>中却没有获取锁，所以这里面就需要去获取锁。
+</p>
+
+<p>
+至于获取锁的原因，因为在这里面会检查缓存DMA方向，如果不是NONE就会去unmap，不加锁就可能unmap一个正在使用的散列表，所以加锁是必要的。
+</p>
+
+<p>
+至于为什么不在<code>dma_buf_map_attachment()</code>中加锁，可以参考 <a href="https://git.congatec.com/arm/qmx6_kernel/commit/6b607e3a658fee490bdabfdeb739a3eb498b1bff">dma-buf: don't hold the mutex around map/unmap calls</a>，因为在外部没有什么需要保护的，所以直接转移到<code>dmabuf-&gt;ops-&gt;map_dma_buf()</code>中。
+</p>
+
+<p>
+由于代码中采用了取巧的做法，即在map的时候采取检查并做unmap的工作，所以unmap实际是什么工作也没有做。这样做存在一个问题，就是最后一次传递之后就无法unmap了。
+</p></dd>
+</dl>
+
+<p>
+可以通过如下方式获取文件描述符。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">buffer_export</span>(<span style="color: #800;">int</span> <span style="color: #048;">v4lfd</span>, <span style="color: #800;">enum</span> <span style="color: #800;">v4l2_buf_type</span> <span style="color: #048;">bt</span>, <span style="color: #800;">int</span> <span style="color: #048;">index</span>, <span style="color: #800;">int</span> *<span style="color: #048;">dmafd</span>)
+{
+    <span style="color: #800;">struct</span> <span style="color: #800;">v4l2_exportbuffer</span> <span style="color: #048;">expbuf</span>;
+
+    memset(&amp;expbuf, 0, <span style="color: #800;">sizeof</span>(expbuf));
+    expbuf.type = bt;
+    expbuf.index = index;
+    <span style="color: #666;">// </span><span style="color: #666;">int ioctl(int fd, int request, struct v4l2_exportbuffer *argp);</span>
+    <span style="color: #800;">if</span> (ioctl(v4lfd, VIDIOC_EXPBUF, &amp;expbuf) == -1) {
+        perror(<span style="color: #800;">"VIDIOC_EXPBUF"</span>);
+        <span style="color: #800;">return</span> -1;
+    }
+
+    *dmafd = expbuf.fd;
+
+    <span style="color: #800;">return</span> 0;
+}
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline9" class="outline-2">
+<h2 id="orgheadline9">参考资料</h2>
+<div class="outline-text-2" id="text-orgheadline9">
+<ol class="org-ol">
+<li><a href="https://www.kernel.org/doc/Documentation/dma-buf-sharing.txt">2012 Sumit Semwal. DMA Buffer Sharing API Guide</a></li>
+<li><a href="http://elinux.org/images/a/a8/DMA_Buffer_Sharing-_An_Introduction.pdf">2012 Rob Clark, Sumit Semwal. DMA Buffer Sharing Framework: An Introduction</a></li>
+<li><a href="http://events.linuxfoundation.org/sites/events/files/slides/ELCE-DMABUF.pdf">2013 Lucas Stach, Philipp Zabel. Next-Generation DMABUF</a></li>
+<li><a href="http://gstreamer.freedesktop.org/data/events/gstreamer-conference/2012/omap-dmabuf-gstcon2012.pdf">2012 Rob Clark. GStreamer and dmabuf</a></li>
+<li><a href="http://linuxtv.org/downloads/v4l-dvb-apis/">2014 LinuxTV Developers. Linux Media Infrastructure API</a></li>
+<li><a href="https://git.congatec.com/arm/qmx6_kernel/commits/4c78513e457f72d5554a0f6e2eabfad7b98e4f19/drivers/base/dma-buf.c">2012 git log qmx6_kernel/drivers/base/dma-buf.c</a></li>
+<li><a href="https://git.congatec.com/arm/qmx6_kernel/commit/d15bd7ee445d0702ad801fdaece348fdb79e6581">2012 dma-buf: Introduce dma buffer sharing mechanism</a></li>
+<li><a href="https://git.congatec.com/arm/qmx6_kernel/commit/4c78513e457f72d5554a0f6e2eabfad7b98e4f19">2012 dma-buf: mmap support</a></li>
+<li><a href="http://lwn.net/Articles/474819/">2012 Jonathan Corbet. DMA buffer sharing in 3.3</a></li>
+<li><a href="http://lwn.net/Articles/454389/">2011 Jonathan Corbet. Sharing buffers between devices</a></li>
+<li><a href="http://lwn.net/Articles/480055/">2012 Thomas M. Zeng. The Android ION memory allocator</a></li>
+<li><a href="https://www.kernel.org/doc/Documentation/DMA-API.txt">2014 Bottomley. Dynamic DMA mapping using the generic device</a></li>
+</ol>
+</div>
+</div>
