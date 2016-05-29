@@ -1,0 +1,1095 @@
+---
+title: Emacs Orgmode
+categories: editor
+tags: 笔记 emacs
+---
+<dl class="org-dl">
+<dt>2016-05-29</dt><dd>重新整理排版</dd>
+</dl>
+<div id="table-of-contents"><h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#orgheadline1">Orgmode基础</a>
+<ul>
+<li><a href="#orgheadline2">章节操作</a>
+<ul>
+<li><a href="#orgheadline3"><span class="todo TODO">TODO</span> 章节</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline4">列表操作</a></li>
+<li><a href="#orgheadline5">表格操作</a>
+<ul>
+<li><a href="#orgheadline6">表格分组</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline7">插图操作</a></li>
+<li><a href="#orgheadline8">源码操作</a>
+<ul>
+<li><a href="#orgheadline9">源码环境</a></li>
+<li><a href="#orgheadline10">其它环境</a></li>
+<li><a href="#orgheadline11">语法高亮</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline12">交叉引用</a></li>
+<li><a href="#orgheadline13">脚注操作</a></li>
+<li><a href="#orgheadline14">时间管理</a></li>
+<li><a href="#orgheadline15">字符字号</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline16">参考资料</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline1" class="outline-2">
+<h2 id="orgheadline1">Orgmode基础</h2>
+<div class="outline-text-2" id="text-orgheadline1">
+<!--abstract-begin-->
+
+<p>
+Org mode是Emacs下写文档的一个主模式，非常适用于记笔记、写TODO、制定项目计划等。自从接触Orgmode之后，我便没有离开过，因为她给我带来了太多的便利。
+</p>
+
+<p>
+从观感上看，她是一个非常紧凑的标记语言，相比于RST看起来不是那么稀疏。即便是不导出为文档或者页面，也能很好的阅读和跳转。
+</p>
+
+<p>
+在书写上，她提供了一组很自然的快捷键，很多文字对象具有相似的结构，在快捷键上也很好的保持一致，如章节和列表的很多快捷键是相同的，功能则完全能够类比。
+</p>
+
+<p>
+作为程序员，文学编程让我十分着迷。在文档里引用一段代码，一个简单的按键就能计算结果，这是多么优美的设计。比如可以直接在文档中写一段Python，验证一个小的算法，也可以写一段plantuml，直接接绘制流程图，还可以用表格直接绘制gnuplot图形，其他的很多语言如C语言、R语言等等都是能够直接运行的，你根本不需要去写Makefile，也不需要输入冗长的编译命令，而只需要一个简单的按键。
+</p>
+
+<p>
+另外不得不提的就是其优秀的时间管理能力，很大的提高了我的工作效率。
+</p>
+
+<!--abstract-end-->
+</div>
+
+<div id="outline-container-orgheadline2" class="outline-3">
+<h3 id="orgheadline2">章节操作</h3>
+<div class="outline-text-3" id="text-orgheadline2">
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">快捷键</th>
+<th scope="col" class="org-left">功能</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">TAB</td>
+<td class="org-left">展开/折叠章节内容</td>
+</tr>
+
+<tr>
+<td class="org-left">S-TAB</td>
+<td class="org-left">展开/折叠全文</td>
+</tr>
+
+<tr>
+<td class="org-left">C-c C-[np]</td>
+<td class="org-left">跳转到前/后一章节</td>
+</tr>
+
+<tr>
+<td class="org-left">C-c C-[fb]</td>
+<td class="org-left">跳转到前/后同层次章节</td>
+</tr>
+
+<tr>
+<td class="org-left">C-c C-u</td>
+<td class="org-left">跳转到上一层章节</td>
+</tr>
+
+<tr>
+<td class="org-left">C-c C-c</td>
+<td class="org-left">设置章节TAG</td>
+</tr>
+
+<tr>
+<td class="org-left">M-RET</td>
+<td class="org-left">插入新章节</td>
+</tr>
+
+<tr>
+<td class="org-left">M-S-RET</td>
+<td class="org-left">插入新TODO章节</td>
+</tr>
+
+<tr>
+<td class="org-left">M-LEFT/M-RIGHT</td>
+<td class="org-left">提升/降低章节层次</td>
+</tr>
+
+<tr>
+<td class="org-left">M-S-LEFT/M-S-RIGHT</td>
+<td class="org-left">提升/降低子树层次</td>
+</tr>
+
+<tr>
+<td class="org-left">M-UP/M-DOWN</td>
+<td class="org-left">将子树向上/向下移动</td>
+</tr>
+
+<tr>
+<td class="org-left">C-c *</td>
+<td class="org-left">将本行切换为标题/正文</td>
+</tr>
+
+<tr>
+<td class="org-left">C-c ^</td>
+<td class="org-left">章节排序</td>
+</tr>
+
+<tr>
+<td class="org-left">C-c @</td>
+<td class="org-left">选中子树</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+这些快捷操作都很常用，个人比较喜欢的是全文折叠循环、子树移动、章节排序。
+</p>
+</div>
+
+<div id="outline-container-orgheadline3" class="outline-4">
+<h4 id="orgheadline3"><span class="todo TODO">TODO</span> 章节</h4>
+<div class="outline-text-4" id="text-orgheadline3">
+<p>
+我倾向于把TODO项作为特殊章节，所以将其放置于章节操作之下。另外我自己定义了一组TODO关键字：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-lisp">(setq org-todo-keywords
+      (quote ((sequence <span style="color: #800;">"TODO(t!)"</span> <span style="color: #800;">"WORK(k!)"</span> <span style="color: #800;">"|"</span> <span style="color: #800;">"DONE(d!)"</span>)
+              (sequence <span style="color: #800;">"STOP(p!)"</span> <span style="color: #800;">"XFER(x!)"</span> <span style="color: #800;">"|"</span> <span style="color: #800;">"UNDO(u!)"</span>))))
+</pre>
+</div>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">快捷键</th>
+<th scope="col" class="org-left">功能</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">M-S-RET</td>
+<td class="org-left">插入TODO项</td>
+</tr>
+
+<tr>
+<td class="org-left">C-c C-c</td>
+<td class="org-left">插入标签</td>
+</tr>
+
+<tr>
+<td class="org-left">C-c C-t</td>
+<td class="org-left">插入TODO状态</td>
+</tr>
+
+<tr>
+<td class="org-left">S-LEFT/S-RIGHT</td>
+<td class="org-left">轮换TODO状态</td>
+</tr>
+
+<tr>
+<td class="org-left">C-c / t</td>
+<td class="org-left">查看稀疏树，仅显示未完成项</td>
+</tr>
+
+<tr>
+<td class="org-left">C-c ,</td>
+<td class="org-left">设置优先级，优先级从A到C</td>
+</tr>
+
+<tr>
+<td class="org-left">S-UP/S-DOWN</td>
+<td class="org-left">提升/降低优先级</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+快捷键<code>C-c /</code>用于显示稀疏树，通过不同的字符来选择具体显示那种稀疏树：
+</p>
+<pre class="example">
+/ or r Show entries matching a regular expression.
+t      Show all TODO entries.
+T      Show entries with a specific TODO keyword.
+m      Show entries selected by a tags/property match.
+p      Enter a property name and its value (both with completion on existing
+       names/values) and show entries with that property.
+b      Show deadlines and scheduled items before a date.
+a      Show deadlines and scheduled items after a date.
+d      Show deadlines due within `org-deadline-warning-days'.
+D      Show deadlines and scheduled items between a date range.
+</pre>
+
+<p>
+TODO操作可以通过跟踪子项完成情况来计算进度，只需要在TODO章节行尾插入<code>[/]</code>或<code>[%]</code>，然后执行<code>C-c C-c</code>就能自动计算。这里子项通常是子TODO项，也可以是checkbox列表。
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline4" class="outline-3">
+<h3 id="orgheadline4">列表操作</h3>
+<div class="outline-text-3" id="text-orgheadline4">
+<p>
+无序的列表用减号开头，有序的列表以数字开头，描述列表也是减号开头，用<code>::</code>分割项目和描述。
+</p>
+
+<p>
+列表的操作快捷键和章节操作非常类似，如折叠、插入、层次升降、子树移动和排序都是完全对应的。此外TODO章节和checkbox列表对应，章节TAG和checkbox列表的状态对应。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline5" class="outline-3">
+<h3 id="orgheadline5">表格操作</h3>
+<div class="outline-text-3" id="text-orgheadline5">
+<p>
+表格功能比较遗憾的是不支持多行表格，另外需要注意的一点是，竖线被用来做表格分割符，如果确实需要在表格中输入竖线，则要用<code>\vert</code>来表示。
+</p>
+
+<p>
+插图和表格都可以设置名字，格式如下所示，CAPTION用于显示，NAME用于引用。
+</p>
+<pre class="example">
+#+CAPTION: table or figure caption
+#+NAME: tbl:tblname
+</pre>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">快捷键</th>
+<th scope="col" class="org-left">功能</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">C-c C-c</td>
+<td class="org-left">表格自动对齐</td>
+</tr>
+
+<tr>
+<td class="org-left">TAB/S-TAB</td>
+<td class="org-left">移动到下一格/上一格</td>
+</tr>
+
+<tr>
+<td class="org-left">M-LEFT/M-RIGHT</td>
+<td class="org-left">将当前列左移/右移</td>
+</tr>
+
+<tr>
+<td class="org-left">M-S-LEFT</td>
+<td class="org-left">删除当前列</td>
+</tr>
+
+<tr>
+<td class="org-left">M-S-RIGHT</td>
+<td class="org-left">在左侧插入一列</td>
+</tr>
+
+<tr>
+<td class="org-left">M-UP/M-DOWN</td>
+<td class="org-left">当前行上/下移</td>
+</tr>
+
+<tr>
+<td class="org-left">M-S-UP</td>
+<td class="org-left">删除当前行</td>
+</tr>
+
+<tr>
+<td class="org-left">M-S-DOWN</td>
+<td class="org-left">在当前行上方插入一行</td>
+</tr>
+
+<tr>
+<td class="org-left">M-a/M-e</td>
+<td class="org-left">移动光标到单元格开始/结尾</td>
+</tr>
+
+<tr>
+<td class="org-left">C-c -</td>
+<td class="org-left">在下方插入分割线</td>
+</tr>
+
+<tr>
+<td class="org-left">C-c RET</td>
+<td class="org-left">在下方插入分割线，并跳到下一行</td>
+</tr>
+
+<tr>
+<td class="org-left">C-c ^</td>
+<td class="org-left">排序</td>
+</tr>
+
+<tr>
+<td class="org-left">C-c '</td>
+<td class="org-left">编辑公式</td>
+</tr>
+
+<tr>
+<td class="org-left">C-c +</td>
+<td class="org-left">求和</td>
+</tr>
+
+<tr>
+<td class="org-left">C-c =</td>
+<td class="org-left">执行公式</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+<div id="outline-container-orgheadline6" class="outline-4">
+<h4 id="orgheadline6">表格分组</h4>
+<div class="outline-text-4" id="text-orgheadline6">
+<p>
+表格在导出时并不显示竖线，竖线仅用于分组，同样横线默认也是不显示的，只有存在行分割线时才会导出横线。列属性需要在属性行上指定，首个单元内容为<code>/</code>的行作为属性行。以<code>&lt;</code>作为组起始符，以<code>&gt;</code>作为组结束符。如下例所示：
+</p>
+<pre class="example">
+| N | N^2 | N^3 | N^4 | ~sqrt(n)~ | ~sqrt[4](N)~ |
+|---+-----+-----+-----+-----------+--------------|
+| / |   &lt; |     |   &gt; |         &lt; |            &gt; |
+| 1 |   1 |   1 |   1 |         1 |            1 |
+| 2 |   4 |   8 |  16 |    1.4142 |       1.1892 |
+| 3 |   9 |  27 |  81 |    1.7321 |       1.3161 |
+|---+-----+-----+-----+-----------+--------------|
+#+TBLFM: $2=$1^2::$3=$1^3::$4=$1^4::$5=sqrt($1)::$6=sqrt(sqrt(($1)))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline7" class="outline-3">
+<h3 id="orgheadline7">插图操作</h3>
+<div class="outline-text-3" id="text-orgheadline7">
+<p>
+插图方法很简单，直接写入图片地址即可，如：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-org"><span style="text-decoration: underline;"><a href="file:fig/logo.png">file:fig/logo.png</a></span>
+</pre>
+</div>
+
+<p>
+在导出pdf文档时，通常还需要做一些基本的属性调整，请参考 <a href="http://orgmode.org/org.html#LaTeX-specific-attributes">LaTeX specific attributes</a> 。在表格和图片中都可以使用属性设置，由于图片设置较多，所以将其放于此处。
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">属性</th>
+<th scope="col" class="org-left">功能</th>
+<th scope="col" class="org-left">常用值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">float</td>
+<td class="org-left">浮动环境</td>
+<td class="org-left">t nil</td>
+</tr>
+
+<tr>
+<td class="org-left">placement</td>
+<td class="org-left">浮动位置</td>
+<td class="org-left">H</td>
+</tr>
+
+<tr>
+<td class="org-left">width</td>
+<td class="org-left">设置宽度</td>
+<td class="org-left">8cm 0.8\textwidth</td>
+</tr>
+
+<tr>
+<td class="org-left">height</td>
+<td class="org-left">设置高度</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+
+<tr>
+<td class="org-left">align</td>
+<td class="org-left">对齐样式，用于表格</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+
+<tr>
+<td class="org-left">option</td>
+<td class="org-left">其他选项</td>
+<td class="org-left">angle=90</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+重点需要说明一下<code>placement</code>选项，其常用值含义如下：
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">值</th>
+<th scope="col" class="org-left">含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">!</td>
+<td class="org-left">忽略浮动对象限制</td>
+</tr>
+
+<tr>
+<td class="org-left">h</td>
+<td class="org-left">here: 置于当前</td>
+</tr>
+
+<tr>
+<td class="org-left">t</td>
+<td class="org-left">top: 页面顶部</td>
+</tr>
+
+<tr>
+<td class="org-left">b</td>
+<td class="org-left">bottom: 页面底部</td>
+</tr>
+
+<tr>
+<td class="org-left">p</td>
+<td class="org-left">page: 置于仅包含浮动对象的页面</td>
+</tr>
+
+<tr>
+<td class="org-left">H</td>
+<td class="org-left">强制置于此处</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<div id="outline-container-orgheadline8" class="outline-3">
+<h3 id="orgheadline8">源码操作</h3>
+<div class="outline-text-3" id="text-orgheadline8">
+<p>
+如果问我最喜欢Orgmode的什么，我会选择源码环境，在这里可以实现优美的文学编程。在编辑文档时，随便插入一段代码，执行<code>C-c C-c</code>就能看到结果，这是非常美好的一件事情。
+</p>
+
+<p>
+输入<code>&lt;?TAB</code>就能开启一个引用区，问号用具体的环境标识符替代。其中可以开启的环境类型如下表所示。
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">快捷键</th>
+<th scope="col" class="org-left">源码区</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">s</td>
+<td class="org-left">BEGIN_SRC &#x2026; END_SRC</td>
+</tr>
+
+<tr>
+<td class="org-left">e</td>
+<td class="org-left">BEGIN_EXAMPLE &#x2026; END_EXAMPLE</td>
+</tr>
+
+<tr>
+<td class="org-left">q</td>
+<td class="org-left">BEGIN_QUOTE &#x2026; END_QUOTE</td>
+</tr>
+
+<tr>
+<td class="org-left">v</td>
+<td class="org-left">BEGIN_VERSE &#x2026; END_VERSE</td>
+</tr>
+
+<tr>
+<td class="org-left">c</td>
+<td class="org-left">BEGIN_CENTER &#x2026; END_CENTER</td>
+</tr>
+
+<tr>
+<td class="org-left">l</td>
+<td class="org-left">BEGIN_LaTeX &#x2026; END_LaTeX</td>
+</tr>
+
+<tr>
+<td class="org-left">h</td>
+<td class="org-left">BEGIN_HTML &#x2026; END_HTML</td>
+</tr>
+
+<tr>
+<td class="org-left">a</td>
+<td class="org-left">BEGIN_ASCII &#x2026; END_ASCII</td>
+</tr>
+
+<tr>
+<td class="org-left">H</td>
+<td class="org-left">HTML</td>
+</tr>
+
+<tr>
+<td class="org-left">L</td>
+<td class="org-left">LaTeX</td>
+</tr>
+
+<tr>
+<td class="org-left">A</td>
+<td class="org-left">ASCII</td>
+</tr>
+
+<tr>
+<td class="org-left">i</td>
+<td class="org-left">INDEX</td>
+</tr>
+
+<tr>
+<td class="org-left">I</td>
+<td class="org-left">INCLUDE</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+源码环境中常用快捷键如下：
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">快捷键</th>
+<th scope="col" class="org-left">功能</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">C-c '</td>
+<td class="org-left">编辑源码，即便在INCLUDE指令处也可使用</td>
+</tr>
+
+<tr>
+<td class="org-left">C-c C-c</td>
+<td class="org-left">对源代码求值</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+<div id="outline-container-orgheadline9" class="outline-4">
+<h4 id="orgheadline9">源码环境</h4>
+<div class="outline-text-4" id="text-orgheadline9">
+<p>
+源代码环境包括引用名、语言、选项、参数等设定，格式如下。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-org"><span style="color: #666;">#+NAME: &lt;refname&gt;</span>
+<span style="color: #666;">#+BEGIN_SRC &lt;language&gt; &lt;switches&gt; &lt;header arguments&gt;</span>
+  &lt;body&gt;
+<span style="color: #666;">#+END_SRC</span>
+</pre>
+</div>
+
+<p>
+如果源码很短，可以用内敛写法：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-org">src_&lt;language&gt;[&lt;header arguments&gt;]{&lt;body&gt;}
+</pre>
+</div>
+
+<p>
+同理，如果源码太长，可以将其放置到文件中，用插入的方式引入源码：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-org"><span style="color: #666;">#+INCLUDE: &lt;file&gt; src &lt;language&gt;</span>
+
+<span style="color: #666;">#+INCLUDE: "~/.emacs" :lines "5-10"   Include lines 5 to 10, 10 excluded</span>
+<span style="color: #666;">#+INCLUDE: "~/.emacs" :lines "-10"    Include lines 1 to 10, 10 excluded</span>
+<span style="color: #666;">#+INCLUDE: "~/.emacs" :lines "10-"    Include lines from 10 to EOF</span>
+</pre>
+</div>
+
+<p>
+引用名用于交叉引用，一般很少用到，但是它比一般的交叉引用高明的地方是可以直接调用。
+Orgmode支持很多语言，请参考 <a href="http://orgmode.org/org.html#Languages">Languages</a> 。最常用选项是行号控制：<code>-n</code>显示行号，<code>+n</code>接着上一个代码区计算行号。
+</p>
+
+<p>
+而参数设定相对就比较复杂，常用的是指定变量，输出路径等，请参考 <a href="http://orgmode.org/org.html#Header-arguments">Header arguments</a> 。
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">参数</th>
+<th scope="col" class="org-left">取值</th>
+<th scope="col" class="org-left">功能</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">exports</td>
+<td class="org-left">code</td>
+<td class="org-left">仅导出源码</td>
+</tr>
+
+<tr>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">results</td>
+<td class="org-left">导出计算结果</td>
+</tr>
+
+<tr>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">both</td>
+<td class="org-left">导出源码和结果</td>
+</tr>
+
+<tr>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">none</td>
+<td class="org-left">都不导出</td>
+</tr>
+</tbody>
+<tbody>
+<tr>
+<td class="org-left">results</td>
+<td class="org-left">value</td>
+<td class="org-left">仅对最后一行语句求值</td>
+</tr>
+
+<tr>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">output</td>
+<td class="org-left">结果中包含打印输出</td>
+</tr>
+
+<tr>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">silent</td>
+<td class="org-left">不将计算结果插入到缓冲区</td>
+</tr>
+</tbody>
+<tbody>
+<tr>
+<td class="org-left">session</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">指定交互式会话</td>
+</tr>
+</tbody>
+<tbody>
+<tr>
+<td class="org-left">var</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">指定变量的值</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+调用源码块的格式为：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-org"><span style="color: #666;">#+CALL: &lt;name&gt;[&lt;inside header arguments&gt;](&lt;arguments&gt;) &lt;end header arguments&gt;</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline10" class="outline-4">
+<h4 id="orgheadline10">其它环境</h4>
+<div class="outline-text-4" id="text-orgheadline10">
+<p>
+EXAMPLE排版风格类似SRC，没有额外语法高亮修饰。
+QUOTE会自动断行，不会在每一行按照原样换行。
+VERSE会按照原样换行，行首的空白视为缩进，行中的多个空白会被合并，长行会自动换行。
+CENTER类似QUOTE，只不过文字居中排版。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline11" class="outline-4">
+<h4 id="orgheadline11">语法高亮</h4>
+<div class="outline-text-4" id="text-orgheadline11">
+<p>
+导出pdf文档我选择用minted环境，导出html用的是相对本地化的环境。
+minted环境使用的其实是Python的Pygmentize语法高亮，可以用如下命令查看语言及风格。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">pygmentize -L styles            <span style="color: #666;"># </span><span style="color: #666;">&#25903;&#25345;&#30340;&#39640;&#20142;&#39118;&#26684;</span>
+pygmentize -L lexers            <span style="color: #666;"># </span><span style="color: #666;">&#25903;&#25345;&#30340;&#35821;&#35328;</span>
+</pre>
+</div>
+
+<p>
+用minted环境时，编译生成pdf时需要加选项<code>-shell-escape</code>，在风格上，文档我选用<code>bw</code>风格，幻灯片选用<code>vs</code>风格。编译生成html时我采用的是一套自定义白色主题。
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline12" class="outline-3">
+<h3 id="orgheadline12">交叉引用</h3>
+<div class="outline-text-3" id="text-orgheadline12">
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">快捷键</th>
+<th scope="col" class="org-left">功能</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">C-c C-l</td>
+<td class="org-left">插入链接</td>
+</tr>
+
+<tr>
+<td class="org-left">C-c C-o</td>
+<td class="org-left">打开链接</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+链接格式分为描述链接和无描述链接：
+</p>
+<pre class="example">
+[[link][description]]                       description link
+[[link]]                                    bare link
+</pre>
+
+<p>
+对于其中的链接，可以分为内部链接和外部链接，内部链接就是文档中定义的交叉引用。外部链接有很多形式，如下所示：
+</p>
+<pre class="example">
+http://www.astro.uva.nl/~dominik            on the web
+doi:10.1000/182                             DOI for an electronic resource
+file:/home/dominik/images/jupiter.jpg       file, absolute path
+/home/dominik/images/jupiter.jpg            same as above
+file:papers/last.pdf                        file, relative path
+./papers/last.pdf                           same as above
+file:/myself@some.where:papers/last.pdf     file, path on remote machine
+/myself@some.where:papers/last.pdf          same as above
+file:sometextfile::NNN                      file, jump to line number
+file:projects.org                           another Org file
+file:projects.org::some words               search: &lt;&lt;some words&gt;&gt;, some words
+file:projects.org::*task title              search heading: task title
+file+sys:/path/to/file                      open via OS, like double-click
+file+emacs:/path/to/file                    force opening by Emacs
+docview:papers/last.pdf::NNN                open in doc-view mode at page
+id:B7423F4D-2E8A-471B-8810-C40F074717E9     Link to heading by ID
+news:comp.emacs                             Usenet link
+mailto:adent@galaxy.net                     Mail link
+mhe:folder                                  MH-E folder link
+mhe:folder#id                               MH-E message link
+rmail:folder                                RMAIL folder link
+rmail:folder#id                             RMAIL message link
+gnus:group                                  Gnus group link
+gnus:group#id                               Gnus article link
+bbdb:R.*Stallman                            BBDB link (with regexp)
+irc:/irc.com/#emacs/bob                     IRC link
+info:org#External links                     Info node or index link
+shell:ls *.org                              A shell command
+elisp:org-agenda                            Interactive Elisp command
+elisp:(find-file-other-frame "Elisp.org")   Elisp form to evaluate
+</pre>
+</div>
+</div>
+
+<div id="outline-container-orgheadline13" class="outline-3">
+<h3 id="orgheadline13">脚注操作</h3>
+<div class="outline-text-3" id="text-orgheadline13">
+<p>
+脚注大体有如下几种格式：
+</p>
+<pre class="example">
+命名脚注[fn:note_1]
+内敛命名脚注[fn:note_2: This is footnote 2]
+内敛匿名脚注[fn:: This is nanonymous footnote]
+[fn:note_1] This is footnote 1.
+</pre>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">快捷键</th>
+<th scope="col" class="org-left">功能</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">C-c C-c</td>
+<td class="org-left">在定义和引用间跳转</td>
+</tr>
+
+<tr>
+<td class="org-left">C-c '</td>
+<td class="org-left">打开窗口编辑脚注</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+脚注我很少使用，大多数情况下并不需要使用脚注这种功能。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline14" class="outline-3">
+<h3 id="orgheadline14">时间管理</h3>
+<div class="outline-text-3" id="text-orgheadline14">
+<p>
+和时间操作紧密相关的是TODO章节，因此这部分可以视为对TODO章节的扩展和补充。
+</p>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">快捷键</th>
+<th scope="col" class="org-left">功能</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">C-c .</td>
+<td class="org-left">插入日期</td>
+</tr>
+
+<tr>
+<td class="org-left">C-u C-c .</td>
+<td class="org-left">插入日期和时间</td>
+</tr>
+
+<tr>
+<td class="org-left">S-LEFT/RIGHT/UP/DOWN</td>
+<td class="org-left">在日历表移动光标</td>
+</tr>
+
+<tr>
+<td class="org-left">C-c C-d</td>
+<td class="org-left">设置截止日期</td>
+</tr>
+
+<tr>
+<td class="org-left">C-c C-s</td>
+<td class="org-left">设置调度日期</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+此外比较贴心的设计了重复任务表示方法，在截至日期上稍作修改，使用<code>+ny/w/m/d/h</code>来设置重复周期。比较有意思的是通过<code>C-c C-t</code>无法直接将其设置为<code>DONE</code>，需要用快捷键<code>C-- 1 C-c C-t</code>才能标记重复任务彻底结束，也就是需要给org-todo传递参数-1。但是不幸的是我已将<code>C--</code>绑定到redo按键上，所以需要用另外的方法：<code>C-u - 1 C-c C-t</code>。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline15" class="outline-3">
+<h3 id="orgheadline15">字符字号</h3>
+<div class="outline-text-3" id="text-orgheadline15">
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+<caption class="t-above"><span class="table-number">Table 1:</span> Latex字号表</caption>
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-right" />
+
+<col  class="org-right" />
+
+<col  class="org-right" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">字号名字</th>
+<th scope="col" class="org-right">10pt</th>
+<th scope="col" class="org-right">11pt</th>
+<th scope="col" class="org-right">12pt</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">tiny</td>
+<td class="org-right">5</td>
+<td class="org-right">6</td>
+<td class="org-right">6</td>
+</tr>
+
+<tr>
+<td class="org-left">scriptsize</td>
+<td class="org-right">7</td>
+<td class="org-right">8</td>
+<td class="org-right">8</td>
+</tr>
+
+<tr>
+<td class="org-left">footnotesize</td>
+<td class="org-right">8</td>
+<td class="org-right">9</td>
+<td class="org-right">10</td>
+</tr>
+
+<tr>
+<td class="org-left">small</td>
+<td class="org-right">9</td>
+<td class="org-right">10</td>
+<td class="org-right">10.95</td>
+</tr>
+
+<tr>
+<td class="org-left">normalsize</td>
+<td class="org-right">10</td>
+<td class="org-right">10.95</td>
+<td class="org-right">12</td>
+</tr>
+
+<tr>
+<td class="org-left">large</td>
+<td class="org-right">12</td>
+<td class="org-right">12</td>
+<td class="org-right">14.4</td>
+</tr>
+
+<tr>
+<td class="org-left">Large</td>
+<td class="org-right">14.4</td>
+<td class="org-right">14.4</td>
+<td class="org-right">17.28</td>
+</tr>
+
+<tr>
+<td class="org-left">LARGE</td>
+<td class="org-right">17.28</td>
+<td class="org-right">17.28</td>
+<td class="org-right">20.74</td>
+</tr>
+
+<tr>
+<td class="org-left">huge</td>
+<td class="org-right">20.74</td>
+<td class="org-right">20.74</td>
+<td class="org-right">24.88</td>
+</tr>
+
+<tr>
+<td class="org-left">Huge</td>
+<td class="org-right">24.88</td>
+<td class="org-right">24.88</td>
+<td class="org-right">24.88</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline16" class="outline-2">
+<h2 id="orgheadline16">参考资料</h2>
+<div class="outline-text-2" id="text-orgheadline16">
+<ol class="org-ol">
+<li>入门经典：<a href="http://orgmode.org/org.html">The Org Manual</a></li>
+<li><a href="http://home.fnal.gov/~neilsen/notebook/orgExamples/org-examples.html">Emacs org-mode examples and cookbook</a></li>
+<li><a href="http://orgmode.org/worg/org-tutorials/orgtutorial_dto.html">David O'Toole Org tutorial</a></li>
+<li><a href="http://orgmode.org/worg/org-tutorials/">Org tutorials</a></li>
+</ol>
+</div>
+</div>

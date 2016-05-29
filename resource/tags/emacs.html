@@ -1,0 +1,15 @@
+---
+layout: body
+---
+
+<div class="home">
+  <h3>emacs</h3>
+  {% for post in site.tags["emacs"] %}
+  <header class="post-header">
+    <a href="{{ post.url | prepend: site.baseurl }}">
+      <span class="post-meta"> {{ post.date | date: "%Y-%m-%d" }} </span>
+      {{ post.title }}
+    </a>
+  </header>
+  {% endfor %}
+</div>
