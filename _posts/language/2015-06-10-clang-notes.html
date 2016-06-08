@@ -1,0 +1,601 @@
+---
+title: C语言笔记
+categories: language
+tags: 笔记 C
+---
+<dl class="org-dl">
+<dt>2016-06-08</dt><dd>重新整理排版</dd>
+</dl>
+<div id="table-of-contents"><h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#orgheadline9">语法要点</a>
+<ul>
+<li><a href="#orgheadline1">运算符优先级</a></li>
+<li><a href="#orgheadline2">内置类型</a></li>
+<li><a href="#orgheadline3">指针</a></li>
+<li><a href="#orgheadline4">函数</a></li>
+<li><a href="#orgheadline5">可变参数</a></li>
+<li><a href="#orgheadline6">结构体</a></li>
+<li><a href="#orgheadline7">宏</a></li>
+<li><a href="#orgheadline8">可执行程序</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline20">注意事项</a>
+<ul>
+<li><a href="#orgheadline12">常量与变量</a>
+<ul>
+<li><a href="#orgheadline10">自动变量</a></li>
+<li><a href="#orgheadline11">进制误用</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline15">越界与溢出</a>
+<ul>
+<li><a href="#orgheadline13">访问越界</a></li>
+<li><a href="#orgheadline14">运算溢出</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline16">输入输出</a></li>
+<li><a href="#orgheadline19">异常处理</a>
+<ul>
+<li><a href="#orgheadline17">错误编号</a></li>
+<li><a href="#orgheadline18">信号处理</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline9" class="outline-2">
+<h2 id="orgheadline9">语法要点</h2>
+<div class="outline-text-2" id="text-orgheadline9">
+</div><div id="outline-container-orgheadline1" class="outline-3">
+<h3 id="orgheadline1">运算符优先级</h3>
+<div class="outline-text-3" id="text-orgheadline1">
+<!--abstract-begin-->
+
+<p>
+有些表达式的优先级和直觉相反，有些表达式看起来有二义从而难以确定应该怎么理解，出现二义时需要引入结合性来分析，下面列举几个建议添加括号说明的例子。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">if</span> (flags &amp; NEED_READ != 0)             <span style="color: #666;">// </span><span style="color: #666;">A</span>
+    read_data();
+
+r = hi &lt;&lt; 4 + low;                      <span style="color: #666;">// </span><span style="color: #666;">B</span>
+
+<span style="color: #800;">while</span> (c = getc(in) != EOF)             <span style="color: #666;">// </span><span style="color: #666;">C</span>
+    putc(c, out);
+
+p = n * <span style="color: #800;">sizeof</span> * q;                     <span style="color: #666;">// </span><span style="color: #666;">D</span>
+
+apple = <span style="color: #800;">sizeof</span>(<span style="color: #800;">int</span>) * p;                <span style="color: #666;">// </span><span style="color: #666;">E</span>
+</pre>
+</div>
+<dl class="org-dl">
+<dt>A</dt><dd>先执行逻辑比较再进行位运算</dd>
+<dt>B</dt><dd>先计算加法再计算移位</dd>
+<dt>C</dt><dd>先比较<code>getc()</code>和<code>EOF</code>是否不相等，再赋值</dd>
+<dt>D</dt><dd><code>sizeof</code>优先级低于解引用，等价于<code>n * sizeof(*q)</code></dd>
+<dt>E</dt><dd><code>sizeof</code>和<code>int</code>先结合，如果写成<code>sizeof(int)p</code>则编译不通过</dd>
+</dl>
+
+<p>
+括号是超越优先级的存在，必要的时候用括号增加易读性，但是切莫滥用括号。我精心编写了一组口诀来记住优先级，如下所示。
+</p>
+<pre class="example">
+  成员-一元-莫转换，四则-移位-比较看
+  位与-逻辑-问条件，赋值-逗号-后排见
+</pre>
+
+<!--abstract-end-->
+
+<div class="org-center">
+
+<div class="figure">
+<p><img src="/resource/language/fig/clang/op-priority.png" alt="op-priority.png" />
+</p>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline2" class="outline-3">
+<h3 id="orgheadline2">内置类型</h3>
+<div class="outline-text-3" id="text-orgheadline2">
+<p>
+内置类型的最大值、最小值可以从头文件<code>limits.h</code>中查询。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp">printf(<span style="color: #800;">"%d"</span>, INT_MAX);
+</pre>
+</div>
+
+<p>
+右移位的时候，如果是一个负数，那么高位可能是由0填充，也可能是由符号位填充，因此可移植的办法是使用无符号类型来右移位。此外移位的数目应该要保证大于等于0，并且严格小于对象的位长。对于负数，右移一位并不等于除以2，举例来说，<code>-1 &gt;&gt; 1</code>一般不会是0，而<code>-1 / 2</code>则为0。如果知道数值为非负，那么用移位来代替除法是没有问题的。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline3" class="outline-3">
+<h3 id="orgheadline3">指针</h3>
+<div class="outline-text-3" id="text-orgheadline3">
+<p>
+指针常量：指向固定
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">int</span> *<span style="color: #800;">const</span> <span style="color: #048;">cp</span> = &amp;x;
+</pre>
+</div>
+
+<p>
+常量指针：只读指针
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">const</span> <span style="color: #800;">int</span> *<span style="color: #048;">pc</span> = &amp;x;
+<span style="color: #800;">int</span> <span style="color: #800;">const</span> *<span style="color: #048;">pc</span> = &amp;x;
+</pre>
+</div>
+
+<p>
+双常量指针：指向固定的只读指针。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">const</span> <span style="color: #800;">int</span> *<span style="color: #800;">const</span> <span style="color: #048;">cpc</span> = &amp;x;
+</pre>
+</div>
+
+<p>
+理解<code>const</code>要记住它修饰的是其右边的东西，如右边是<code>ptr</code>，那么就表示指向固定，如右边是<code>*ptr</code>，那么就表示内容只读。
+</p>
+
+<p>
+更复杂的形式：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">const</span> <span style="color: #800;">int</span> **<span style="color: #048;">p</span>;                          <span style="color: #666;">// </span><span style="color: #666;">A</span>
+<span style="color: #800;">char</span> *<span style="color: #800;">const</span> *(*<span style="color: #048; font-weight: bold;">next</span>)()                  <span style="color: #666;">// </span><span style="color: #666;">B</span>
+</pre>
+</div>
+<dl class="org-dl">
+<dt>A</dt><dd>右边是<code>**p</code>所以实际上是指内容只读</dd>
+<dt>B</dt><dd>函数指针，返回一个二级指针，第一级为常量指针</dd>
+</dl>
+</div>
+</div>
+
+<div id="outline-container-orgheadline4" class="outline-3">
+<h3 id="orgheadline4">函数</h3>
+<div class="outline-text-3" id="text-orgheadline4">
+<p>
+参数从右往左入栈。
+</p>
+
+<p>
+数组参数默认会退化为指针：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #666;">// </span><span style="color: #666;">&#31561;&#20215;&#20889;&#27861;&#65306;int arr[]</span>
+<span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">arr1_args</span>(<span style="color: #800;">int</span> *<span style="color: #048;">arr</span>, <span style="color: #800;">int</span> <span style="color: #048;">len</span>);
+<span style="color: #666;">// </span><span style="color: #666;">&#31561;&#20215;&#20889;&#27861;&#65306;int (arr[])[LEN] -&gt; int arr[][LEN]</span>
+<span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">arrp_args</span>(<span style="color: #800;">int</span> (*<span style="color: #048;">arr</span>)[LEN]);
+<span style="color: #666;">// </span><span style="color: #666;">&#31561;&#20215;&#20889;&#27861;&#65306;int arr[][COL]</span>
+<span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">arr2_args</span>(<span style="color: #800;">int</span> (*<span style="color: #048;">arr</span>)[COL], <span style="color: #800;">int</span> <span style="color: #048;">row</span>);
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">isvowel</span>(c)
+    <span style="color: #800;">char</span> <span style="color: #048;">c</span>;
+{
+    <span style="color: #800;">return</span> c == <span style="color: #800;">'a'</span> || c == <span style="color: #800;">'e'</span> || c == <span style="color: #800;">'i'</span> || c == <span style="color: #800;">'o'</span> ||
+        c == <span style="color: #800;">'u'</span>;
+}
+</pre>
+</div>
+<p>
+在很多库函数中能看到这样的写法，这种写法主要是为了与老的编译器兼容，老的编译器不支持指定函数参数类型，所以在传递参数时会默认转换为int，这种写法和如下写法等价。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">isvowel</span>(<span style="color: #800;">int</span> <span style="color: #048;">i</span>)
+{
+    <span style="color: #800;">char</span> <span style="color: #048;">c</span> = i;
+    <span style="color: #800;">return</span> c == <span style="color: #800;">'a'</span> || c == <span style="color: #800;">'e'</span> || c == <span style="color: #800;">'i'</span> || c == <span style="color: #800;">'o'</span> ||
+        c == <span style="color: #800;">'u'</span>;
+}
+</pre>
+</div>
+
+<p>
+如果编译器不优化，inline就是普通函数，更便于调试，调试好了之后采用优化重新编译，inline函数就像宏一样融入代码。在早期，inline还不是关键字，可以看到gcc库中有用<code>__inline__</code>，就是处于兼容性考虑。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline5" class="outline-3">
+<h3 id="orgheadline5">可变参数</h3>
+<div class="outline-text-3" id="text-orgheadline5">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">#include</span> <span style="color: #800;">&lt;stdarg.h&gt;</span>
+<span style="color: #800;">#include</span> <span style="color: #800;">&lt;stdio.h&gt;</span>
+
+<span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">test1</span>(<span style="color: #800;">int</span> <span style="color: #048;">count</span>, ...)              <span style="color: #666;">// </span><span style="color: #666;">number by count</span>
+{
+    <span style="color: #800;">va_list</span> <span style="color: #048;">args</span>;
+    va_start(args, count);
+    <span style="color: #800;">for</span> (<span style="color: #800;">int</span> <span style="color: #048;">i</span> = 0; i &lt; count; i++) {
+        printf(<span style="color: #800;">"%d\n"</span>, va_arg(args, <span style="color: #800;">int</span>));
+    }
+    va_end(args);
+}
+
+<span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">test2</span>(<span style="color: #800;">const</span> <span style="color: #800;">char</span>* <span style="color: #048;">s</span>, ...)          <span style="color: #666;">// </span><span style="color: #666;">end by NULL</span>
+{
+    <span style="color: #800;">const</span> <span style="color: #800;">char</span>* <span style="color: #048;">value</span> = s;
+    <span style="color: #800;">va_list</span> <span style="color: #048;">args</span>;
+    va_start(args, s);
+    <span style="color: #800;">while</span> (value != <span style="color: #800;">NULL</span>) {
+        printf(<span style="color: #800;">"%s\n"</span>, value);
+        value = va_arg(args, <span style="color: #800;">char</span>*);
+    }
+    va_end(args);
+}
+
+<span style="color: #800;">void</span> <span style="color: #048; font-weight: bold;">test3</span>(<span style="color: #800;">const</span> <span style="color: #800;">char</span>* <span style="color: #048;">format</span>, ...)     <span style="color: #666;">// </span><span style="color: #666;">parse by format</span>
+{
+    <span style="color: #800;">va_list</span> <span style="color: #048;">args</span>;
+    va_start(args, format);
+    vprintf(format, args);
+    va_end(args);
+}
+
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">main</span>(<span style="color: #800;">int</span> <span style="color: #048;">argc</span>, <span style="color: #800;">char</span>* <span style="color: #048;">argv</span>[])
+{
+    test1(3, 11, 22, 33);
+    test2(<span style="color: #800;">"hello"</span>, <span style="color: #800;">"world"</span>, <span style="color: #800;">NULL</span>);
+    test3(<span style="color: #800;">"number %d\n"</span>, 1234);
+    <span style="color: #800;">return</span> 0;
+}
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline6" class="outline-3">
+<h3 id="orgheadline6">结构体</h3>
+<div class="outline-text-3" id="text-orgheadline6">
+<p>
+宏<code>offsetof(class, member)</code>可用于计算成员偏移量，但是这个宏其实是有很多限制的，比方不能对结构体中的压缩位字段计算。
+</p>
+
+<p>
+如果将尾部成员定义为0长数组，计算结构体大小时其对应成员长度按0计入。这种高技巧的写法主要用在对性能和内存要求比较苛刻的情况。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">#include</span> <span style="color: #800;">&lt;stdio.h&gt;</span>
+<span style="color: #800;">struct</span> <span style="color: #800;">zero_only</span> {
+    <span style="color: #800;">char</span> <span style="color: #048;">str</span>[0];
+};
+<span style="color: #800;">struct</span> <span style="color: #800;">zero_tail</span> {
+    <span style="color: #800;">int</span> <span style="color: #048;">count</span>;
+    <span style="color: #800;">char</span> <span style="color: #048;">str</span>[0];
+};
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">main</span>(<span style="color: #800;">int</span> <span style="color: #048;">argc</span>, <span style="color: #800;">char</span> *<span style="color: #048;">argv</span>[])
+{
+    printf(<span style="color: #800;">"%d -&gt; %d\n"</span>, <span style="color: #800;">sizeof</span>(<span style="color: #800;">struct</span> <span style="color: #800;">zero_only</span>), <span style="color: #800;">sizeof</span>(<span style="color: #800;">struct</span> <span style="color: #800;">zero_tail</span>));
+    <span style="color: #800;">return</span> 0;
+}
+</pre>
+</div>
+
+<pre class="example">
+0 -&gt; 4
+</pre>
+
+<p>
+在比较底层的代码中，经常可以看到在结构体定义中使用属性：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">struct</span> <span style="color: #800;">x86_hw_tss</span> {
+    <span style="color: #800;">u32</span>                     <span style="color: #048;">reserved1</span>;
+    <span style="color: #800;">u64</span>                     <span style="color: #048;">sp0</span>;
+    <span style="color: #800;">u64</span>                     <span style="color: #048;">sp1</span>;
+    ...
+} <span style="color: #800;">__attribute__</span>((packed)) <span style="color: #800;">____cacheline_aligned</span>;
+</pre>
+</div>
+<dl class="org-dl">
+<dt>packed</dt><dd>表示成员字段不用对齐</dd>
+<dt>____cacheline_aligned</dt><dd>整个数据结构按照高速缓存行的大小对齐</dd>
+</dl>
+
+<p>
+结构体的点操作符可以帮助我们访问结构的成员，反过来如果我们知道当前结构或数据类型属于某个结构体，也可以利用存储特性由成员获取父结构体。举一个例子，请看如下代码，问号处的代码应该怎么写才能返回信息所属的人？
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">struct</span> <span style="color: #800;">person</span> {
+    <span style="color: #800;">char</span> <span style="color: #048;">name</span>[10];
+    <span style="color: #800;">int</span> <span style="color: #048;">age</span>;
+    <span style="color: #800;">int</span> <span style="color: #048;">id</span>;
+    <span style="color: #800;">struct</span> <span style="color: #800;">infomation</span> <span style="color: #048;">info</span>;
+};
+
+<span style="color: #800;">struct</span> <span style="color: #800;">person</span> *<span style="color: #048; font-weight: bold;">get_person</span>(<span style="color: #800;">struct</span> <span style="color: #800;">infomation</span> *<span style="color: #048;">info</span>)
+{
+    <span style="color: #666;">// </span><span style="color: #666;">?</span>
+}
+
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">test_get_person</span>(<span style="color: #800;">void</span>)
+{
+    <span style="color: #800;">struct</span> <span style="color: #800;">person</span> <span style="color: #048;">p</span>;
+    <span style="color: #800;">return</span> &amp;p == get_person(&amp;p.info);
+}
+</pre>
+</div>
+
+<p>
+在Linux内核中大量的运用到了get_person()这样的函数，或者说宏，比较典型易读的代码可以参考<code>linux/list.h</code>文件。实现的关键思路就是在struct的表示中，成员地址相对于结构体的首地址偏移量是固定的。典型的宏定义如下。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #666;">/**</span>
+<span style="color: #666;"> * container_of - cast a member of a structure out to the containing structure</span>
+<span style="color: #666;"> * @ptr:        the pointer to the member.</span>
+<span style="color: #666;"> * @type:       the type of the container struct this is embedded in.</span>
+<span style="color: #666;"> * @member:     the name of the member within the struct.</span>
+<span style="color: #666;"> *</span>
+<span style="color: #666;"> */</span>
+<span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">container_of</span>(<span style="color: #048;">ptr</span>, <span style="color: #048;">type</span>, <span style="color: #048;">member</span>) ({                              \
+            <span style="color: #800;">const</span> typeof(((<span style="color: #800;">type</span> *)0)-&gt;member) *__mptr = (ptr);          \
+            (<span style="color: #800;">type</span> *)((<span style="color: #800;">char</span> *)__mptr - offsetof(type, member));})
+</pre>
+</div>
+
+<p>
+另一种更简洁的写法如下：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">container_of</span>(<span style="color: #048;">ptr</span>, <span style="color: #048;">type</span>, <span style="color: #048;">member</span>)                         \
+    (<span style="color: #800;">type</span> *)((<span style="color: #800;">char</span> *)(ptr) - (<span style="color: #800;">char</span> *) &amp;((<span style="color: #800;">type</span> *)0)-&gt;member)
+</pre>
+</div>
+
+<p>
+有了这个宏，问号处的代码就很清晰了，直接写<code>return container_of(info, struct person, info)</code>即可。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline7" class="outline-3">
+<h3 id="orgheadline7">宏</h3>
+<div class="outline-text-3" id="text-orgheadline7">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">max</span>(<span style="color: #048;">a</span>, <span style="color: #048;">b</span>) ((a) &gt; (b) ? (a) : (b))
+
+<span style="color: #800;">int</span> <span style="color: #048;">c</span> = max(a++, ++b);                  <span style="color: #666;">// </span><span style="color: #666;">A</span>
+
+<span style="color: #800;">#define</span> <span style="color: #048;">TP</span> <span style="color: #800;">struct</span> <span style="color: #800;">table</span> *
+<span style="color: #800;">TP</span> <span style="color: #048;">a</span>, <span style="color: #048;">b</span>;                                <span style="color: #666;">// </span><span style="color: #666;">B</span>
+
+<span style="color: #800;">#define</span> <span style="color: #048;">a</span> (x) sum(x)
+a(u);                                   <span style="color: #666;">// </span><span style="color: #666;">C</span>
+</pre>
+</div>
+<dl class="org-dl">
+<dt>A</dt><dd>宏的定义本身没有问题，问题出在调用处执行了有副作用的代码</dd>
+<dt>B</dt><dd>解决方法是避免用宏来定义类型，改用<code>typedef</code></dd>
+<dt>C</dt><dd>展开得到<code>(x) sum(x)(u)</code>，故定义时要仔细</dd>
+</dl>
+
+<p>
+一个典型的assert宏定义为如下形式：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">__assert_err</span>(<span style="color: #048;">e</span>, <span style="color: #048;">file</span>, <span style="color: #048;">line</span>)                                     \
+    ((<span style="color: #800;">void</span>)printf(<span style="color: #800;">"%s:%u: assert '%s'\n"</span>, file, line, e), abort())
+<span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">assert_err</span>(<span style="color: #048;">e</span>)                                                   \
+    ((<span style="color: #800;">void</span>)((e) ? (<span style="color: #800;">void</span>) 0 : __assert_err(#e, __FILE__, __LINE__)))
+</pre>
+</div>
+
+<p>
+如果一个宏当中包含多个语句，应当使用do-while形式：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">SET32</span>(<span style="color: #048;">p_dst</span>, <span style="color: #048;">src</span>)                       \
+    <span style="color: #800;">do</span> {                                        \
+        (p_dst)[0] = (u8)(src);                 \
+        (p_dst)[1] = (u8)(((u32)(src)) &gt;&gt; 8);   \
+        (p_dst)[2] = (u8)(((u32)(src)) &gt;&gt; 16);  \
+        (p_dst)[3] = (u8)(((u32)(src)) &gt;&gt; 24);  \
+    } <span style="color: #800;">while</span> (0)
+</pre>
+</div>
+<p>
+不能简单用大括号包围，因为遇到不带括号的if-else语句时会打断if-else从而不能通过编译。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline8" class="outline-3">
+<h3 id="orgheadline8">可执行程序</h3>
+<div class="outline-text-3" id="text-orgheadline8">
+<div class="org-center">
+
+<div class="figure">
+<p><img src="/resource/language/fig/clang/linux-mem-model.png" alt="linux-mem-model.png" />
+</p>
+</div>
+</div>
+
+<p>
+位置无关代码的概念和动态库紧紧相连。静态库主要有两个问题，一是升级麻烦，二是常用函数大量复制让软件体积暴涨。优点是代码和数据在可执行文件有备份，符号地址固定。如果不将动态库编译成位置无关代码，就需要加载到指定地址，运行时就不得不修改页面将其安排到固定位置，造成效率下降。
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline20" class="outline-2">
+<h2 id="orgheadline20">注意事项</h2>
+<div class="outline-text-2" id="text-orgheadline20">
+</div><div id="outline-container-orgheadline12" class="outline-3">
+<h3 id="orgheadline12">常量与变量</h3>
+<div class="outline-text-3" id="text-orgheadline12">
+</div><div id="outline-container-orgheadline10" class="outline-4">
+<h4 id="orgheadline10">自动变量</h4>
+<div class="outline-text-4" id="text-orgheadline10">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">#define</span> <span style="color: #048;">BUFSIZE</span>         1024
+<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">main</span>()
+{
+    <span style="color: #800;">int</span> <span style="color: #048;">c</span>;
+    <span style="color: #800;">char</span> <span style="color: #048;">buf</span>[BUFSIZE];
+
+    setbuf(stdout, buf);
+    <span style="color: #800;">while</span>((c = getchar()) != EOF)
+        putchar(c);
+
+    <span style="color: #800;">return</span> 0;
+}
+</pre>
+</div>
+<p>
+在main函数运行之后，将会刷新缓存，而此时作为自动变量的buf已经被释放了。可以通过将buf定义为静态变量避免这个问题。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline11" class="outline-4">
+<h4 id="orgheadline11">进制误用</h4>
+<div class="outline-text-4" id="text-orgheadline11">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">struct</span> {
+    <span style="color: #800;">int</span> <span style="color: #048;">part_number</span>;
+    <span style="color: #800;">char</span> *<span style="color: #048;">description</span>;
+} <span style="color: #048;">part_table</span>[] = {
+    {027, <span style="color: #800;">"windows"</span>},
+    {077, <span style="color: #800;">"linux"</span>},
+    {123, <span style="color: #800;">"others"</span>},
+};
+</pre>
+</div>
+
+<p>
+这里企图用0来对齐，但是编译器会将027/077视为八进制数据，这很可能不是程序编写者本身的意图。
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline15" class="outline-3">
+<h3 id="orgheadline15">越界与溢出</h3>
+<div class="outline-text-3" id="text-orgheadline15">
+</div><div id="outline-container-orgheadline13" class="outline-4">
+<h4 id="orgheadline13">访问越界</h4>
+<div class="outline-text-4" id="text-orgheadline13">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">int</span> <span style="color: #048;">a</span>[10];
+<span style="color: #800;">for</span> (<span style="color: #800;">int</span> <span style="color: #048;">i</span> = 0; i &lt;= 10; i++) {
+    a[i] = 0;
+    printf(<span style="color: #800;">"a[%d] = %d, "</span>, i, a[i]);
+}
+</pre>
+</div>
+
+<p>
+如果编译器按照内存地址递减的顺序给变量分配空间，那么<code>a[10]</code>对应的实际就是变量<code>i</code>，当循环到<code>i=10</code>的时候会将<code>i</code>复位为0，从而形成死循环。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline14" class="outline-4">
+<h4 id="orgheadline14">运算溢出</h4>
+<div class="outline-text-4" id="text-orgheadline14">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">if</span> (a + b &lt; 0)                          <span style="color: #666;">// </span><span style="color: #666;">A</span>
+    printf(<span style="color: #800;">"out of range\n"</span>);
+</pre>
+</div>
+<p>
+A处企图用两个整型相加的结果为负来判断是否溢出，但是这样的方法并不正确，例如某些机器上溢出会产生一个溢出状态，此时的结果就不为负数。比较简单的方式是通过<code>a &gt; INT_MAX - b</code>来判断，此外也可以将其转换为无符号整数来判断。
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline16" class="outline-3">
+<h3 id="orgheadline16">输入输出</h3>
+<div class="outline-text-3" id="text-orgheadline16">
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">char</span> <span style="color: #048;">c</span>;
+
+<span style="color: #800;">for</span> (<span style="color: #800;">int</span> <span style="color: #048;">i</span> = 0; i &lt; 5; i++) {
+    scanf(<span style="color: #800;">"%d"</span>, &amp;c);
+    printf(<span style="color: #800;">"%d "</span>, i);
+}
+</pre>
+</div>
+
+<p>
+这部分代码的关键问题是c被声明为char类型，而在输入时又当作整型数，会导致变量c附近的内存被覆盖。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline19" class="outline-3">
+<h3 id="orgheadline19">异常处理</h3>
+<div class="outline-text-3" id="text-orgheadline19">
+</div><div id="outline-container-orgheadline17" class="outline-4">
+<h4 id="orgheadline17">错误编号</h4>
+<div class="outline-text-4" id="text-orgheadline17">
+<p>
+不要在正常返回的情况下检查errno，因为即便所调用的函数返回正确，也可能在函数中又调用了其他函数，而其他函数有可能会设置errno。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline18" class="outline-4">
+<h4 id="orgheadline18">信号处理</h4>
+<div class="outline-text-4" id="text-orgheadline18">
+<p>
+信号可能出现在某些复杂的库函数中，如果signal处理函数中再调用这样的函数，结果可能导致不堪设想的后果。因此首先要避免在信号处理函数中调用复杂函数。
+</p>
+
+<p>
+假设malloc执行过程被一个信号中断，此时malloc用于追踪可用内存的数据结构可能只有部分更新，如果在signal处理函数中再调用malloc，就可能让malloc完全崩溃。故切忌在信号处理函数中调用malloc。在信号处理函数中中使用longjmp也不安全，因为信号可能发生在malloc更新数据结构的过程中。信号处理函数能够做的安全的事情就是设置一个标志然后返回，期待主程序检查到这个标志。
+</p>
+
+<p>
+对于算术运算，某些机器在信号处理函数返回时还会重新执行失败的操作，而我们又没有办法更新操作数，故此时唯一安全可移植的办法就是打印一条出错消息，然后用exit退出程序。
+</p>
+
+<p>
+简单来说，大多情况信号处理函数正确做法是设置标志，由主程序检测标志，特殊情况，如算术出错信号，应直接退出程序。
+</p>
+</div>
+</div>
+</div>
+</div>
