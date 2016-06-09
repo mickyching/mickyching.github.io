@@ -1,0 +1,624 @@
+---
+title: Python笔记
+categories: language
+tags: 笔记 python
+---
+<dl class="org-dl">
+<dt>2016-06-09</dt><dd>重新整理排版</dd>
+</dl>
+<div id="table-of-contents"><h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#orgheadline18">语言要点</a>
+<ul>
+<li><a href="#orgheadline1">特性简介</a></li>
+<li><a href="#orgheadline7">数据与操作</a>
+<ul>
+<li><a href="#orgheadline2">数据类型</a></li>
+<li><a href="#orgheadline3">基本操作</a></li>
+<li><a href="#orgheadline4">列表操作</a></li>
+<li><a href="#orgheadline5">集合操作</a></li>
+<li><a href="#orgheadline6">字典操作</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline10">流程控制</a>
+<ul>
+<li><a href="#orgheadline8">分支语句</a></li>
+<li><a href="#orgheadline9">循环语句</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline11">函数</a>
+<ul>
+<li><a href="#orgheadline12">属性</a></li>
+<li><a href="#orgheadline13">生成器</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline17">类与继承</a>
+<ul>
+<li><a href="#orgheadline14">基本概念</a></li>
+<li><a href="#orgheadline15">特殊方法</a></li>
+<li><a href="#orgheadline16">继承</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#orgheadline24">注意事项</a>
+<ul>
+<li><a href="#orgheadline21">兼容性问题</a>
+<ul>
+<li><a href="#orgheadline19">输入和输出</a></li>
+<li><a href="#orgheadline20">字典</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline23">特殊函数</a>
+<ul>
+<li><a href="#orgheadline22">慎用__del__()方法</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline18" class="outline-2">
+<h2 id="orgheadline18">语言要点</h2>
+<div class="outline-text-2" id="text-orgheadline18">
+</div><div id="outline-container-orgheadline1" class="outline-3">
+<h3 id="orgheadline1">特性简介</h3>
+<div class="outline-text-3" id="text-orgheadline1">
+<!--abstract-begin-->
+<p>
+Python对程序格式有较强的限定，如下所示：
+</p>
+<ul class="org-ul">
+<li>注释符为<code>#</code></li>
+<li>无需分号表示语句结束，长语句必要时需加<code>\</code>续行</li>
+<li>用相同缩进来表达同一语句块，建议用4个空格作为缩进</li>
+<li>默认只接受ASCII字符集，故通常需编码声明：<code># -*- coding: utf-8 -*-</code></li>
+</ul>
+<!--abstract-end-->
+</div>
+</div>
+
+<div id="outline-container-orgheadline7" class="outline-3">
+<h3 id="orgheadline7">数据与操作</h3>
+<div class="outline-text-3" id="text-orgheadline7">
+</div><div id="outline-container-orgheadline2" class="outline-4">
+<h4 id="orgheadline2">数据类型</h4>
+<div class="outline-text-4" id="text-orgheadline2">
+<ul class="org-ul">
+<li>数字类型：整型、浮点型和复数型</li>
+<li>序列类型：字符串、元组、列表</li>
+<li>映射类型：集合、字典</li>
+<li>空类型：None对象</li>
+<li>可调用类型：实现了<code>__call__()</code>方法的类</li>
+<li>布尔类型：语义比较广泛，通常非空为True，空集为False</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline3" class="outline-4">
+<h4 id="orgheadline3">基本操作</h4>
+<div class="outline-text-4" id="text-orgheadline3">
+<ul class="org-ul">
+<li><code>del</code>解除变量或序列</li>
+<li><code>.</code>取对象中成员</li>
+<li><code>[]</code>取集合中元素</li>
+<li><code>()</code>函数调用</li>
+<li>比较操作允许链式表达<code>a &lt; b &lt; c &lt; d</code></li>
+<li>没有三目算符，但有三元表达：<code>returntrue if condition else returnfalse</code></li>
+<li>所有序列都支持元素存在测试：<code>if item in seqs</code></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline4" class="outline-4">
+<h4 id="orgheadline4">列表操作</h4>
+<div class="outline-text-4" id="text-orgheadline4">
+<div class="org-src-container">
+
+<pre class="src src-python"><span style="color: #048;">x</span> = [1, 2, 3, 4, 5]
+<span style="color: #800;">del</span> x[1]; <span style="color: #800;">print</span> x
+<span style="color: #800;">del</span> x[::2]; <span style="color: #800;">print</span> x
+</pre>
+</div>
+
+<pre class="example">
+[1, 3, 4, 5]
+[3, 5]
+</pre>
+
+<dl class="org-dl">
+<dt>l.count(x)</dt><dd>x出现次数</dd>
+<dt>l.index(x)</dt><dd>x出现下标</dd>
+<dt>l.append(x)</dt><dd>在尾部加入x</dd>
+<dt>l.extend(x)</dt><dd>插入x中的所有元素，append则是将x当作一个元素插入</dd>
+<dt>l.insert(i, x)</dt><dd>在下标i处插入x</dd>
+<dt>l.remove(x)</dt><dd>删除x第一次出现，如果未出现则引发异常</dd>
+<dt>l.pop(i=-1)</dt><dd>删除下标为i的元素，返回删除的元素，如果下标越界，引发异常</dd>
+<dt>l.reverse()</dt><dd>反转链表，无返回值</dd>
+<dt>l.sort(cmp=None, key=None, reverse=False)</dt><dd>如指定key则以key(x)替代x参与运算</dd>
+</dl>
+</div>
+</div>
+
+<div id="outline-container-orgheadline5" class="outline-4">
+<h4 id="orgheadline5">集合操作</h4>
+<div class="outline-text-4" id="text-orgheadline5">
+<dl class="org-dl">
+<dt>s.copy()</dt><dd>影子复制</dd>
+<dt>s.difference(s1)</dt><dd>s出现s1未出现</dd>
+<dt>s.intersection(s1)</dt><dd>s和s1同时出现</dd>
+<dt>s.issubset(s1)</dt><dd>s是s1的子集</dd>
+<dt>s.issuperset(s1)</dt><dd>s1是s的子集</dd>
+<dt>s.symmetric_difference(s1)</dt><dd>只在s和s1其一出现</dd>
+<dt>s.union(s1)</dt><dd>在s或s1中出现</dd>
+<dt>s.add(x)</dt><dd>添加x到集合</dd>
+<dt>s.clear()</dt><dd>清除集合</dd>
+<dt>s.discard(x)</dt><dd>删除x，如果不存在也没关系</dd>
+<dt>s.pop()</dt><dd>随机弹出一个元素并返回</dd>
+<dt>s.remove(x)</dt><dd>如果x不存在会产生异常</dd>
+</dl>
+</div>
+</div>
+
+<div id="outline-container-orgheadline6" class="outline-4">
+<h4 id="orgheadline6">字典操作</h4>
+<div class="outline-text-4" id="text-orgheadline6">
+<dl class="org-dl">
+<dt>d.copy()</dt><dd>影子复制</dd>
+<dt>d.has_key(x)</dt><dd>测试是否有键x</dd>
+<dt>d.items()/d.iteritems()</dt><dd>返回(key, value)对列表/迭代器</dd>
+<dt>d.keys()/d.iterkeys()</dt><dd>键列表/迭代器</dd>
+<dt>d.values()/d.itervalues()</dt><dd>值列表/迭代器</dd>
+<dt>d.get(k, x=None)</dt><dd>这个函数非常有用，如果k存在就返回d[k]，否则返回x</dd>
+<dt>d.clear()</dt><dd>清除字典</dd>
+<dt>d.update(d1)</dt><dd>等价于：<code>for k in d1: d[k] = d1[k]</code></dd>
+<dt>d.setdefault(k, x=None)</dt><dd>如果k存在就返回d[k]，否则将d[k]设置为x并返回</dd>
+<dt>d.pop(k, x=None)</dt><dd>弹出d[k]，没有找到就返回x，如果未指定x又没找到d[k]会引发异常</dd>
+<dt>d.popitem()</dt><dd>随机弹出一个元素</dd>
+</dl>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline10" class="outline-3">
+<h3 id="orgheadline10">流程控制</h3>
+<div class="outline-text-3" id="text-orgheadline10">
+</div><div id="outline-container-orgheadline8" class="outline-4">
+<h4 id="orgheadline8">分支语句</h4>
+<div class="outline-text-4" id="text-orgheadline8">
+<div class="org-src-container">
+
+<pre class="src src-python"><span style="color: #800;">if</span> condiiton:
+    statements
+<span style="color: #800;">elif</span> condition:
+    statements
+<span style="color: #800;">else</span>:
+    statements
+</pre>
+</div>
+
+<p>
+要判断一个变量是否为真，直接的方式是<code>if x</code>，请不要使用如下的一些形式：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-python"><span style="color: #800;">if</span> x <span style="color: #800;">is</span> <span style="color: #800;">True</span>
+<span style="color: #800;">if</span> x == <span style="color: #800;">True</span>
+<span style="color: #800;">if</span> <span style="color: #800;">bool</span>(x)
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline9" class="outline-4">
+<h4 id="orgheadline9">循环语句</h4>
+<div class="outline-text-4" id="text-orgheadline9">
+<div class="org-src-container">
+
+<pre class="src src-python"><span style="color: #800;">while</span> condition:
+    statements
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-python"><span style="color: #800;">for</span> item <span style="color: #800;">in</span> iterable:
+    statements
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-python"><span style="color: #800;">while</span> condition:
+    statements
+<span style="color: #800;">else</span>:
+    statements                          <span style="color: #666;"># </span><span style="color: #666;">&#21482;&#35201;while&#27809;&#26377;&#34987;break&#23601;&#20250;&#25191;&#34892;</span>
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-python">[expression <span style="color: #800;">for</span> item <span style="color: #800;">in</span> iterable clauses]
+[x + 1 <span style="color: #800;">for</span> x <span style="color: #800;">in</span> <span style="color: #800;">range</span>(10)]
+[x + 1 <span style="color: #800;">for</span> x <span style="color: #800;">in</span> <span style="color: #800;">range</span>(10) <span style="color: #800;">if</span> x % 2]
+[x + y <span style="color: #800;">for</span> x <span style="color: #800;">in</span> <span style="color: #800;">range</span>(10) <span style="color: #800;">for</span> y <span style="color: #800;">in</span> <span style="color: #800;">range</span>(10)]
+</pre>
+</div>
+
+<p>
+跳出循环有两种方式：
+</p>
+<dl class="org-dl">
+<dt>break</dt><dd>退出循环</dd>
+<dt>continue</dt><dd>进入下一轮循环</dd>
+</dl>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline11" class="outline-3">
+<h3 id="orgheadline11">函数</h3>
+<div class="outline-text-3" id="text-orgheadline11">
+<div class="org-src-container">
+
+<pre class="src src-python"><span style="color: #800;">def</span> <span style="color: #048; font-weight: bold;">functionname</span>(parameters):           <span style="color: #666;"># </span><span style="color: #666;">&#21629;&#21517;&#20989;&#25968;</span>
+    statements
+
+<span style="color: #800;">lambda</span> parameters: expression           <span style="color: #666;"># </span><span style="color: #666;">&#21311;&#21517;&#20989;&#25968;</span>
+</pre>
+</div>
+<p>
+函数默认将变量绑定到局部名称空间，要使用全局的名字，就需要在函数中作如下声明。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-python"><span style="color: #800;">global</span> indentifiers
+</pre>
+</div>
+</div>
+
+<div id="outline-container-orgheadline12" class="outline-4">
+<h4 id="orgheadline12">属性</h4>
+<div class="outline-text-4" id="text-orgheadline12">
+<div class="org-src-container">
+
+<pre class="src src-python"><span style="color: #800;">def</span> <span style="color: #048; font-weight: bold;">sum_args</span>(*nums):
+    <span style="color: #800;">'''accept arbitrary numerical arguments and return their sum'''</span>
+    <span style="color: #800;">return</span> <span style="color: #800;">sum</span>(nums)
+
+<span style="color: #800;">print</span> sum_args.<span style="color: #800;">__name__</span>
+<span style="color: #800;">print</span> sum_args.<span style="color: #800;">__doc__</span>
+<span style="color: #800;">print</span> sum_args(1, 2, 3)
+</pre>
+</div>
+
+<pre class="example">
+sum_args
+accept arbitrary numerical arguments and return their sum
+6
+</pre>
+</div>
+</div>
+
+<div id="outline-container-orgheadline13" class="outline-4">
+<h4 id="orgheadline13">生成器</h4>
+<div class="outline-text-4" id="text-orgheadline13">
+<div class="org-src-container">
+
+<pre class="src src-python"><span style="color: #800;">yield</span> expression
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-python"><span style="color: #800;">def</span> <span style="color: #048; font-weight: bold;">updown</span>(n):
+    <span style="color: #800;">for</span> x <span style="color: #800;">in</span> <span style="color: #800;">range</span>(n):
+        <span style="color: #800;">yield</span> x
+    <span style="color: #800;">for</span> x <span style="color: #800;">in</span> <span style="color: #800;">range</span>(n - 1, -1, -1):
+        <span style="color: #800;">yield</span> x
+<span style="color: #800;">for</span> i <span style="color: #800;">in</span> updown(10):
+    <span style="color: #800;">print</span> i,
+</pre>
+</div>
+
+<pre class="example">
+0 1 2 3 4 5 6 7 8 9 9 8 7 6 5 4 3 2 1 0
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline17" class="outline-3">
+<h3 id="orgheadline17">类与继承</h3>
+<div class="outline-text-3" id="text-orgheadline17">
+</div><div id="outline-container-orgheadline14" class="outline-4">
+<h4 id="orgheadline14">基本概念</h4>
+<div class="outline-text-4" id="text-orgheadline14">
+<p>
+Python2支持经典模型和新风格，Python3只支持新风格，所以最好是只使用单根继承。类型存储静态字段和方法，实例只存储数据成员，也称为<code>attribute</code>。访问对象成员时，按照如下顺序查找：
+<code>instance.__dict__</code>、<code>class.__dict__</code>、<code>baseclass.__dict__</code>。
+</p>
+
+<p>
+注意不要和名字查找混淆，名字查找采用<code>LEGB</code>顺序在不同的作用域查找：
+</p>
+<dl class="org-dl">
+<dt>locals</dt><dd>函数内部名字空间，形参和局部变量</dd>
+<dt>enclosing</dt><dd>嵌套函数的外部函数</dd>
+<dt>globals</dt><dd>函数所在模块名字空间</dd>
+<dt>__builtins__</dt><dd>内置模块名称空间</dd>
+</dl>
+
+<p>
+私有字段建议单下划线开头，提示即可。
+</p>
+
+<p>
+属性<code>property</code>由<code>getter()</code>、<code>setter()</code>、<code>deleter()</code>几个方法构成。从字面上<code>attribute</code>和<code>property</code>都是属性，但前者是比较直接的数据成员，后者在行为上和数据成员相同，但是在实现上来看是将成员函数伪装成数据成员。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-python"><span style="color: #800;">class</span> <span style="color: #800;">Example</span>(<span style="color: #800;">object</span>):
+    <span style="color: #800;">@property</span>
+    <span style="color: #800;">def</span> <span style="color: #048; font-weight: bold;">name</span>(<span style="color: #800;">self</span>): <span style="color: #800;">return</span> <span style="color: #800;">self</span>.__name
+
+    <span style="color: #800;">@name.setter</span>
+    <span style="color: #800;">def</span> <span style="color: #048; font-weight: bold;">name</span>(<span style="color: #800;">self</span>, val): <span style="color: #800;">self</span>.__name = val
+
+    <span style="color: #800;">@name.deleter</span>
+    <span style="color: #800;">def</span> <span style="color: #048; font-weight: bold;">name</span>(<span style="color: #800;">self</span>): <span style="color: #800;">del</span> <span style="color: #800;">self</span>.__name
+
+<span style="color: #048;">e</span> = Example()
+<span style="color: #048;">e.name</span> = <span style="color: #800;">"example"</span>
+<span style="color: #800;">print</span> e.__dict__, e.name
+<span style="color: #800;">del</span> e.name
+<span style="color: #800;">print</span> e.__dict__
+</pre>
+</div>
+
+<pre class="example">
+{'_Example__name': 'example'} example
+{}
+</pre>
+
+<p>
+从实现上看，属性<code>property</code>是特殊处理过的<code>attribute</code>，所以访问优先级高于同名数据成员。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline15" class="outline-4">
+<h4 id="orgheadline15">特殊方法</h4>
+<div class="outline-text-4" id="text-orgheadline15">
+<p>
+要实现类的方法，需要添加装饰器修饰：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-python"><span style="color: #800;">class</span> <span style="color: #800;">Example</span>(obejct):
+    <span style="color: #800;">@staticmethod</span>
+    <span style="color: #800;">def</span> <span style="color: #048; font-weight: bold;">static_print</span>(os):
+        <span style="color: #800;">print</span> os
+</pre>
+</div>
+
+<p>
+特殊方法：
+</p>
+<dl class="org-dl">
+<dt>__new__()</dt><dd>创建对象实例</dd>
+<dt>__init__()</dt><dd>初始化对象状态</dd>
+<dt>__del__()</dt><dd>对象回收前调用</dd>
+</dl>
+
+<p>
+修改字段要用指定函数：
+</p>
+<dl class="org-dl">
+<dt>setattr(obj, "name", value)</dt><dd><code>u.name = value</code></dd>
+<dt>hasattr(obj, "name")</dt><dd><code>obj.__dict__["name"]</code></dd>
+<dt>getattr(obj, "name", default=None)</dt><dd>如果未找到返回<code>default</code>值</dd>
+<dt>delattr(obj, "name")</dt><dd><code>del obj.__dict__["name"]</code></dd>
+</dl>
+
+<p>
+索引操作符<code>[]</code>也可以重载，自定义<code>__setitem__</code>、<code>__getitem__</code>和<code>__delitem__</code>即可。函数对象/仿函数通过定义<code>__call__()</code>来重载。
+</p>
+
+<dl class="org-dl">
+<dt>__getattr__()</dt><dd>访问不存在的成员</dd>
+<dt>__setattr__()</dt><dd>对成员赋值</dd>
+<dt>__delattr__()</dt><dd>删除成员</dd>
+<dt>__getattribute__()</dt><dd>访问任何存在或不存在的成员，包括<code>__dict__</code></dd>
+</dl>
+
+<p>
+在定义这些函数的时候，不能调用<code>setattr</code>、<code>getattr</code>等函数，因为会造成死循环，只能直接访问<code>__dict__</code>。而<code>__getattribute__</code>更狠，会拦截<code>__dict__</code>，所以它唯一能调用的就是基类的<code>__getattribute__</code>。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline16" class="outline-4">
+<h4 id="orgheadline16">继承</h4>
+<div class="outline-text-4" id="text-orgheadline16">
+<p>
+Python提供了两个函数来判定类型关系：
+</p>
+<dl class="org-dl">
+<dt>issubclass(a, base)</dt><dd>判断a是否是base的继承</dd>
+<dt>isinstance(a, class)</dt><dd>判断a是否是class的实例</dd>
+</dl>
+
+<p>
+多重继承MRO(method resolution order)：从下到上，从左到右。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-python"><span style="color: #800;">class</span> <span style="color: #800;">A</span>(<span style="color: #800;">object</span>):
+    <span style="color: #800;">def</span> <span style="color: #048; font-weight: bold;">print_a</span>(<span style="color: #800;">self</span>):
+        <span style="color: #800;">print</span> <span style="color: #800;">"a:a"</span>
+<span style="color: #800;">class</span> <span style="color: #800;">B</span>(<span style="color: #800;">object</span>):
+    <span style="color: #800;">def</span> <span style="color: #048; font-weight: bold;">print_a</span>(<span style="color: #800;">self</span>):
+        <span style="color: #800;">print</span> <span style="color: #800;">"b:a"</span>
+    <span style="color: #800;">def</span> <span style="color: #048; font-weight: bold;">print_b</span>(<span style="color: #800;">self</span>):
+        <span style="color: #800;">print</span> <span style="color: #800;">"b:b"</span>
+<span style="color: #800;">class</span> <span style="color: #800;">C</span>(A, B):
+    <span style="color: #800;">def</span> <span style="color: #048; font-weight: bold;">print_c</span>(<span style="color: #800;">self</span>):
+        <span style="color: #048;">base</span> = <span style="color: #800;">super</span>(C, <span style="color: #800;">self</span>)
+        base.print_a()
+        base.print_b()
+C().print_c()
+</pre>
+</div>
+
+<pre class="example">
+a:a
+b:b
+</pre>
+
+<p>
+Python也支持抽象类，只需要添加修饰即可，派生类必须实现所有抽象函数/属性才能实例化：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-python"><span style="color: #800;">from</span> abc <span style="color: #800;">import</span> ABCMeta, abstractmethod, abstractproperty
+<span style="color: #800;">class</span> <span style="color: #800;">AbsExample</span>(<span style="color: #800;">object</span>):
+    <span style="color: #048;">__metaclass__</span> = ABCMeta
+    <span style="color: #800;">@abstractmethod</span>
+    <span style="color: #800;">def</span> <span style="color: #048; font-weight: bold;">print_id</span>(<span style="color: #800;">self</span>):
+        <span style="color: #800;">pass</span>
+
+    <span style="color: #048;">name</span> = abstractproperty()
+
+<span style="color: #800;">class</span> <span style="color: #800;">Example</span>(AbsExample):
+    <span style="color: #800;">def</span> <span style="color: #048; font-weight: bold;">print_id</span>(<span style="color: #800;">self</span>):
+        <span style="color: #800;">print</span> <span style="color: #800;">"id"</span>
+    <span style="color: #048;">name</span> = <span style="color: #800;">property</span>(<span style="color: #800;">lambda</span> s: s._name,
+                    <span style="color: #800;">lambda</span> s, v: <span style="color: #800;">setattr</span>(s, <span style="color: #800;">"_name"</span>, v))
+
+<span style="color: #048;">e</span> = Example()
+</pre>
+</div>
+
+<p>
+Python还有一个特性叫开放类，可以在运行期增加/删除对象成员。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-python"><span style="color: #800;">def</span> <span style="color: #048; font-weight: bold;">print_id</span>(<span style="color: #800;">self</span>):
+    <span style="color: #800;">print</span> <span style="color: #800;">self</span>.<span style="color: #800;">id</span>
+
+<span style="color: #800;">def</span> <span style="color: #048; font-weight: bold;">print_class_id</span>(cls):
+    <span style="color: #800;">print</span> <span style="color: #800;">"class: "</span>, cls
+
+<span style="color: #800;">def</span> <span style="color: #048; font-weight: bold;">print_static</span>():
+    <span style="color: #800;">print</span> <span style="color: #800;">"static"</span>
+
+<span style="color: #800;">class</span> <span style="color: #800;">User</span>(<span style="color: #800;">object</span>):
+    <span style="color: #800;">def</span> <span style="color: #048; font-weight: bold;">__init__</span>(<span style="color: #800;">self</span>):
+        <span style="color: #800;">self</span>.<span style="color: #800;">id</span> = <span style="color: #800;">"self id"</span>
+
+<span style="color: #048;">User.print_id</span> = print_id
+<span style="color: #048;">User.print_class_id</span> = <span style="color: #800;">classmethod</span>(print_class_id)
+<span style="color: #048;">User.print_static</span> = <span style="color: #800;">staticmethod</span>(print_static)
+<span style="color: #048;">u</span> = User()
+u.print_id()
+User.print_class_id()
+User.print_static()
+</pre>
+</div>
+
+<pre class="example">
+self id
+class:  &lt;class '__main__.User'&gt;
+static
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline24" class="outline-2">
+<h2 id="orgheadline24">注意事项</h2>
+<div class="outline-text-2" id="text-orgheadline24">
+</div><div id="outline-container-orgheadline21" class="outline-3">
+<h3 id="orgheadline21">兼容性问题</h3>
+<div class="outline-text-3" id="text-orgheadline21">
+</div><div id="outline-container-orgheadline19" class="outline-4">
+<h4 id="orgheadline19">输入和输出</h4>
+<div class="outline-text-4" id="text-orgheadline19">
+<p>
+在Python2中print是一个表达式，而Python3中print是一个函数，因此在写print时，建议用函数式写法。
+</p>
+
+<p>
+在Python2中input函数会计算用户的输入，要防止计算就需要用raw_input，
+Python3中将raw_input删除了，而input的含义等同于python2中的raw_input。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline20" class="outline-4">
+<h4 id="orgheadline20">字典</h4>
+<div class="outline-text-4" id="text-orgheadline20">
+<p>
+在python2中字典有两个迭代函数，一个返回列表，一个返回迭代器。
+</p>
+<dl class="org-dl">
+<dt>d.items()</dt><dd>返回(key, value)对列表</dd>
+<dt>d.iteritems()</dt><dd>返回(key, value)对迭代器</dd>
+</dl>
+
+<p>
+但在Python3中，直接将迭代器形式删除了，而原来的列表形式变成了迭代器形式。所以为了兼容性，还是推荐Python3的写法。
+</p>
+<dl class="org-dl">
+<dt>d.items()</dt><dd>返回(key, value)对迭代器</dd>
+</dl>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline23" class="outline-3">
+<h3 id="orgheadline23">特殊函数</h3>
+<div class="outline-text-3" id="text-orgheadline23">
+</div><div id="outline-container-orgheadline22" class="outline-4">
+<h4 id="orgheadline22">慎用__del__()方法</h4>
+<div class="outline-text-4" id="text-orgheadline22">
+<p>
+文章 <a href="http://www.708luo.com/posts/2015/04/python-del-method/">慎用python的__del__方法</a> 比较详细分析了这个缺陷。从语义上看，<code>__del__</code>相当于C语言中的析构函数，但是问题是它不一定被调用。也就是说如果你实现了<code>__del__</code>方法就不允许出现循环引用，否则垃圾回收器将因为不知道释放顺序而放弃释放。
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-python"><span style="color: #800;">class</span> <span style="color: #800;">A</span>(<span style="color: #800;">object</span>):
+    <span style="color: #800;">def</span> <span style="color: #048; font-weight: bold;">__init__</span>(<span style="color: #800;">self</span>, parent):
+        <span style="color: #800;">print</span> <span style="color: #800;">"A init"</span>
+        <span style="color: #800;">self</span>.parent = parent
+
+    <span style="color: #800;">def</span> <span style="color: #048; font-weight: bold;">__del__</span>(<span style="color: #800;">self</span>):
+        <span style="color: #800;">print</span> <span style="color: #800;">"A del"</span>
+
+<span style="color: #800;">class</span> <span style="color: #800;">B</span>(<span style="color: #800;">object</span>):
+    <span style="color: #800;">def</span> <span style="color: #048; font-weight: bold;">__init__</span>(<span style="color: #800;">self</span>):
+        <span style="color: #800;">print</span> <span style="color: #800;">"B init"</span>
+        <span style="color: #800;">self</span>.child = A(<span style="color: #800;">self</span>)
+
+    <span style="color: #800;">def</span> <span style="color: #048; font-weight: bold;">__del__</span>(<span style="color: #800;">self</span>):
+        <span style="color: #800;">print</span> <span style="color: #800;">"B del"</span>
+
+<span style="color: #048;">b</span> = B()
+</pre>
+</div>
+
+<pre class="example">
+B init
+A init
+</pre>
+</div>
+</div>
+</div>
+</div>
