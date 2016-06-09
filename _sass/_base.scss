@@ -227,9 +227,9 @@ dd {
     margin-left: 1em;
 }
 
-dd:after{
-    display: block;
-    content: '';
+dd::after {
+    content: "\A";
+    white-space: pre;
 }
 
 .center {
