@@ -9,37 +9,52 @@ tags: 笔记 C
 <div id="table-of-contents"><h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#orgheadline9">语法要点</a>
+<li><a href="#orgheadline15">语法要点</a>
+<ul>
+<li><a href="#orgheadline3">操作符号</a>
 <ul>
 <li><a href="#orgheadline1">运算符优先级</a></li>
-<li><a href="#orgheadline2">内置类型</a></li>
-<li><a href="#orgheadline3">指针</a></li>
-<li><a href="#orgheadline4">函数</a></li>
-<li><a href="#orgheadline5">可变参数</a></li>
-<li><a href="#orgheadline6">结构体</a></li>
-<li><a href="#orgheadline7">宏</a></li>
-<li><a href="#orgheadline8">可执行程序</a></li>
+<li><a href="#orgheadline2">关键字</a></li>
 </ul>
 </li>
-<li><a href="#orgheadline20">注意事项</a>
+<li><a href="#orgheadline4">内置类型</a></li>
+<li><a href="#orgheadline7">数组指针</a>
 <ul>
-<li><a href="#orgheadline12">常量与变量</a>
-<ul>
-<li><a href="#orgheadline10">自动变量</a></li>
-<li><a href="#orgheadline11">进制误用</a></li>
+<li><a href="#orgheadline5">数组</a></li>
+<li><a href="#orgheadline6">指针</a></li>
 </ul>
 </li>
-<li><a href="#orgheadline15">越界与溢出</a>
+<li><a href="#orgheadline8">函数</a></li>
+<li><a href="#orgheadline9">可变参数</a></li>
+<li><a href="#orgheadline12">结构体</a>
 <ul>
-<li><a href="#orgheadline13">访问越界</a></li>
-<li><a href="#orgheadline14">运算溢出</a></li>
+<li><a href="#orgheadline10">结构体长度</a></li>
+<li><a href="#orgheadline11">结构体组织</a></li>
 </ul>
 </li>
-<li><a href="#orgheadline16">输入输出</a></li>
-<li><a href="#orgheadline19">异常处理</a>
+<li><a href="#orgheadline13">宏</a></li>
+<li><a href="#orgheadline14">可执行程序</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline26">注意事项</a>
 <ul>
-<li><a href="#orgheadline17">错误编号</a></li>
-<li><a href="#orgheadline18">信号处理</a></li>
+<li><a href="#orgheadline18">常量与变量</a>
+<ul>
+<li><a href="#orgheadline16">自动变量</a></li>
+<li><a href="#orgheadline17">进制误用</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline21">越界与溢出</a>
+<ul>
+<li><a href="#orgheadline19">访问越界</a></li>
+<li><a href="#orgheadline20">运算溢出</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline22">输入输出</a></li>
+<li><a href="#orgheadline25">异常处理</a>
+<ul>
+<li><a href="#orgheadline23">错误编号</a></li>
+<li><a href="#orgheadline24">信号处理</a></li>
 </ul>
 </li>
 </ul>
@@ -48,12 +63,15 @@ tags: 笔记 C
 </div>
 </div>
 
-<div id="outline-container-orgheadline9" class="outline-2">
-<h2 id="orgheadline9">语法要点</h2>
-<div class="outline-text-2" id="text-orgheadline9">
-</div><div id="outline-container-orgheadline1" class="outline-3">
-<h3 id="orgheadline1">运算符优先级</h3>
-<div class="outline-text-3" id="text-orgheadline1">
+<div id="outline-container-orgheadline15" class="outline-2">
+<h2 id="orgheadline15">语法要点</h2>
+<div class="outline-text-2" id="text-orgheadline15">
+</div><div id="outline-container-orgheadline3" class="outline-3">
+<h3 id="orgheadline3">操作符号</h3>
+<div class="outline-text-3" id="text-orgheadline3">
+</div><div id="outline-container-orgheadline1" class="outline-4">
+<h4 id="orgheadline1">运算符优先级</h4>
+<div class="outline-text-4" id="text-orgheadline1">
 <!--abstract-begin-->
 
 <p>
@@ -101,10 +119,56 @@ apple = <span style="color: #800;">sizeof</span>(<span style="color: #800;">int<
 </div>
 </div>
 </div>
+<div id="outline-container-orgheadline2" class="outline-4">
+<h4 id="orgheadline2">关键字</h4>
+<div class="outline-text-4" id="text-orgheadline2">
+<dl class="org-dl">
+<dt>const</dt><dd>定义常量</dd>
+<dt>volatile</dt><dd>防止编译器优化省略</dd>
+<dt>register</dt><dd>建议编译器优化放到寄存器中，不在内存中故不能取地址</dd>
+<dt>static</dt><dd>用于限制作用域或存储位置</dd>
+<dt>extern</dt><dd>用于声明外部变量</dd>
+</dl>
 
-<div id="outline-container-orgheadline2" class="outline-3">
-<h3 id="orgheadline2">内置类型</h3>
-<div class="outline-text-3" id="text-orgheadline2">
+<p>
+如下代码如果不声明为<code>volatile</code>会被编译器优化为一行代码：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp">XBYTE[2]=0x55;
+XBYTE[2]=0x56;
+XBYTE[2]=0x57;
+XBYTE[2]=0x58;
+</pre>
+</div>
+<p>
+但是对于配置外部硬件而言，可能需要一个完整的操作顺序，这时就不能被优化。
+</p>
+
+<p>
+一个<code>const volatile</code>例子是只读状态寄存器，它不允许程序员改变，但可能受硬件环境影响。指针也可以是<code>volatile</code>，如中断服务程序可以更改一个指针的指向。
+</p>
+
+<p>
+用C++编译器编译C语言会修改函数名以支持重载，宏<code>__cplusplus</code>是C++编译器内置的宏，用<code>extern "C"</code>可以防止修改函数名导致符号找不到。通常都需要C文件在C++编译器和C编译器编译后得到一致的结果，所以这种写法在C代码中很常见。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #800;">#ifdef</span> __cplusplus
+<span style="color: #800;">extern</span> <span style="color: #800;">"C"</span> {
+<span style="color: #800;">#endif</span>
+...
+<span style="color: #800;">#ifdef</span> __cplusplus
+}
+<span style="color: #800;">#endif</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+<div id="outline-container-orgheadline4" class="outline-3">
+<h3 id="orgheadline4">内置类型</h3>
+<div class="outline-text-3" id="text-orgheadline4">
 <p>
 内置类型的最大值、最小值可以从头文件<code>limits.h</code>中查询。
 </p>
@@ -120,9 +184,21 @@ apple = <span style="color: #800;">sizeof</span>(<span style="color: #800;">int<
 </div>
 </div>
 
-<div id="outline-container-orgheadline3" class="outline-3">
-<h3 id="orgheadline3">指针</h3>
-<div class="outline-text-3" id="text-orgheadline3">
+<div id="outline-container-orgheadline7" class="outline-3">
+<h3 id="orgheadline7">数组指针</h3>
+<div class="outline-text-3" id="text-orgheadline7">
+</div><div id="outline-container-orgheadline5" class="outline-4">
+<h4 id="orgheadline5">数组</h4>
+<div class="outline-text-4" id="text-orgheadline5">
+<p>
+C99支持VLA（变长数组），但是不推荐使用，因为栈上分配数组容易导致崩溃。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline6" class="outline-4">
+<h4 id="orgheadline6">指针</h4>
+<div class="outline-text-4" id="text-orgheadline6">
 <p>
 指针常量：指向固定
 </p>
@@ -170,10 +246,11 @@ apple = <span style="color: #800;">sizeof</span>(<span style="color: #800;">int<
 </dl>
 </div>
 </div>
+</div>
 
-<div id="outline-container-orgheadline4" class="outline-3">
-<h3 id="orgheadline4">函数</h3>
-<div class="outline-text-3" id="text-orgheadline4">
+<div id="outline-container-orgheadline8" class="outline-3">
+<h3 id="orgheadline8">函数</h3>
+<div class="outline-text-3" id="text-orgheadline8">
 <p>
 参数从右往左入栈。
 </p>
@@ -222,9 +299,9 @@ apple = <span style="color: #800;">sizeof</span>(<span style="color: #800;">int<
 </div>
 </div>
 
-<div id="outline-container-orgheadline5" class="outline-3">
-<h3 id="orgheadline5">可变参数</h3>
-<div class="outline-text-3" id="text-orgheadline5">
+<div id="outline-container-orgheadline9" class="outline-3">
+<h3 id="orgheadline9">可变参数</h3>
+<div class="outline-text-3" id="text-orgheadline9">
 <div class="org-src-container">
 
 <pre class="src src-cpp"><span style="color: #800;">#include</span> <span style="color: #800;">&lt;stdarg.h&gt;</span>
@@ -272,37 +349,32 @@ apple = <span style="color: #800;">sizeof</span>(<span style="color: #800;">int<
 </div>
 </div>
 
-<div id="outline-container-orgheadline6" class="outline-3">
-<h3 id="orgheadline6">结构体</h3>
-<div class="outline-text-3" id="text-orgheadline6">
+<div id="outline-container-orgheadline12" class="outline-3">
+<h3 id="orgheadline12">结构体</h3>
+<div class="outline-text-3" id="text-orgheadline12">
+</div><div id="outline-container-orgheadline10" class="outline-4">
+<h4 id="orgheadline10">结构体长度</h4>
+<div class="outline-text-4" id="text-orgheadline10">
 <p>
-宏<code>offsetof(class, member)</code>可用于计算成员偏移量，但是这个宏其实是有很多限制的，比方不能对结构体中的压缩位字段计算。
-</p>
-
-<p>
-如果将尾部成员定义为0长数组，计算结构体大小时其对应成员长度按0计入。这种高技巧的写法主要用在对性能和内存要求比较苛刻的情况。
+如果将尾部成员定义为0长数组，计算结构体大小时其对应成员长度按0计入。这种技巧的写法主要用在对性能和内存要求比较苛刻的情况。
 </p>
 <div class="org-src-container">
 
-<pre class="src src-cpp"><span style="color: #800;">#include</span> <span style="color: #800;">&lt;stdio.h&gt;</span>
-<span style="color: #800;">struct</span> <span style="color: #800;">zero_only</span> {
-    <span style="color: #800;">char</span> <span style="color: #048;">str</span>[0];
-};
-<span style="color: #800;">struct</span> <span style="color: #800;">zero_tail</span> {
-    <span style="color: #800;">int</span> <span style="color: #048;">count</span>;
-    <span style="color: #800;">char</span> <span style="color: #048;">str</span>[0];
-};
-<span style="color: #800;">int</span> <span style="color: #048; font-weight: bold;">main</span>(<span style="color: #800;">int</span> <span style="color: #048;">argc</span>, <span style="color: #800;">char</span> *<span style="color: #048;">argv</span>[])
-{
-    printf(<span style="color: #800;">"%d -&gt; %d\n"</span>, <span style="color: #800;">sizeof</span>(<span style="color: #800;">struct</span> <span style="color: #800;">zero_only</span>), <span style="color: #800;">sizeof</span>(<span style="color: #800;">struct</span> <span style="color: #800;">zero_tail</span>));
-    <span style="color: #800;">return</span> 0;
-}
+<pre class="src src-cpp"><span style="color: #800;">class</span> <span style="color: #800;">empty</span> {};
+<span style="color: #800;">struct</span> <span style="color: #800;">zero_only</span> {<span style="color: #800;">char</span> <span style="color: #048;">str</span>[0];};
+<span style="color: #800;">struct</span> <span style="color: #800;">zero_tail</span> {<span style="color: #800;">int</span> <span style="color: #048;">count</span>; <span style="color: #800;">char</span> <span style="color: #048;">str</span>[0];};
+printf(<span style="color: #800;">"%d %d %d\n"</span>, <span style="color: #800;">sizeof</span>(<span style="color: #800;">struct</span> <span style="color: #800;">empty</span>),
+       <span style="color: #800;">sizeof</span>(<span style="color: #800;">struct</span> <span style="color: #800;">zero_only</span>), <span style="color: #800;">sizeof</span>(<span style="color: #800;">struct</span> <span style="color: #800;">zero_tail</span>));
 </pre>
 </div>
 
 <pre class="example">
-0 -&gt; 4
+1 0 4
 </pre>
+
+<p>
+用g++编译的结果如上所示，但这不是说答案就应该是这样的。标准C不允许0大小的对象，即0长数组、空结构、空共同体都是不允许的。所以这种写法没有可移植性。而C++标准则允许空类，空类具有长度是为了保证每个对象都有一个独立的地址。
+</p>
 
 <p>
 在比较底层的代码中，经常可以看到在结构体定义中使用属性：
@@ -321,6 +393,32 @@ apple = <span style="color: #800;">sizeof</span>(<span style="color: #800;">int<
 <dt>packed</dt><dd>表示成员字段不用对齐</dd>
 <dt>____cacheline_aligned</dt><dd>整个数据结构按照高速缓存行的大小对齐</dd>
 </dl>
+
+<p>
+默认的位段还是会对齐，仅在在能够容纳的地方优化存储，如果加上<code>packed</code>属性就会取消一切对齐。不论那种方法都不允许对位段成员取地址。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-cpp"><span style="color: #666;">// </span><span style="color: #666;">1 + 2 + 8</span>
+<span style="color: #800;">typedef</span> <span style="color: #800;">struct</span> <span style="color: #800;">bsi</span> {<span style="color: #800;">bool</span> <span style="color: #048;">b</span>; <span style="color: #800;">short</span> <span style="color: #048;">s</span>; <span style="color: #800;">int</span> <span style="color: #048;">i</span>;} <span style="color: #800;">__attribute__</span>((__packed__)) <span style="color: #800;">BSI</span>;
+<span style="color: #800;">typedef</span> <span style="color: #800;">struct</span> <span style="color: #800;">bis</span> {<span style="color: #800;">bool</span> <span style="color: #048;">b</span>:6; <span style="color: #800;">int</span> <span style="color: #048;">i</span>:6; <span style="color: #800;">short</span> <span style="color: #048;">s</span>:1;} <span style="color: #800;">BIS</span>;
+<span style="color: #800;">typedef</span> <span style="color: #800;">struct</span> <span style="color: #800;">bisp</span> {<span style="color: #800;">bool</span> <span style="color: #048;">b</span>:6; <span style="color: #800;">int</span> <span style="color: #048;">i</span>:6; <span style="color: #800;">short</span> <span style="color: #048;">s</span>:1;} <span style="color: #800;">__attribute__</span>((packed)) <span style="color: #800;">BISP</span>;
+printf(<span style="color: #800;">"%d %d %d\n"</span>, <span style="color: #800;">sizeof</span>(BSI), <span style="color: #800;">sizeof</span>(BIS), <span style="color: #800;">sizeof</span>(BISP));
+</pre>
+</div>
+
+<pre class="example">
+7 4 2
+</pre>
+</div>
+</div>
+
+<div id="outline-container-orgheadline11" class="outline-4">
+<h4 id="orgheadline11">结构体组织</h4>
+<div class="outline-text-4" id="text-orgheadline11">
+<p>
+宏<code>offsetof(class, member)</code>可用于计算成员偏移量，但是这个宏其实是有很多限制的，比方不能对结构体中的压缩位字段计算。
+</p>
 
 <p>
 结构体的点操作符可以帮助我们访问结构的成员，反过来如果我们知道当前结构或数据类型属于某个结构体，也可以利用存储特性由成员获取父结构体。举一个例子，请看如下代码，问号处的代码应该怎么写才能返回信息所属的人？
@@ -380,10 +478,11 @@ apple = <span style="color: #800;">sizeof</span>(<span style="color: #800;">int<
 </p>
 </div>
 </div>
+</div>
 
-<div id="outline-container-orgheadline7" class="outline-3">
-<h3 id="orgheadline7">宏</h3>
-<div class="outline-text-3" id="text-orgheadline7">
+<div id="outline-container-orgheadline13" class="outline-3">
+<h3 id="orgheadline13">宏</h3>
+<div class="outline-text-3" id="text-orgheadline13">
 <div class="org-src-container">
 
 <pre class="src src-cpp"><span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">max</span>(<span style="color: #048;">a</span>, <span style="color: #048;">b</span>) ((a) &gt; (b) ? (a) : (b))
@@ -435,9 +534,9 @@ a(u);                                   <span style="color: #666;">// </span><sp
 </div>
 </div>
 
-<div id="outline-container-orgheadline8" class="outline-3">
-<h3 id="orgheadline8">可执行程序</h3>
-<div class="outline-text-3" id="text-orgheadline8">
+<div id="outline-container-orgheadline14" class="outline-3">
+<h3 id="orgheadline14">可执行程序</h3>
+<div class="outline-text-3" id="text-orgheadline14">
 <div class="org-center">
 
 <div class="figure">
@@ -453,15 +552,15 @@ a(u);                                   <span style="color: #666;">// </span><sp
 </div>
 </div>
 
-<div id="outline-container-orgheadline20" class="outline-2">
-<h2 id="orgheadline20">注意事项</h2>
-<div class="outline-text-2" id="text-orgheadline20">
-</div><div id="outline-container-orgheadline12" class="outline-3">
-<h3 id="orgheadline12">常量与变量</h3>
-<div class="outline-text-3" id="text-orgheadline12">
-</div><div id="outline-container-orgheadline10" class="outline-4">
-<h4 id="orgheadline10">自动变量</h4>
-<div class="outline-text-4" id="text-orgheadline10">
+<div id="outline-container-orgheadline26" class="outline-2">
+<h2 id="orgheadline26">注意事项</h2>
+<div class="outline-text-2" id="text-orgheadline26">
+</div><div id="outline-container-orgheadline18" class="outline-3">
+<h3 id="orgheadline18">常量与变量</h3>
+<div class="outline-text-3" id="text-orgheadline18">
+</div><div id="outline-container-orgheadline16" class="outline-4">
+<h4 id="orgheadline16">自动变量</h4>
+<div class="outline-text-4" id="text-orgheadline16">
 <div class="org-src-container">
 
 <pre class="src src-cpp"><span style="color: #800;">#define</span> <span style="color: #048;">BUFSIZE</span>         1024
@@ -484,9 +583,9 @@ a(u);                                   <span style="color: #666;">// </span><sp
 </div>
 </div>
 
-<div id="outline-container-orgheadline11" class="outline-4">
-<h4 id="orgheadline11">进制误用</h4>
-<div class="outline-text-4" id="text-orgheadline11">
+<div id="outline-container-orgheadline17" class="outline-4">
+<h4 id="orgheadline17">进制误用</h4>
+<div class="outline-text-4" id="text-orgheadline17">
 <div class="org-src-container">
 
 <pre class="src src-cpp"><span style="color: #800;">struct</span> {
@@ -507,12 +606,12 @@ a(u);                                   <span style="color: #666;">// </span><sp
 </div>
 </div>
 
-<div id="outline-container-orgheadline15" class="outline-3">
-<h3 id="orgheadline15">越界与溢出</h3>
-<div class="outline-text-3" id="text-orgheadline15">
-</div><div id="outline-container-orgheadline13" class="outline-4">
-<h4 id="orgheadline13">访问越界</h4>
-<div class="outline-text-4" id="text-orgheadline13">
+<div id="outline-container-orgheadline21" class="outline-3">
+<h3 id="orgheadline21">越界与溢出</h3>
+<div class="outline-text-3" id="text-orgheadline21">
+</div><div id="outline-container-orgheadline19" class="outline-4">
+<h4 id="orgheadline19">访问越界</h4>
+<div class="outline-text-4" id="text-orgheadline19">
 <div class="org-src-container">
 
 <pre class="src src-cpp"><span style="color: #800;">int</span> <span style="color: #048;">a</span>[10];
@@ -529,9 +628,9 @@ a(u);                                   <span style="color: #666;">// </span><sp
 </div>
 </div>
 
-<div id="outline-container-orgheadline14" class="outline-4">
-<h4 id="orgheadline14">运算溢出</h4>
-<div class="outline-text-4" id="text-orgheadline14">
+<div id="outline-container-orgheadline20" class="outline-4">
+<h4 id="orgheadline20">运算溢出</h4>
+<div class="outline-text-4" id="text-orgheadline20">
 <div class="org-src-container">
 
 <pre class="src src-cpp"><span style="color: #800;">if</span> (a + b &lt; 0)                          <span style="color: #666;">// </span><span style="color: #666;">A</span>
@@ -545,9 +644,9 @@ A处企图用两个整型相加的结果为负来判断是否溢出，但是这�
 </div>
 </div>
 
-<div id="outline-container-orgheadline16" class="outline-3">
-<h3 id="orgheadline16">输入输出</h3>
-<div class="outline-text-3" id="text-orgheadline16">
+<div id="outline-container-orgheadline22" class="outline-3">
+<h3 id="orgheadline22">输入输出</h3>
+<div class="outline-text-3" id="text-orgheadline22">
 <div class="org-src-container">
 
 <pre class="src src-cpp"><span style="color: #800;">char</span> <span style="color: #048;">c</span>;
@@ -565,21 +664,21 @@ A处企图用两个整型相加的结果为负来判断是否溢出，但是这�
 </div>
 </div>
 
-<div id="outline-container-orgheadline19" class="outline-3">
-<h3 id="orgheadline19">异常处理</h3>
-<div class="outline-text-3" id="text-orgheadline19">
-</div><div id="outline-container-orgheadline17" class="outline-4">
-<h4 id="orgheadline17">错误编号</h4>
-<div class="outline-text-4" id="text-orgheadline17">
+<div id="outline-container-orgheadline25" class="outline-3">
+<h3 id="orgheadline25">异常处理</h3>
+<div class="outline-text-3" id="text-orgheadline25">
+</div><div id="outline-container-orgheadline23" class="outline-4">
+<h4 id="orgheadline23">错误编号</h4>
+<div class="outline-text-4" id="text-orgheadline23">
 <p>
 不要在正常返回的情况下检查errno，因为即便所调用的函数返回正确，也可能在函数中又调用了其他函数，而其他函数有可能会设置errno。
 </p>
 </div>
 </div>
 
-<div id="outline-container-orgheadline18" class="outline-4">
-<h4 id="orgheadline18">信号处理</h4>
-<div class="outline-text-4" id="text-orgheadline18">
+<div id="outline-container-orgheadline24" class="outline-4">
+<h4 id="orgheadline24">信号处理</h4>
+<div class="outline-text-4" id="text-orgheadline24">
 <p>
 信号可能出现在某些复杂的库函数中，如果signal处理函数中再调用这样的函数，结果可能导致不堪设想的后果。因此首先要避免在信号处理函数中调用复杂函数。
 </p>
