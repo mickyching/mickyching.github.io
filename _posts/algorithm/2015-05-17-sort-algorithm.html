@@ -1,0 +1,313 @@
+---
+title: 基本排序算法
+categories: algorithm
+tags: 笔记 sort algorithm
+author: 敬叶
+---
+<dl class="post-meta">
+<dt class="post-meta">2015-05-17</dt><dd>敬叶 初稿</dd>
+</dl>
+<hr><br>
+<div id="table-of-contents"><h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#orgheadline3">简单排序</a>
+<ul>
+<li><a href="#orgheadline1">冒包排序</a></li>
+<li><a href="#orgheadline2">插入排序</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline7">经典排序</a>
+<ul>
+<li><a href="#orgheadline4">归并排序</a></li>
+<li><a href="#orgheadline5">堆排序</a></li>
+<li><a href="#orgheadline6">快速排序</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline9">特殊排序</a>
+<ul>
+<li><a href="#orgheadline8">计数排序</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline3" class="outline-2">
+<h2 id="orgheadline3">简单排序</h2>
+<div class="outline-text-2" id="text-orgheadline3">
+</div><div id="outline-container-orgheadline1" class="outline-3">
+<h3 id="orgheadline1">冒包排序</h3>
+<div class="outline-text-3" id="text-orgheadline1">
+<!--abstract-begin-->
+<p>
+冒泡排序第一趟找出最小的元素，第二趟找出剩下最小的元素，依次类推。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-python"><span style="color: #800;">def</span> <span style="color: #048; font-weight: bold;">bubble_sort</span>(A):
+    <span style="color: #048;">n</span> = <span style="color: #800;">len</span>(A)
+    <span style="color: #800;">if</span> n &lt; 2:
+        <span style="color: #800;">return</span>
+    <span style="color: #800;">for</span> i <span style="color: #800;">in</span> <span style="color: #800;">range</span>(n - 1):
+        <span style="color: #800;">for</span> j <span style="color: #800;">in</span> <span style="color: #800;">range</span>(i+1, n):
+            <span style="color: #800;">if</span> A[i] &gt; A[j]:
+                A[i], <span style="color: #048;">A</span>[j] = A[j], A[i]
+    <span style="color: #800;">return</span> A
+
+<span style="color: #800;">print</span> bubble_sort([8, 94, 45, 63, 7, 7, 31])
+</pre>
+</div>
+
+<pre class="example">
+[7, 7, 8, 31, 45, 63, 94]
+</pre>
+<!--abstract-end-->
+</div>
+</div>
+
+<div id="outline-container-orgheadline2" class="outline-3">
+<h3 id="orgheadline2">插入排序</h3>
+<div class="outline-text-3" id="text-orgheadline2">
+<p>
+将当前元素插入到前面已经排序的合适位置，在算法设计的时候可以将前面比当前大的元素依次后移，再把当前元素插入正确的空位中。
+</p>
+<div class="org-center">
+
+<div class="figure">
+<p><img src="/resource/algorithm/fig/sort/insert-sort.png" alt="insert-sort.png" />
+</p>
+<p><span class="figure-number">Figure 1:</span> 插入排序示意图</p>
+</div>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-python"><span style="color: #800;">def</span> <span style="color: #048; font-weight: bold;">insert_sort</span>(A):
+    <span style="color: #048;">n</span> = <span style="color: #800;">len</span>(A)
+    <span style="color: #800;">if</span> n &lt; 2:
+        <span style="color: #800;">return</span>
+    <span style="color: #800;">for</span> i <span style="color: #800;">in</span> <span style="color: #800;">range</span>(n):
+        <span style="color: #048;">cur</span>, <span style="color: #048;">j</span> = A[i], i                <span style="color: #666;"># </span><span style="color: #666;">move cur to correct pos</span>
+        <span style="color: #800;">while</span> j &gt; 0:
+            <span style="color: #800;">if</span> cur &lt; A[j-1]:
+                <span style="color: #048;">A</span>[j] = A[j-1]
+            <span style="color: #800;">else</span>:
+                <span style="color: #800;">break</span>
+            <span style="color: #048;">j</span> -= 1
+        <span style="color: #048;">A</span>[j] = cur                      <span style="color: #666;"># </span><span style="color: #666;">j is the correct pos</span>
+    <span style="color: #800;">return</span> A
+<span style="color: #800;">print</span> insert_sort([8, 94, 45, 63, 7, 7, 31])
+</pre>
+</div>
+
+<pre class="example">
+[7, 7, 8, 31, 45, 63, 94]
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline7" class="outline-2">
+<h2 id="orgheadline7">经典排序</h2>
+<div class="outline-text-2" id="text-orgheadline7">
+</div><div id="outline-container-orgheadline4" class="outline-3">
+<h3 id="orgheadline4">归并排序</h3>
+<div class="outline-text-3" id="text-orgheadline4">
+<p>
+归并排序需要两步工作，第一步是划分未排序，第二步是合并已排序。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-python"><span style="color: #800;">def</span> <span style="color: #048; font-weight: bold;">merge_sorted</span>(A, start, mid, end):
+    <span style="color: #048;">a</span>, <span style="color: #048;">b</span>, <span style="color: #048;">i</span>, <span style="color: #048;">j</span> = A[start:mid], A[mid:end], 0, 0
+    <span style="color: #800;">for</span> k <span style="color: #800;">in</span> <span style="color: #800;">range</span>(start, end):
+        <span style="color: #800;">if</span> ((i == mid - start) <span style="color: #800;">or</span>               <span style="color: #666;"># </span><span style="color: #666;">a is merged</span>
+            ((j &lt; end - mid) <span style="color: #800;">and</span> a[i] &gt; b[j])): <span style="color: #666;"># </span><span style="color: #666;">merge smaller b[j]</span>
+            <span style="color: #048;">A</span>[k] = b[j]
+            <span style="color: #048;">j</span> += 1
+        <span style="color: #800;">else</span>:                                   <span style="color: #666;"># </span><span style="color: #666;">merge smaller a[i]</span>
+            <span style="color: #048;">A</span>[k] = a[i]
+            <span style="color: #048;">i</span> += 1
+
+<span style="color: #800;">def</span> <span style="color: #048; font-weight: bold;">do_merge_sort</span>(A, start, end):
+    <span style="color: #800;">if</span> end - start &lt; 2:
+        <span style="color: #800;">return</span>
+    <span style="color: #048;">mid</span> = (start + end) / 2
+    do_merge_sort(A, start, mid)        <span style="color: #666;"># </span><span style="color: #666;">split</span>
+    do_merge_sort(A, mid, end)          <span style="color: #666;"># </span><span style="color: #666;">split</span>
+    merge_sorted(A, start, mid, end)    <span style="color: #666;"># </span><span style="color: #666;">merge</span>
+
+<span style="color: #800;">def</span> <span style="color: #048; font-weight: bold;">merge_sort</span>(A):
+    do_merge_sort(A, 0, <span style="color: #800;">len</span>(A))
+    <span style="color: #800;">return</span> A
+
+<span style="color: #800;">print</span> merge_sort([8, 94, 45, 63, 7, 7, 31])
+</pre>
+</div>
+
+<pre class="example">
+[7, 7, 8, 31, 45, 63, 94]
+</pre>
+</div>
+</div>
+
+<div id="outline-container-orgheadline5" class="outline-3">
+<h3 id="orgheadline5">堆排序</h3>
+<div class="outline-text-3" id="text-orgheadline5">
+<p>
+堆排序是设计非常巧妙的排序，堆是一个数组，展开为树结构之后保证上一层元素比下一层元素小。
+</p>
+<div class="org-center">
+
+<div class="figure">
+<p><img src="/resource/algorithm/fig/sort/heap-arrary.png" alt="heap-arrary.png" />
+</p>
+<p><span class="figure-number">Figure 2:</span> 堆数组</p>
+</div>
+</div>
+
+<p>
+堆排序最巧妙的函数是<code>max_heapify()</code>，需要注意这是一个递归函数，它将一个不合法的值插入到根节点，前提是左右子堆都是合法的堆，通过递归交换，把不合法的值传递到合法的位置。这个函数被两次利用，建堆的时候用一次，排序的时候又用一次，这其中的巧妙需要细细体会。
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-python"><span style="color: #800;">def</span> <span style="color: #048; font-weight: bold;">left</span>(i):
+    <span style="color: #800;">return</span> 2*i + 1
+<span style="color: #800;">def</span> <span style="color: #048; font-weight: bold;">right</span>(i):
+    <span style="color: #800;">return</span> 2*i + 2
+
+<span style="color: #800;">def</span> <span style="color: #048; font-weight: bold;">max_heapify</span>(A, i, size):
+    <span style="color: #048;">maxi</span>, <span style="color: #048;">l</span>, <span style="color: #048;">r</span> = i, left(i), right(i)
+    <span style="color: #800;">if</span> l &lt; size <span style="color: #800;">and</span> A[l] &gt; A[maxi]:     <span style="color: #666;"># </span><span style="color: #666;">find max idx</span>
+        <span style="color: #048;">maxi</span> = l
+    <span style="color: #800;">if</span> r &lt; size <span style="color: #800;">and</span> A[r] &gt; A[maxi]:     <span style="color: #666;"># </span><span style="color: #666;">find max idx</span>
+        <span style="color: #048;">maxi</span> = r
+    <span style="color: #800;">if</span> maxi != i:
+        A[i], <span style="color: #048;">A</span>[maxi] = A[maxi], A[i]   <span style="color: #666;"># </span><span style="color: #666;">A[i] set to be max</span>
+        max_heapify(A, maxi, size)      <span style="color: #666;"># </span><span style="color: #666;">heapify sub-heap</span>
+
+<span style="color: #800;">def</span> <span style="color: #048; font-weight: bold;">build_max_heap</span>(A, size):
+    <span style="color: #800;">for</span> i <span style="color: #800;">in</span> <span style="color: #800;">range</span>(size/2, -1, -1):
+        max_heapify(A, i, size)         <span style="color: #666;"># </span><span style="color: #666;">O(lgn)</span>
+
+<span style="color: #800;">def</span> <span style="color: #048; font-weight: bold;">heap_sort</span>(A):
+    <span style="color: #048;">size</span> = <span style="color: #800;">len</span>(A)
+    <span style="color: #800;">if</span> size &lt; 2:
+        <span style="color: #800;">return</span> A
+    build_max_heap(A, size)             <span style="color: #666;"># </span><span style="color: #666;">O(nlgn)</span>
+    <span style="color: #800;">for</span> i <span style="color: #800;">in</span> <span style="color: #800;">range</span>(size - 1, 0, -1):
+        A[i], <span style="color: #048;">A</span>[0] = A[0], A[i]         <span style="color: #666;"># </span><span style="color: #666;">set A[i] to max value</span>
+        max_heapify(A, 0, i)            <span style="color: #666;"># </span><span style="color: #666;">heapify left unsorted sequence</span>
+    <span style="color: #800;">return</span> A
+
+<span style="color: #800;">print</span> heap_sort([8, 94, 45, 63, 7, 7, 31])
+</pre>
+</div>
+
+<pre class="example">
+[7, 7, 8, 31, 45, 63, 94]
+</pre>
+</div>
+</div>
+
+<div id="outline-container-orgheadline6" class="outline-3">
+<h3 id="orgheadline6">快速排序</h3>
+<div class="outline-text-3" id="text-orgheadline6">
+<p>
+快速排序的思路还是比较清晰的，将序列分成两半，一半比指定值小，一半比指定值大，递归分割完成之后就排好序了。
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-python"><span style="color: #800;">def</span> <span style="color: #048; font-weight: bold;">simple_partition</span>(A, start, end):
+    <span style="color: #800;">if</span> end - start &lt; 2:
+        <span style="color: #800;">return</span> start
+    <span style="color: #048;">i</span>, <span style="color: #048;">x</span> = start, A[end-1]
+    <span style="color: #800;">for</span> j <span style="color: #800;">in</span> <span style="color: #800;">range</span>(start, end):
+        <span style="color: #800;">if</span> A[j] &lt; x:                    <span style="color: #666;"># </span><span style="color: #666;">find a &lt; x</span>
+            A[i], <span style="color: #048;">A</span>[j] = A[j], A[i]     <span style="color: #666;"># </span><span style="color: #666;">move a to left</span>
+            <span style="color: #048;">i</span> += 1
+    A[i], <span style="color: #048;">A</span>[end-1] = A[end-1], A[i]     <span style="color: #666;"># </span><span style="color: #666;">set mid value</span>
+    <span style="color: #800;">return</span> i                            <span style="color: #666;"># </span><span style="color: #666;">get mid index</span>
+
+<span style="color: #800;">def</span> <span style="color: #048; font-weight: bold;">hoare_partition</span>(A, start, end):
+    <span style="color: #800;">if</span> end - start &lt; 2:
+        <span style="color: #800;">return</span> start
+    <span style="color: #048;">x</span>, <span style="color: #048;">i</span>, <span style="color: #048;">j</span> = A[start], start, end-1
+    <span style="color: #800;">while</span> i &lt; j:
+        <span style="color: #800;">while</span> i &lt; j <span style="color: #800;">and</span> A[j] &gt; x:       <span style="color: #666;"># </span><span style="color: #666;">find a &lt;= x from right</span>
+            <span style="color: #048;">j</span> -= 1
+        <span style="color: #800;">while</span> i &lt; j <span style="color: #800;">and</span> A[i] &lt;= x:      <span style="color: #666;"># </span><span style="color: #666;">find b &gt; x from left</span>
+            <span style="color: #048;">i</span> += 1
+        <span style="color: #800;">if</span> i &lt; j:
+            A[i], <span style="color: #048;">A</span>[j] = A[j], A[i]     <span style="color: #666;"># </span><span style="color: #666;">move a to the left of b</span>
+    A[start], <span style="color: #048;">A</span>[j] = A[j], A[start]     <span style="color: #666;"># </span><span style="color: #666;">set mid value</span>
+    <span style="color: #800;">return</span> j                            <span style="color: #666;"># </span><span style="color: #666;">get mid index</span>
+
+<span style="color: #800;">def</span> <span style="color: #048; font-weight: bold;">do_quick_sort</span>(A, start, end, pfunc):
+    <span style="color: #800;">if</span> end - start &lt; 2:
+        <span style="color: #800;">return</span>
+    <span style="color: #048;">mid</span> = pfunc(A, start, end)
+    do_quick_sort(A, start, mid, pfunc) <span style="color: #666;"># </span><span style="color: #666;">sort A[start:mid]</span>
+    do_quick_sort(A, mid+1, end, pfunc) <span style="color: #666;"># </span><span style="color: #666;">sort A[mid+1:end]</span>
+
+<span style="color: #800;">def</span> <span style="color: #048; font-weight: bold;">quick_sort</span>(A, pfunc):
+    do_quick_sort(A, 0, <span style="color: #800;">len</span>(A), pfunc)
+    <span style="color: #800;">return</span> A
+
+<span style="color: #800;">print</span> quick_sort([8, 94, 45, 63, 7, 7, 31], simple_partition)
+<span style="color: #800;">print</span> quick_sort([8, 94, 45, 63, 7, 7, 31], hoare_partition)
+</pre>
+</div>
+
+<pre class="example">
+[7, 7, 8, 31, 45, 63, 94]
+[7, 7, 8, 31, 45, 63, 94]
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline9" class="outline-2">
+<h2 id="orgheadline9">特殊排序</h2>
+<div class="outline-text-2" id="text-orgheadline9">
+</div><div id="outline-container-orgheadline8" class="outline-3">
+<h3 id="orgheadline8">计数排序</h3>
+<div class="outline-text-3" id="text-orgheadline8">
+<p>
+计数排序的思路是非常简单的，如果我们知道小于或等于当前元素的个数，那么就可以直接将当前元素放到输出序列的对应位置。
+</p>
+
+<p>
+这种排序算法需要限制输入序列值的范围，并且只能处理整数。
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-python"><span style="color: #800;">def</span> <span style="color: #048; font-weight: bold;">count_sort</span>(A):
+    <span style="color: #048;">minx</span> = <span style="color: #800;">min</span>(A)
+    <span style="color: #048;">A</span> = [x-minx <span style="color: #800;">for</span> x <span style="color: #800;">in</span> A]
+    <span style="color: #048;">n</span>, <span style="color: #048;">k</span> = <span style="color: #800;">len</span>(A), <span style="color: #800;">max</span>(A) + 1
+    <span style="color: #048;">B</span>, <span style="color: #048;">C</span> = [0] * n, [0] * k
+    <span style="color: #800;">for</span> i <span style="color: #800;">in</span> <span style="color: #800;">range</span>(n):
+        C[A[i]] = C[A[i]] + 1           <span style="color: #666;"># </span><span style="color: #666;">C[i] == counts(val == i)</span>
+    <span style="color: #800;">for</span> i <span style="color: #800;">in</span> <span style="color: #800;">range</span>(1, k):
+        <span style="color: #048;">C</span>[i] += C[i-1]                  <span style="color: #666;"># </span><span style="color: #666;">C[i] == counts(val &lt;= i)</span>
+    <span style="color: #800;">for</span> i <span style="color: #800;">in</span> <span style="color: #800;">range</span>(n - 1, -1, -1):
+        B[C[A[i]]-1] = A[i]
+        C[A[i]] -= 1
+    <span style="color: #048;">A</span> = [x+minx <span style="color: #800;">for</span> x <span style="color: #800;">in</span> B]
+    <span style="color: #800;">return</span> A
+
+<span style="color: #800;">print</span> count_sort([8, 94, 45, 63, 7, 7, 31])
+</pre>
+</div>
+
+<pre class="example">
+[7, 7, 8, 31, 45, 63, 94]
+</pre>
+</div>
+</div>
+</div>
