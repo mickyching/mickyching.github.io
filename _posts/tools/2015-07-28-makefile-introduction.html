@@ -1,0 +1,271 @@
+---
+title: Makefile简介
+categories: tools
+tags: makefile
+author: 敬叶
+---
+<dl class="post-meta">
+<dt class="post-meta">2015-07-28</dt><dd>敬叶 初稿</dd>
+</dl>
+<hr><br>
+<div id="table-of-contents"><h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#orgheadline1">基本概念</a></li>
+<li><a href="#orgheadline13">基本语法</a>
+<ul>
+<li><a href="#orgheadline5">符号与规则</a>
+<ul>
+<li><a href="#orgheadline2">基本符号</a></li>
+<li><a href="#orgheadline3">精简规则</a></li>
+<li><a href="#orgheadline4">条件判断</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline8">变量赋值</a>
+<ul>
+<li><a href="#orgheadline6">基本变量赋值</a></li>
+<li><a href="#orgheadline7">高级变量赋值</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline12">函数</a>
+<ul>
+<li><a href="#orgheadline9">字符串处理</a></li>
+<li><a href="#orgheadline10">路径处理</a></li>
+<li><a href="#orgheadline11">其他操作</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#orgheadline14">参考资料</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline1" class="outline-2">
+<h2 id="orgheadline1">基本概念</h2>
+<div class="outline-text-2" id="text-orgheadline1">
+<!--abstract-begin-->
+<p>
+Makefile最重要的三个概念是目标、依赖和命令，所有的目标都是通过命令来生成，而执行命令的顺序则是由依赖关系确定。基本语法如下所示。
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-makefile"><span style="color: #048; font-weight: bold;">target</span>: dependency
+        command
+</pre>
+</div>
+
+<p>
+另外一个比较重要的是可以在Makefile中定义变量，定义的方式就是直接用等号赋值，引用变量则要用<code>$(varname)</code>来表示。
+</p>
+<!--abstract-end-->
+</div>
+</div>
+
+<div id="outline-container-orgheadline13" class="outline-2">
+<h2 id="orgheadline13">基本语法</h2>
+<div class="outline-text-2" id="text-orgheadline13">
+</div><div id="outline-container-orgheadline5" class="outline-3">
+<h3 id="orgheadline5">符号与规则</h3>
+<div class="outline-text-3" id="text-orgheadline5">
+</div><div id="outline-container-orgheadline2" class="outline-4">
+<h4 id="orgheadline2">基本符号</h4>
+<div class="outline-text-4" id="text-orgheadline2">
+<dl class="org-dl">
+<dt>@</dt><dd>如果在命令开头，表示编译时不显示当前命令，这样可以减少不必要的输出</dd>
+<dt>-</dt><dd>如果在命令开头，表示忽略该行的错误</dd>
+<dt>$@</dt><dd>表示规则中的目标</dd>
+<dt>$*</dt><dd>目标主文件名，即去除后缀</dd>
+<dt>$^</dt><dd>表示规则中的所有依赖</dd>
+<dt>$+</dt><dd>所有依赖，未对重复项清理</dd>
+<dt>$&lt;</dt><dd>表示规则中的第一个依赖</dd>
+<dt>$?</dt><dd>时间戳在目标之后的所有依赖</dd>
+</dl>
+
+<div class="org-src-container">
+
+<pre class="src src-makefile"><span style="color: #048; font-weight: bold;">.PHONY</span>: all
+<span style="color: #048; font-weight: bold;">all</span>: dep1 dep2 dep3
+        <span style="color: #800;">@</span>echo <span style="color: #800;">"\$$@ = </span><span style="color: #800; font-weight: bold;">$</span><span style="color: #800; font-weight: bold;">@</span><span style="color: #800;">"</span>
+        <span style="color: #800;">@</span>echo <span style="color: #800;">"$$^ = $</span><span style="color: #800;">^</span><span style="color: #800;">"</span>
+        <span style="color: #800;">@</span>echo <span style="color: #800;">"$$&lt; = $</span><span style="color: #800;">&lt;</span><span style="color: #800;">"</span>
+<span style="color: #048; font-weight: bold;">dep1 dep2 dep3</span>:
+</pre>
+</div>
+
+<p>
+要输出<code>$</code>符号就需要用两个，注意<code>$@</code>在Bash shell中有特殊含义，所以必须要转义。
+</p>
+
+<dl class="org-dl">
+<dt>.PHONY</dt><dd>设定假目标，防止发现和目标相同的文件时不去编译</dd>
+<dt>CURDIR</dt><dd>自动设置为当前目录</dd>
+<dt>MAKE</dt><dd>处理Makefile的命令。</dd>
+<dt>MAKECMDGOALS</dt><dd>Makefile构建的目标名。</dd>
+<dt>MAKE_VERSION</dt><dd>版本号</dd>
+<dt>MAKEFILE_LIST</dt><dd>程序make读入的Makefile文件名列表</dd>
+<dt>.VARIABLES</dt><dd>程序make读入的变量列表</dd>
+</dl>
+</div>
+</div>
+
+<div id="outline-container-orgheadline3" class="outline-4">
+<h4 id="orgheadline3">精简规则</h4>
+<div class="outline-text-4" id="text-orgheadline3">
+<p>
+如下写法表示目标文件的生成规则，避免手动输入大量重复规则。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-makefile"><span style="color: #048; font-weight: bold;">%.o</span>: %.c
+        $(<span style="color: #048;">CC</span>) -c $<span style="color: #800;">^</span> -o <span style="color: #048; font-weight: bold;">$</span><span style="color: #800; font-weight: bold;">@</span>
+</pre>
+</div>
+
+<p>
+更局部的一种写法是如下这样，这样可以更好的指定规则作用的范围：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-makefile"><span style="color: #048; font-weight: bold;">$(OBJECTS)</span>: %.o: %.c
+        $(<span style="color: #048;">CC</span>) -c $<span style="color: #800;">^</span> -o <span style="color: #048; font-weight: bold;">$</span><span style="color: #800; font-weight: bold;">@</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline4" class="outline-4">
+<h4 id="orgheadline4">条件判断</h4>
+<div class="outline-text-4" id="text-orgheadline4">
+<p>
+条件判断包括<code>ifdef</code><code>ifndef</code><code>ifeq</code>和<code>ifneq</code>几个，使用必须记住以<code>endif</code>结束。中间可以插入<code>else</code>分支。
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline8" class="outline-3">
+<h3 id="orgheadline8">变量赋值</h3>
+<div class="outline-text-3" id="text-orgheadline8">
+</div><div id="outline-container-orgheadline6" class="outline-4">
+<h4 id="orgheadline6">基本变量赋值</h4>
+<div class="outline-text-4" id="text-orgheadline6">
+<dl class="org-dl">
+<dt>=</dt><dd>递归赋值，调用时展开。</dd>
+<dt>:=</dt><dd>简单赋值，赋值时展开。</dd>
+<dt>?=</dt><dd>条件赋值，调用时展开，如果已经定义就保持不变。</dd>
+</dl>
+
+<div class="org-src-container">
+
+<pre class="src src-makefile"><span style="color: #048;">x</span> = one
+<span style="color: #048;">y</span> = $(<span style="color: #048;">x</span>) two
+<span style="color: #048;">x</span> = three
+
+<span style="color: #048;">a</span> := one
+<span style="color: #048;">b</span> := $(<span style="color: #048;">a</span>) two
+<span style="color: #048;">a</span> := three
+
+<span style="color: #048; font-weight: bold;">all</span>:
+        <span style="color: #800;">@</span>echo <span style="color: #800;">"x = $(</span><span style="color: #048;">y</span><span style="color: #800;">), a = $(</span><span style="color: #048;">b</span><span style="color: #800;">)"</span>
+</pre>
+</div>
+<pre class="example">
+x = three two, a = one two
+</pre>
+<p>
+除了这里提到的变量定义方法，还有另外两种变量定义方式，一种是通过命令行传递，这种方法会覆盖Makefile中的定义，另外一种方式是通过shell来导出变量，即使用export定义。
+</p>
+</div>
+</div>
+<div id="outline-container-orgheadline7" class="outline-4">
+<h4 id="orgheadline7">高级变量赋值</h4>
+<div class="outline-text-4" id="text-orgheadline7">
+<p>
+如下这段代码实现批量后缀替换。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-makefile"><span style="color: #048;">src</span> = a.c b.c c.c
+<span style="color: #048;">header</span> = $(<span style="color: #048;">src</span>:<span style="color: #048;">.c</span>=.h)
+<span style="color: #048; font-weight: bold;">all</span>:
+        <span style="color: #800;">@</span>echo <span style="color: #800;">"header: $(</span><span style="color: #048;">header</span><span style="color: #800;">)"</span>
+</pre>
+</div>
+<pre class="example">
+header: a.h b.h c.h
+</pre>
+
+<dl class="org-dl">
+<dt>overide</dt><dd>用于强制避免变量被覆盖。</dd>
+</dl>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline12" class="outline-3">
+<h3 id="orgheadline12">函数</h3>
+<div class="outline-text-3" id="text-orgheadline12">
+</div><div id="outline-container-orgheadline9" class="outline-4">
+<h4 id="orgheadline9">字符串处理</h4>
+<div class="outline-text-4" id="text-orgheadline9">
+<dl class="org-dl">
+<dt>strip text</dt><dd>删除首尾空白字符，并合并多个连续空格</dd>
+<dt>first list</dt><dd>取第一个单词</dd>
+<dt>findstring str,text</dt><dd>查询文本中的字符串，没找到返回空</dd>
+<dt>sort list</dt><dd>对列表中单词排序</dd>
+<dt>subst from,to,text</dt><dd>替换文本</dd>
+<dt>patsubst regex,to,text</dt><dd>按规则替换文本</dd>
+<dt>word n,text</dt><dd>取第n个单词</dd>
+<dt>wordlist b,e,text</dt><dd>取索引在<code>[b,e)</code>范围内的单词</dd>
+<dt>words text</dt><dd>统计单词数</dd>
+<dt>filter regex list</dt><dd>从列表中获取匹配的项</dd>
+<dt>filter-out regex list</dt><dd>返回列表中不匹配的项</dd>
+</dl>
+</div>
+</div>
+<div id="outline-container-orgheadline10" class="outline-4">
+<h4 id="orgheadline10">路径处理</h4>
+<div class="outline-text-4" id="text-orgheadline10">
+<dl class="org-dl">
+<dt>abspath path</dt><dd>将路径名转换为绝对路径名</dd>
+<dt>realpath path</dt><dd>获取真实路径</dd>
+<dt>dir list</dt><dd>获取从列表路径中解析目录名</dd>
+<dt>notdir list</dt><dd>取路径中非目录部分</dd>
+<dt>suffix list</dt><dd>取后缀</dd>
+<dt>basename list</dt><dd>取文件名去除后缀部分</dd>
+<dt>addprefix pre,list</dt><dd>增加前缀</dd>
+<dt>addsuffix suf,list</dt><dd>增加后缀</dd>
+<dt>join list1,list2</dt><dd>将两组单词对应拼接</dd>
+<dt>wildcard regex</dt><dd>获取当前目录中满足规则的文件/目录列表</dd>
+</dl>
+</div>
+</div>
+<div id="outline-container-orgheadline11" class="outline-4">
+<h4 id="orgheadline11">其他操作</h4>
+<div class="outline-text-4" id="text-orgheadline11">
+<dl class="org-dl">
+<dt>eval text</dt><dd>相当于将文本/变量展开作为Makefile的一部分执行</dd>
+<dt>if cond,then-do[,else-do]</dt><dd>条件执行</dd>
+<dt>foreach var,list,cmd</dt><dd>将列表元素依次赋值给变量并执行命令</dd>
+<dt>call func[,vars]</dt><dd>调用函数</dd>
+<dt>shell cmd</dt><dd>执行命令</dd>
+<dt>origin var</dt><dd>返回变量来源，可以用来测试变量是否定义</dd>
+<dt>value var</dt><dd>不对变量展开，直接返回</dd>
+<dt>warning text</dt><dd>打印警告信息</dd>
+<dt>error text</dt><dd>打印错误信息，会退出执行</dd>
+</dl>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline14" class="outline-2">
+<h2 id="orgheadline14">参考资料</h2>
+<div class="outline-text-2" id="text-orgheadline14">
+<ul class="org-ul">
+<li><a href="http://vimersu.win/blog/2014/01/13/gnu-make-study01/">GNU Make学习总结（一）</a> | <a href="http://vimersu.win/blog/2014/01/23/gnu-make-study02/">GNU Make学习总结（二）</a></li>
+</ul>
+</div>
+</div>
