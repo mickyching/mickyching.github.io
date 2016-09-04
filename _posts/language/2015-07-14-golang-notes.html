@@ -1,0 +1,633 @@
+---
+title: Go语言笔记
+categories: language
+tags: 笔记 golang
+author: 敬叶
+---
+<dl class="post-meta">
+<dt class="post-meta">2015-07-14</dt><dd>敬叶 初稿</dd>
+</dl>
+<hr><br>
+<div id="table-of-contents"><h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#orgheadline17">语法要点</a>
+<ul>
+<li><a href="#orgheadline1">语言特性</a>
+<ul>
+<li><a href="#orgheadline2">保留关键字</a></li>
+<li><a href="#orgheadline3">运算符优先级</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline6">数据类型</a>
+<ul>
+<li><a href="#orgheadline4">基本类型</a></li>
+<li><a href="#orgheadline5">复合类型</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline12">过程语法</a>
+<ul>
+<li><a href="#orgheadline7">表达式</a></li>
+<li><a href="#orgheadline8">分支语句</a></li>
+<li><a href="#orgheadline9">迭代语句</a></li>
+<li><a href="#orgheadline10">循环语句</a></li>
+<li><a href="#orgheadline11">函数</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline16">对象语法</a>
+<ul>
+<li><a href="#orgheadline13">数据成员</a></li>
+<li><a href="#orgheadline14">方法成员</a></li>
+<li><a href="#orgheadline15">接口</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#orgheadline22">高级特性</a>
+<ul>
+<li><a href="#orgheadline18">并发</a></li>
+<li><a href="#orgheadline21">项目管理</a>
+<ul>
+<li><a href="#orgheadline19">环境变量</a></li>
+<li><a href="#orgheadline20">包管理</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#orgheadline23">参考资料</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline17" class="outline-2">
+<h2 id="orgheadline17">语法要点</h2>
+<div class="outline-text-2" id="text-orgheadline17">
+</div><div id="outline-container-orgheadline1" class="outline-3">
+<h3 id="orgheadline1">语言特性</h3>
+<div class="outline-text-3" id="text-orgheadline1">
+<!--abstract-begin-->
+<p>
+从Go语言的演化来看，可以分为三条主线：从C语言继承了基本数据类型、表达式语法、指针与函数。从Pascal-Oberon-2继承了包管理和面向对象声明语法。从CSP中继承管道通信。
+</p>
+
+<p>
+Go语言有很多自带功能，这些功能基本都是以提高开发效率为目的：
+</p>
+<ul class="org-ul">
+<li>严格的代码规范：大小写、括号位置、缩进等</li>
+<li>多返回值支持，统一的错误处理形式</li>
+<li>类型安全（静态类型）</li>
+<li>常用数据类型：map/slice</li>
+<li>匿名函数</li>
+<li>闭包</li>
+<li>垃圾回收</li>
+<li>包管理系统</li>
+<li>只读UTF-8字符串</li>
+<li>系统调用接口</li>
+</ul>
+
+<!--abstract-end-->
+
+<p>
+相比C++又缺失了很多功能，缺少的这些功能要么是影响开发效率，要么是影响编译效率：
+</p>
+<ul class="org-ul">
+<li>没有隐式类型转换：需要编写丑陋的强制转换</li>
+<li>不支持静态变量：闭包</li>
+<li>没有指针算术：无法实现</li>
+<li>没有构造/析构函数：需要编写普通函数来构造对象，垃圾回收自带析构功能</li>
+<li>没有运算符重载：函数作为一等公民</li>
+<li>没有默认参数：强制传入参数</li>
+<li>没有继承：匿名成员实现继承效果</li>
+<li>没有多态：非侵入性接口</li>
+<li>没有泛型：这和没有默认参数一样，只能手动加入代码</li>
+<li>没有异常：用panic/recover处理运行时异常</li>
+<li>没有宏：函数作为一等公民</li>
+<li>没有函数修饰：结构体加成员函数</li>
+<li>没有线程局部存储：通道通信实现共享</li>
+<li>不支持动态链接库：无法实现</li>
+</ul>
+</div>
+
+<div id="outline-container-orgheadline2" class="outline-4">
+<h4 id="orgheadline2">保留关键字</h4>
+<div class="outline-text-4" id="text-orgheadline2">
+<pre class="example">
+keywords: break      default       func     interface   select
+          case       defer         go       map         struct
+          chan       else          goto     package     switch
+          const      fallthrough   if       range       type
+          continue   for           import   return      var
+constant: true false iota nil
+type:     int int8-64 uint8-64 float32-64 complex64-128
+          bool byte rune uintptr string error
+function: make len cap new append copy close delete complex real imag
+          panic recover
+</pre>
+</div>
+</div>
+
+<div id="outline-container-orgheadline3" class="outline-4">
+<h4 id="orgheadline3">运算符优先级</h4>
+<div class="outline-text-4" id="text-orgheadline3">
+<pre class="example">
+%      *      /      &lt;&lt;       &gt;&gt;     &amp;(AND)   &amp;^
++      -      |(OR)  ^(NOT, XOR)
+==     !=     &lt;      &lt;=       &gt;      &gt;=
+&amp;&amp;
+||
+</pre>
+<p>
+对于<code>&amp;^</code>更倾向于认为他们是两个操作的叠加，将<code>^</code>解释为单目按位取反操作。逻辑操作<code>&amp;&amp;</code>和<code>||</code>可以更形象比作逻辑乘法和逻辑加法。
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline6" class="outline-3">
+<h3 id="orgheadline6">数据类型</h3>
+<div class="outline-text-3" id="text-orgheadline6">
+</div><div id="outline-container-orgheadline4" class="outline-4">
+<h4 id="orgheadline4">基本类型</h4>
+<div class="outline-text-4" id="text-orgheadline4">
+<p>
+变量声明时变量名在类型名之前，支持多变量定义及赋值，多变量赋值的要点是先计算后赋值。简短声明需要注意作用域问题，在内嵌块中用简短声明同名变量时会产生新的变量，这种特性有可能产生很难调试的问题。
+</p>
+
+<p>
+整数类型<code>int</code>的长度由CPU而定，另一个和机器相关的类型是<code>uintptr</code>。字符类型<code>rune</code>等价于<code>uint32</code>，二者可以互换使用，同样<code>byte</code>也是<code>int8</code>的等价类型。
+</p>
+
+<p>
+Go语言不支持隐式类型转换，即便是整型向布尔转换也不行。对于无类型常量，编译器提供至少32字节的运算精度，这个精度大于Go语言中整型量。将无类型常量复制给变量时，可能会发生隐式转换，因为无类型常量也可以认为有一个最佳匹配类型。
+</p>
+
+<p>
+字符串被设计为不可变对象，也就是不能修改字符，字符串末尾没有空字符。字符串支持切片操作。用<code>``</code>定义的字符串不对转义字符转义，支持跨行，这种形式称作原生字符串。要修改字符串可以转换为<code>[]rune</code>或<code>[]byte</code>数组再修改，转换会复制内存。遍历字符串用<code>range</code>完成，要按字节遍历可以直接用下标访问。用<code>len()</code>对字符串计算长度得到的是字符串的字节数。
+</p>
+
+<p>
+数组被设计为数值类型，赋值和参数传递会复制整个数组。指针数组<code>[n]*T</code>和数组指针<code>*[n]T</code>表达上看星号位置。因为数组是值传递，所以实际上很少会用到，大多情况都使用切片。
+</p>
+
+<p>
+指针不支持算术运算，但支持解引用和成员操作符，成员操作符统一用点操作，箭头不再具有取成员的功能。比较特别的是返回局部变量的指针是安全的，这种情况编译器会做逃逸分析并视情况选择是否在堆上分配。
+</p>
+
+<p>
+函数<code>new()</code>用于创建对象，并返回一个指针。由于返回自动变量的指针是安全的，所以<code>new()</code>本身可有可无，好处是可以让代码更简洁一点。
+</p>
+
+<p>
+选择在栈上分配还是在堆上分配取决于编译器的逃逸分析结果：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-go"><span style="color: #800;">func</span> <span style="color: #048; font-weight: bold;">var_on_heap</span>() *<span style="color: #800;">int</span> {               <span style="color: #666;">// </span><span style="color: #666;">compiler alloc on heap</span>
+        <span style="color: #800;">var</span> x int
+        x = 1
+        <span style="color: #800;">return</span> &amp;x
+}
+
+<span style="color: #800;">func</span> <span style="color: #048; font-weight: bold;">var_on_stack</span>() {                   <span style="color: #666;">// </span><span style="color: #666;">compiler alloc on stack(or heap)</span>
+        y := <span style="color: #800;">new</span>(<span style="color: #800;">int</span>)
+        *y = 1
+}
+</pre>
+</div>
+
+<p>
+关键字<code>type</code>用于定义新类型，和C语言的<code>typedef</code>相似。但是需要强调即便是用同一个类型衍生的两个类型，也表示不同的类型，因此相互之间不能直接比较和运算。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline5" class="outline-4">
+<h4 id="orgheadline5">复合类型</h4>
+<div class="outline-text-4" id="text-orgheadline5">
+<p>
+切片类型和数组在形式上的区别是切片没有指定长度，并且切片不能像数组一样直接进行比较。对数组执行切片操作，就能得到一个切片类型，为了节省内存，切片之后并不会复制内存。
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-go"><span style="color: #800;">struct</span> slice
+{
+        byte*    array;      <span style="color: #666;">// </span><span style="color: #666;">actual data</span>
+        uintgo   len;        <span style="color: #666;">// </span><span style="color: #666;">number of elements</span>
+        uintgo   cap;        <span style="color: #666;">// </span><span style="color: #666;">allocated number of elements</span>
+};
+array := [...]<span style="color: #800;">int</span>{0, 1, 2, 3, 4, 5, 6}
+slice := array[1:4:5]                    <span style="color: #666;">// </span><span style="color: #666;">[beg:end:cap]</span>
+</pre>
+</div>
+
+<dl class="org-dl">
+<dt>append(s, x&#x2026;)</dt><dd>用于向slice尾部添加数据，超出cap就会重新分配并复制。</dd>
+<dt>copy(dst, src)</dt><dd>复制以长度小的为准，复制本身不会分配内存</dd>
+</dl>
+
+<p>
+对切片是否为空的测试应利用长度来判断，而不是直接和<code>nil</code>比较。因为存在长度为0但是本身却不为<code>nil</code>的情况。
+</p>
+
+<p>
+映射是基于哈希表的引用类型，支持index、delete操作。索引取回的是复制品，对成员修改并不会作用到映射中的数据，只能是用一个新的值去替换。迭代时可以删除，但是不要新增。
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline12" class="outline-3">
+<h3 id="orgheadline12">过程语法</h3>
+<div class="outline-text-3" id="text-orgheadline12">
+</div><div id="outline-container-orgheadline7" class="outline-4">
+<h4 id="orgheadline7">表达式</h4>
+<div class="outline-text-4" id="text-orgheadline7">
+<p>
+除法运算若两个参数都是整数，则执行整数除法，否则执行浮点数除法，乘法运算原理相同。取模的原则是：结果的符号和被取模的数符号一致。
+</p>
+
+<p>
+算术运算溢出时，高位被丢弃，有符号类型情况比较复杂，如对于<code>int8</code>执行<code>127 + 1</code>得到的结果将是<code>-128</code>。
+</p>
+
+<p>
+不支持运算符重载，另外注意<code>++</code>和<code>--</code>是语句，而不是表达式。按位取反运算采用<code>^</code>算符，而不是C语言中的<code>~</code>算符。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline8" class="outline-4">
+<h4 id="orgheadline8">分支语句</h4>
+<div class="outline-text-4" id="text-orgheadline8">
+<p>
+对分支语句添加了初始化语句支持，没有<code>?:</code>操作符。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-go"><span style="color: #800;">if</span> init; condition {
+        statements
+} <span style="color: #800;">else</span> <span style="color: #800;">if</span> condition {
+        statements
+} <span style="color: #800;">else</span> {
+        statements
+}
+
+<span style="color: #800;">switch</span> expr {
+<span style="color: #800;">case</span> value:
+        statements
+<span style="color: #800;">default</span>:
+        statements
+}
+
+<span style="color: #800;">switch</span> {
+<span style="color: #800;">case</span> condition:
+        statements
+<span style="color: #800;">default</span>:
+        statements
+}
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline9" class="outline-4">
+<h4 id="orgheadline9">迭代语句</h4>
+<div class="outline-text-4" id="text-orgheadline9">
+<p>
+迭代语句range所返回的对象是复制对象，而不是原生对象，当使用引用类型时，底层数据不会被复制。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline10" class="outline-4">
+<h4 id="orgheadline10">循环语句</h4>
+<div class="outline-text-4" id="text-orgheadline10">
+<p>
+Go语言对for语句做了大量重载工作，将原来属于while语句的写法都移植到for语句中了。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-go"><span style="color: #800;">for</span> idx, item := <span style="color: #800;">range</span> seqs {           <span style="color: #666;">// </span><span style="color: #666;">like for in Python</span>
+        statements
+}
+
+<span style="color: #800;">for</span> init; condition; post {             <span style="color: #666;">// </span><span style="color: #666;">like for in C++</span>
+        statements
+}
+
+<span style="color: #800;">for</span> condition {                         <span style="color: #666;">// </span><span style="color: #666;">like while</span>
+        statements
+}
+
+<span style="color: #800;">for</span> {                                   <span style="color: #666;">// </span><span style="color: #666;">like while(1)</span>
+        statements
+}
+</pre>
+</div>
+
+<p>
+迭代语句range对不同的序列返回不同：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-go"><span style="color: #048; font-weight: bold;">string</span>       (i, s[i])
+array/<span style="color: #048; font-weight: bold;">slice</span>  (i, a[i])
+<span style="color: #800;">map</span>          (key, m[key])
+channel      e
+</pre>
+</div>
+
+
+
+<p>
+分支语句switch不再需要写break了，要继续则要显示注明fallthrough。省略元素判别之后就可以当作<code>if...else if...</code>语句。
+</p>
+
+<p>
+跳转语句break/continue支持带标签形式。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline11" class="outline-4">
+<h4 id="orgheadline11">函数</h4>
+<div class="outline-text-4" id="text-orgheadline11">
+<p>
+不支持嵌套、重载和默认参数。支持匿名函数和闭包。
+</p>
+
+<p>
+变参本质上是切片，只能放于最后。使用切片作为变参时，需要展开为<code>s...</code>。
+</p>
+
+<p>
+多返回值只能用多变量接，不能用容器对象接收，但是可以直接传递给函数参数。对于命名返回参数，如果被局部变量遮蔽，就需要显式返回。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-go"><span style="color: #800;">func</span> <span style="color: #048; font-weight: bold;">add</span>(x, y <span style="color: #800;">int</span>) (z <span style="color: #800;">int</span>) {
+        {
+                <span style="color: #800;">var</span> z = x + y
+                <span style="color: #800;">return</span>                  <span style="color: #666;">// </span><span style="color: #666;">ERROR: z is shadowed during return</span>
+                <span style="color: #800;">return</span> z
+        }
+}
+</pre>
+</div>
+
+<p>
+命名返回参数支持<code>defer</code>延迟通过闭包修改。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-go"><span style="color: #800;">func</span> <span style="color: #048; font-weight: bold;">add</span>(x, y <span style="color: #800;">int</span>) (z <span style="color: #800;">int</span>) {
+        <span style="color: #800;">defer</span> <span style="color: #800;">func</span>() {
+                z += 100
+        }()
+        z = x + y
+        <span style="color: #800;">return</span>
+}
+</pre>
+</div>
+
+<p>
+匿名函数可以在channel中传送。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-go">fc := <span style="color: #800;">make</span>(<span style="color: #800;">chan</span> <span style="color: #800;">func</span>() <span style="color: #800;">string</span>, 2)
+fc &lt;- <span style="color: #800;">func</span>() <span style="color: #800;">string</span> { <span style="color: #800;">return</span> <span style="color: #800;">"Hello, World!"</span> }
+<span style="color: #800;">println</span>((&lt;-fc)())
+</pre>
+</div>
+
+<p>
+延迟调用主要负责释放资源和错误处理。不要滥用defer功能，滥用defer功能容易引发性能问题。多个defer采用FILO顺序执行。
+</p>
+
+<p>
+用panic抛出错误，用recover修复错误。对recover的调用有非常严格的限制，必须在<code>defer</code>函数内直接调用才会终止错误，其它地方调用仅返回nil。
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline16" class="outline-3">
+<h3 id="orgheadline16">对象语法</h3>
+<div class="outline-text-3" id="text-orgheadline16">
+</div><div id="outline-container-orgheadline13" class="outline-4">
+<h4 id="orgheadline13">数据成员</h4>
+<div class="outline-text-4" id="text-orgheadline13">
+<p>
+结构体定义用如下格式：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-go"><span style="color: #800;">type</span> <span style="color: #800;">Newtype</span> <span style="color: #800;">struct</span> {
+        member          Int;
+}
+<span style="color: #800;">var</span> temp Newtype;                       <span style="color: #666;">// </span><span style="color: #666;">define variable</span>
+</pre>
+</div>
+
+<p>
+结构体顺序初始化必须包括全部字段，结构体支持匿名字段，匿名成员的真正用途是提供对基类方法调用的简短写法，因此不要滥用匿名成员。
+</p>
+</div>
+</div>
+<div id="outline-container-orgheadline14" class="outline-4">
+<h4 id="orgheadline14">方法成员</h4>
+<div class="outline-text-4" id="text-orgheadline14">
+<p>
+方法只不过多了一个接收对象，可以理解为函数的第一个隐式参数。对于方法的查找，要注意不支持多级指针查找，也就是说想通过多级指针调用方法，就必须显式声明接收对象为多级指针。
+</p>
+
+<p>
+通过匿名字段可以获得和继承类似的复用能力，利用编译器查找次序可以实现重写。
+</p>
+
+<p>
+对方法调用有两种形式：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-go">instance.<span style="color: #048; font-weight: bold;">method</span>(args...)                <span style="color: #666;">// </span><span style="color: #666;">method value</span>
+&lt;<span style="color: #800;">type</span>&gt;.<span style="color: #800;">func</span>(instance, args...)          <span style="color: #666;">// </span><span style="color: #666;">method expression</span>
+</pre>
+</div>
+
+<p>
+method value会复制接收对象，下面的代码中，如果<code>Print()</code>的接收对象是指针，将打印修改后的值，如果<code>Print()</code>的接收对象是值，将打印修改前的值。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-go"><span style="color: #800;">func</span> <span style="color: #048; font-weight: bold;">main</span>() {
+        u := <span style="color: #800;">User</span>{1, <span style="color: #800;">"Tom"</span>}
+        uprint := u.Print               <span style="color: #666;">// </span><span style="color: #666;">copy receiver</span>
+        u.id, u.name = 2, <span style="color: #800;">"Jack"</span>
+        <span style="color: #048; font-weight: bold;">uprint</span>()
+}
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-orgheadline15" class="outline-4">
+<h4 id="orgheadline15">接口</h4>
+<div class="outline-text-4" id="text-orgheadline15">
+<p>
+接口本质上就是方法的集合，只要一个类实现了接口中的所有函数，那么就是提供了该接口。如下所示，所有动物都可以定一个Speak()接口。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-go"><span style="color: #800;">type</span> <span style="color: #800;">Animal</span> <span style="color: #800;">interface</span> {
+        <span style="color: #048; font-weight: bold;">Speak</span>() string
+}
+<span style="color: #800;">func</span> (c <span style="color: #800;">Cat</span>) <span style="color: #048; font-weight: bold;">Speak</span>() <span style="color: #800;">string</span> {
+        <span style="color: #800;">return</span> <span style="color: #800;">"Meow!"</span>
+}
+<span style="color: #800;">func</span> (j <span style="color: #800;">JavaProgrammer</span>) <span style="color: #048; font-weight: bold;">Speak</span>() <span style="color: #800;">string</span> {
+        <span style="color: #800;">return</span> <span style="color: #800;">"Design patterns!"</span>
+}
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline22" class="outline-2">
+<h2 id="orgheadline22">高级特性</h2>
+<div class="outline-text-2" id="text-orgheadline22">
+</div><div id="outline-container-orgheadline18" class="outline-3">
+<h3 id="orgheadline18">并发</h3>
+<div class="outline-text-3" id="text-orgheadline18">
+<p>
+在语言层面提供了<code>goroutine</code>，单个进程可以执行成千上万的并发任务，提供<code>channel</code>来通讯。
+<code>channel</code>在内部实现提供了同步机制，能确保并发安全，默认采用同步模式，接收和发送必须配对，否则一直阻塞。
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-go"><span style="color: #800;">func</span> <span style="color: #048; font-weight: bold;">main</span>() {
+        data := <span style="color: #800;">make</span>(<span style="color: #800;">chan</span> <span style="color: #800;">int</span>)           <span style="color: #666;">// </span><span style="color: #666;">&#25968;&#25454;&#20132;&#25442;&#38431;&#21015;</span>
+        exit := <span style="color: #800;">make</span>(<span style="color: #800;">chan</span> <span style="color: #800;">bool</span>)          <span style="color: #666;">// </span><span style="color: #666;">&#36864;&#20986;&#36890;&#30693;</span>
+        <span style="color: #800;">go</span> <span style="color: #800;">func</span>() {
+                <span style="color: #800;">for</span> d := <span style="color: #800;">range</span> data {    <span style="color: #666;">// </span><span style="color: #666;">&#20174;&#38431;&#21015;&#36845;&#20195;&#25509;&#25910;&#25968;&#25454;&#65292;&#30452;&#21040; close</span>
+                        fmt.<span style="color: #048; font-weight: bold;">Println</span>(d)
+                }
+                fmt.<span style="color: #048; font-weight: bold;">Println</span>(<span style="color: #800;">"recv over."</span>)
+                exit &lt;- <span style="color: #800;">true</span>             <span style="color: #666;">// </span><span style="color: #666;">&#21457;&#20986;&#36864;&#20986;&#36890;&#30693;</span>
+        }()
+        data &lt;- 1                        <span style="color: #666;">// </span><span style="color: #666;">&#21457;&#36865;&#25968;&#25454;</span>
+        data &lt;- 2
+        data &lt;- 3
+        <span style="color: #800;">close</span>(data)                      <span style="color: #666;">// </span><span style="color: #666;">&#20851;&#38381;&#38431;&#21015;</span>
+        fmt.<span style="color: #048; font-weight: bold;">Println</span>(<span style="color: #800;">"send over."</span>)
+        &lt;-exit                           <span style="color: #666;">// </span><span style="color: #666;">&#31561;&#24453;&#36864;&#20986;&#36890;&#30693;</span>
+}
+</pre>
+</div>
+
+<p>
+异步方式通过缓冲区来决定是否阻塞，利用缓冲区来提供效率，另一方面应该考虑指针来规避大数据复制。
+</p>
+
+<p>
+对已关闭的channel发送数据会引发panic，从已关闭channel接收数据会返回零值。对于nil channel，收发都会阻塞。
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-go">c := <span style="color: #800;">make</span>(<span style="color: #800;">chan</span> <span style="color: #800;">int</span>, 3)
+<span style="color: #800;">var</span> send <span style="color: #800;">chan</span>&lt;- <span style="color: #800;">int</span> = c                 <span style="color: #666;">// </span><span style="color: #666;">send only</span>
+<span style="color: #800;">var</span> recv &lt;-<span style="color: #800;">chan</span> <span style="color: #800;">int</span> = c                 <span style="color: #666;">// </span><span style="color: #666;">recv only</span>
+send &lt;- 1
+&lt;-recv
+</pre>
+</div>
+
+<p>
+多通道选择用select完成：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-go"><span style="color: #800;">for</span> {
+        <span style="color: #800;">select</span> {
+        <span style="color: #800;">case</span> v, ok = &lt;-a: s = <span style="color: #800;">"a"</span>
+        <span style="color: #800;">case</span> v, ok = &lt;-b: s = <span style="color: #800;">"b"</span>
+        }
+        <span style="color: #800;">if</span> ok {
+                fmt.<span style="color: #048; font-weight: bold;">Println</span>(s, v)
+        } <span style="color: #800;">else</span> {
+                os.<span style="color: #048; font-weight: bold;">Exit</span>(0)
+        }
+}
+
+<span style="color: #800;">for</span> i := 0; i &lt; 5; i++ {
+        <span style="color: #800;">select</span> {
+        <span style="color: #800;">case</span> a &lt;- i:
+        <span style="color: #800;">case</span> b &lt;- i:
+        }
+}
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline21" class="outline-3">
+<h3 id="orgheadline21">项目管理</h3>
+<div class="outline-text-3" id="text-orgheadline21">
+</div><div id="outline-container-orgheadline19" class="outline-4">
+<h4 id="orgheadline19">环境变量</h4>
+<div class="outline-text-4" id="text-orgheadline19">
+<dl class="org-dl">
+<dt>GOROOT</dt><dd>安装位置</dd>
+<dt>GOARCH</dt><dd>目标处理器架构</dd>
+<dt>GOOS</dt><dd>主机操作系统</dd>
+<dt>GOBIN</dt><dd>编译器安装位置</dd>
+<dt>GOHOSTOS</dt><dd>目标机器操作系统</dd>
+<dt>GOHOSTARCH</dt><dd>目标机器处理器架构</dd>
+<dt>GOPATH</dt><dd>主路径</dd>
+</dl>
+</div>
+</div>
+<div id="outline-container-orgheadline20" class="outline-4">
+<h4 id="orgheadline20">包管理</h4>
+<div class="outline-text-4" id="text-orgheadline20">
+<p>
+每个包对应一个独立名字空间，包内的名字如果以大写字符开头那么该名字就是导出的。如果文件被声明为<code>package main</code>就是指定该文件为主程序，当一个包包含多个文件时，构建工具根据文件名排序发给编译器，编译器再逐个初始化。包文件中可以定义一个<code>init()</code>函数来指定初始化顺序。
+</p>
+
+<p>
+导入包的几种写法：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-go"><span style="color: #800;">import</span>     <span style="color: #800;">"sample/test"</span>      <span style="color: #666;">// </span><span style="color: #666;">test.A</span>
+<span style="color: #800;">import</span>  M  <span style="color: #800;">"sample/test"</span>      <span style="color: #666;">// </span><span style="color: #666;">M.A</span>
+<span style="color: #800;">import</span>  .  <span style="color: #800;">"sample/test"</span>      <span style="color: #666;">// </span><span style="color: #666;">A</span>
+<span style="color: #800;">import</span>  _  <span style="color: #800;">"sample/test"</span>      <span style="color: #666;">// </span><span style="color: #666;">&#20165;&#25191;&#34892;&#21021;&#22987;&#21270;&#20989;&#25968;</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="outline-container-orgheadline23" class="outline-2">
+<h2 id="orgheadline23">参考资料</h2>
+<div class="outline-text-2" id="text-orgheadline23">
+<ul class="org-ul">
+<li><a href="https://docs.ruanjiadeng.com/gopl-zh/index.html">Go语言圣经（中文版）</a></li>
+<li><a href="http://xhrwang.me/2014/12/22/golang-fundamentals-1-types-variables-constants.html">Golang语言基础系列</a></li>
+<li><a href="http://wiki.jikexueyuan.com/project/the-way-to-go/">Go入门指南</a></li>
+<li><a href="http://www.miek.nl/downloads/Go/Learning-Go-latest.pdf">Learning Go</a> | <a href="http://mikespook.com/learning-go/">中文版</a></li>
+<li><a href="https://gobyexample.com/">Go by Example</a></li>
+<li><a href="http://ptgmedia.pearsoncmg.com/images/9780321774637/samplepages/0321774639.pdf">Programming in Go</a></li>
+<li><a href="https://github.com/astaxie/build-web-application-with-golang">build a web with golang</a></li>
+<li><a href="https://github.com/wonderfo/wonderfogo/wiki">Go语言资料收集</a></li>
+<li><a href="http://jan.newmarch.name/go/all.pdf">Network programming with Go</a></li>
+</ul>
+</div>
+</div>
