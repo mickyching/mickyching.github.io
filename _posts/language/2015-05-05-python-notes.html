@@ -12,7 +12,7 @@ author: 敬叶
 <div id="table-of-contents"><h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#orgheadline18">语言要点</a>
+<li><a href="#orgheadline19">语言要点</a>
 <ul>
 <li><a href="#orgheadline1">特性简介</a></li>
 <li><a href="#orgheadline7">数据与操作</a>
@@ -34,29 +34,30 @@ author: 敬叶
 <ul>
 <li><a href="#orgheadline12">属性</a></li>
 <li><a href="#orgheadline13">生成器</a></li>
+<li><a href="#orgheadline14">闭包与装饰器</a></li>
 </ul>
 </li>
-<li><a href="#orgheadline17">类与继承</a>
+<li><a href="#orgheadline18">类与继承</a>
 <ul>
-<li><a href="#orgheadline14">基本概念</a></li>
-<li><a href="#orgheadline15">特殊方法</a></li>
-<li><a href="#orgheadline16">继承</a></li>
+<li><a href="#orgheadline15">基本概念</a></li>
+<li><a href="#orgheadline16">特殊方法</a></li>
+<li><a href="#orgheadline17">继承</a></li>
 </ul>
 </li>
+</ul>
+</li>
+<li><a href="#orgheadline26">注意事项</a>
+<ul>
+<li><a href="#orgheadline22">兼容性问题</a>
+<ul>
+<li><a href="#orgheadline20">输入和输出</a></li>
+<li><a href="#orgheadline21">字典</a></li>
 </ul>
 </li>
 <li><a href="#orgheadline25">注意事项</a>
 <ul>
-<li><a href="#orgheadline21">兼容性问题</a>
-<ul>
-<li><a href="#orgheadline19">输入和输出</a></li>
-<li><a href="#orgheadline20">字典</a></li>
-</ul>
-</li>
-<li><a href="#orgheadline24">注意事项</a>
-<ul>
-<li><a href="#orgheadline22">慎用__del__()方法</a></li>
-<li><a href="#orgheadline23">内存泄漏</a></li>
+<li><a href="#orgheadline23">慎用__del__()方法</a></li>
+<li><a href="#orgheadline24">内存泄漏</a></li>
 </ul>
 </li>
 </ul>
@@ -65,9 +66,9 @@ author: 敬叶
 </div>
 </div>
 
-<div id="outline-container-orgheadline18" class="outline-2">
-<h2 id="orgheadline18">语言要点</h2>
-<div class="outline-text-2" id="text-orgheadline18">
+<div id="outline-container-orgheadline19" class="outline-2">
+<h2 id="orgheadline19">语言要点</h2>
+<div class="outline-text-2" id="text-orgheadline19">
 </div><div id="outline-container-orgheadline1" class="outline-3">
 <h3 id="orgheadline1">特性简介</h3>
 <div class="outline-text-3" id="text-orgheadline1">
@@ -333,14 +334,74 @@ accept arbitrary numerical arguments and return their sum
 </pre>
 </div>
 </div>
+
+<div id="outline-container-orgheadline14" class="outline-4">
+<h4 id="orgheadline14">闭包与装饰器</h4>
+<div class="outline-text-4" id="text-orgheadline14">
+<p>
+函数装饰器是通过嵌套函数来实现的，或者说是闭包来实现的。闭包的主要特点是即使外部函数已经返回，内部函数依然可以访问外部函数的局部变量。
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-python"><span style="color: #800;">def</span> <span style="color: #048; font-weight: bold;">func_log</span>(func):
+    <span style="color: #048;">n</span> = [0]
+    <span style="color: #800;">class</span> <span style="color: #800;">last</span>: <span style="color: #800;">pass</span>
+    <span style="color: #048;">last.arg</span> = <span style="color: #800;">None</span>
+    <span style="color: #048;">last.val</span> = <span style="color: #800;">None</span>
+    <span style="color: #800;">def</span> <span style="color: #048; font-weight: bold;">log</span>(arg):
+        <span style="color: #048;">n</span>[0] += 1
+        <span style="color: #048;">line</span> = <span style="color: #800;">'call {}th {}({}) = {}, last call {}({}) = {}'</span>
+        <span style="color: #800;">print</span> line.<span style="color: #800;">format</span>(n[0], func.<span style="color: #800;">__name__</span>, arg, func(arg),
+                          func.<span style="color: #800;">__name__</span>, last.arg, last.val)
+        <span style="color: #048;">last.arg</span> = arg
+        <span style="color: #048;">last.val</span> = func(arg)
+    <span style="color: #800;">return</span> log
+
+<span style="color: #800;">@func_log</span>
+<span style="color: #800;">def</span> <span style="color: #048; font-weight: bold;">power</span>(n):
+    <span style="color: #800;">return</span> n ** 2
+
+<span style="color: #800;">for</span> i <span style="color: #800;">in</span> <span style="color: #800;">range</span>(3):
+    power(i)
+</pre>
 </div>
 
-<div id="outline-container-orgheadline17" class="outline-3">
-<h3 id="orgheadline17">类与继承</h3>
-<div class="outline-text-3" id="text-orgheadline17">
-</div><div id="outline-container-orgheadline14" class="outline-4">
-<h4 id="orgheadline14">基本概念</h4>
-<div class="outline-text-4" id="text-orgheadline14">
+<p>
+Python2不允许修改外部作用域的局部变量，上面的例子分别通过修改可变类型和定义局部类型来实现修改外部作用域的值。
+</p>
+
+<p>
+闭包本身可以看作是函数加上引用环境，当内部函数引用外部变量时，编译器/解释器会把函数和涉及到的引用环境打包为一个整体，所以称作闭包。
+</p>
+
+<p>
+注意事项：函数只有在执行时才会去查找变量的值：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-python"><span style="color: #048;">flist</span> = []
+<span style="color: #800;">for</span> i <span style="color: #800;">in</span> <span style="color: #800;">range</span>(3):
+    <span style="color: #800;">def</span> <span style="color: #048; font-weight: bold;">foo</span>(x): <span style="color: #800;">print</span> x + i
+    flist.append(foo)
+<span style="color: #800;">for</span> f <span style="color: #800;">in</span> flist:
+    f(2)
+</pre>
+</div>
+
+<p>
+比包的用途不仅在于提供装饰器，也可用于保存运行环境、根据外部变量来生成不同结果等。
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline18" class="outline-3">
+<h3 id="orgheadline18">类与继承</h3>
+<div class="outline-text-3" id="text-orgheadline18">
+</div><div id="outline-container-orgheadline15" class="outline-4">
+<h4 id="orgheadline15">基本概念</h4>
+<div class="outline-text-4" id="text-orgheadline15">
 <p>
 Python2支持经典模型和新风格，Python3只支持新风格，所以最好是只使用单根继承。类型存储静态字段和方法，实例只存储数据成员，也称为<code>attribute</code>。访问对象成员时，按照如下顺序查找：
 <code>instance.__dict__</code>、<code>class.__dict__</code>、<code>baseclass.__dict__</code>。
@@ -394,9 +455,9 @@ Python2支持经典模型和新风格，Python3只支持新风格，所以最好
 </div>
 </div>
 
-<div id="outline-container-orgheadline15" class="outline-4">
-<h4 id="orgheadline15">特殊方法</h4>
-<div class="outline-text-4" id="text-orgheadline15">
+<div id="outline-container-orgheadline16" class="outline-4">
+<h4 id="orgheadline16">特殊方法</h4>
+<div class="outline-text-4" id="text-orgheadline16">
 <p>
 要实现类的方法，需要添加装饰器修饰：
 </p>
@@ -445,9 +506,9 @@ Python2支持经典模型和新风格，Python3只支持新风格，所以最好
 </div>
 </div>
 
-<div id="outline-container-orgheadline16" class="outline-4">
-<h4 id="orgheadline16">继承</h4>
-<div class="outline-text-4" id="text-orgheadline16">
+<div id="outline-container-orgheadline17" class="outline-4">
+<h4 id="orgheadline17">继承</h4>
+<div class="outline-text-4" id="text-orgheadline17">
 <p>
 Python提供了两个函数来判定类型关系：
 </p>
@@ -545,15 +606,15 @@ static
 </div>
 </div>
 
-<div id="outline-container-orgheadline25" class="outline-2">
-<h2 id="orgheadline25">注意事项</h2>
-<div class="outline-text-2" id="text-orgheadline25">
-</div><div id="outline-container-orgheadline21" class="outline-3">
-<h3 id="orgheadline21">兼容性问题</h3>
-<div class="outline-text-3" id="text-orgheadline21">
-</div><div id="outline-container-orgheadline19" class="outline-4">
-<h4 id="orgheadline19">输入和输出</h4>
-<div class="outline-text-4" id="text-orgheadline19">
+<div id="outline-container-orgheadline26" class="outline-2">
+<h2 id="orgheadline26">注意事项</h2>
+<div class="outline-text-2" id="text-orgheadline26">
+</div><div id="outline-container-orgheadline22" class="outline-3">
+<h3 id="orgheadline22">兼容性问题</h3>
+<div class="outline-text-3" id="text-orgheadline22">
+</div><div id="outline-container-orgheadline20" class="outline-4">
+<h4 id="orgheadline20">输入和输出</h4>
+<div class="outline-text-4" id="text-orgheadline20">
 <p>
 在Python2中print是一个表达式，而Python3中print是一个函数，因此在写print时，建议用函数式写法。
 </p>
@@ -565,9 +626,9 @@ Python3中将raw_input删除了，而input的含义等同于python2中的raw_inp
 </div>
 </div>
 
-<div id="outline-container-orgheadline20" class="outline-4">
-<h4 id="orgheadline20">字典</h4>
-<div class="outline-text-4" id="text-orgheadline20">
+<div id="outline-container-orgheadline21" class="outline-4">
+<h4 id="orgheadline21">字典</h4>
+<div class="outline-text-4" id="text-orgheadline21">
 <p>
 在python2中字典有两个迭代函数，一个返回列表，一个返回迭代器。
 </p>
@@ -586,12 +647,12 @@ Python3中将raw_input删除了，而input的含义等同于python2中的raw_inp
 </div>
 </div>
 
-<div id="outline-container-orgheadline24" class="outline-3">
-<h3 id="orgheadline24">注意事项</h3>
-<div class="outline-text-3" id="text-orgheadline24">
-</div><div id="outline-container-orgheadline22" class="outline-4">
-<h4 id="orgheadline22">慎用__del__()方法</h4>
-<div class="outline-text-4" id="text-orgheadline22">
+<div id="outline-container-orgheadline25" class="outline-3">
+<h3 id="orgheadline25">注意事项</h3>
+<div class="outline-text-3" id="text-orgheadline25">
+</div><div id="outline-container-orgheadline23" class="outline-4">
+<h4 id="orgheadline23">慎用__del__()方法</h4>
+<div class="outline-text-4" id="text-orgheadline23">
 <p>
 文章 <a href="http://www.708luo.com/posts/2015/04/python-del-method/">慎用python的__del__方法</a> 比较详细分析了这个缺陷。从语义上看，<code>__del__</code>相当于C语言中的析构函数，但是问题是它不一定被调用。也就是说如果你实现了<code>__del__</code>方法就不允许出现循环引用，否则垃圾回收器将因为不知道释放顺序而放弃释放。
 </p>
@@ -625,9 +686,9 @@ A init
 </div>
 </div>
 
-<div id="outline-container-orgheadline23" class="outline-4">
-<h4 id="orgheadline23">内存泄漏</h4>
-<div class="outline-text-4" id="text-orgheadline23">
+<div id="outline-container-orgheadline24" class="outline-4">
+<h4 id="orgheadline24">内存泄漏</h4>
+<div class="outline-text-4" id="text-orgheadline24">
 <p>
 Python中的内存泄漏主要有两方面的原因：一种情况是对于长期运行程序而言，实例没有及时释放所有的引用导致内存泄漏。另一种情况是出现交叉引用，垃圾回收器不知道释放顺序而放弃释放。
 </p>
