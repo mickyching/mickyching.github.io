@@ -1,0 +1,303 @@
+---
+title: MySQL Introduction
+categories: tools
+tags: 笔记 database
+author: 敬叶
+---
+<dl class="post-meta">
+<dt class="post-meta">2016-08-22</dt><dd>敬叶 初稿</dd>
+</dl>
+<hr><br>
+<div id="table-of-contents"><h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#orgheadline6">基本概念</a>
+<ul>
+<li><a href="#orgheadline2">数据结构</a>
+<ul>
+<li><a href="#orgheadline1">数据类型</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline5">基本操作</a>
+<ul>
+<li><a href="#orgheadline3">数据库增删查改</a></li>
+<li><a href="#orgheadline4">账户管理</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#orgheadline7">参考资料</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline6" class="outline-2">
+<h2 id="orgheadline6">基本概念</h2>
+<div class="outline-text-2" id="text-orgheadline6">
+</div><div id="outline-container-orgheadline2" class="outline-3">
+<h3 id="orgheadline2">数据结构</h3>
+<div class="outline-text-3" id="text-orgheadline2">
+</div><div id="outline-container-orgheadline1" class="outline-4">
+<h4 id="orgheadline1">数据类型</h4>
+<div class="outline-text-4" id="text-orgheadline1">
+<!--abstract-begin-->
+<p>
+MySQL基本数据类型如下所示：
+</p>
+
+<ul class="org-ul">
+<li>整数: tinyint、smallint、mediumint、int、bigint</li>
+<li>浮点数: float、double、real、decimal</li>
+<li>日期和时间: date、time、datetime、timestamp、year</li>
+<li>字符串: char、varchar</li>
+<li>文本: tinytext、text、mediumtext、longtext</li>
+<li>二进制: tinyblob、blob、mediumblob、longblob</li>
+</ul>
+
+<!--abstract-end-->
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-right" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">类型</th>
+<th scope="col" class="org-right">字节</th>
+<th scope="col" class="org-left">范围</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">tinyint(m)</td>
+<td class="org-right">1</td>
+<td class="org-left">(-128~127)</td>
+</tr>
+
+<tr>
+<td class="org-left">smallint(m)</td>
+<td class="org-right">2</td>
+<td class="org-left">(-32768~32767)</td>
+</tr>
+
+<tr>
+<td class="org-left">mediumint(m)</td>
+<td class="org-right">3</td>
+<td class="org-left">(-8388608~8388607)</td>
+</tr>
+
+<tr>
+<td class="org-left">int(m)</td>
+<td class="org-right">4</td>
+<td class="org-left">(-2147483648~2147483647)</td>
+</tr>
+
+<tr>
+<td class="org-left">bigint(m)</td>
+<td class="org-right">8</td>
+<td class="org-left">(+-9.22*10^18)</td>
+</tr>
+</tbody>
+</table>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">类型</th>
+<th scope="col" class="org-left">长度</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">char(n)</td>
+<td class="org-left">固定长度，最多255个字符</td>
+</tr>
+
+<tr>
+<td class="org-left">varchar(n)</td>
+<td class="org-left">固定长度，最多65535个字符</td>
+</tr>
+
+<tr>
+<td class="org-left">tinytext</td>
+<td class="org-left">可变长度，最多255个字符</td>
+</tr>
+
+<tr>
+<td class="org-left">text</td>
+<td class="org-left">可变长度，最多65535个字符</td>
+</tr>
+
+<tr>
+<td class="org-left">mediumtext</td>
+<td class="org-left">可变长度，最多2的24次方-1个字符</td>
+</tr>
+
+<tr>
+<td class="org-left">longtext</td>
+<td class="org-left">可变长度，最多2的32次方-1个字符</td>
+</tr>
+</tbody>
+</table>
+
+<dl class="org-dl">
+<dt>char(n)</dt><dd>存入时用空格补齐，查询时去掉空格，所以存储字符串末尾不能有空格。</dd>
+</dl>
+
+<p>
+关键字：
+</p>
+<dl class="org-dl">
+<dt>NULL</dt><dd>数据列可包含NULL值</dd>
+<dt>NOT NULL</dt><dd>数据列不允许包含NULL值</dd>
+<dt>DEFAULT</dt><dd>默认值</dd>
+<dt>PRIMARY KEY</dt><dd>主键</dd>
+<dt>AUTO_INCREMENT</dt><dd>自动递增，适用于整数类型</dd>
+<dt>UNSIGNED</dt><dd>无符号</dd>
+<dt>CHARACTER SET name</dt><dd>指定字符集</dd>
+</dl>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline5" class="outline-3">
+<h3 id="orgheadline5">基本操作</h3>
+<div class="outline-text-3" id="text-orgheadline5">
+</div><div id="outline-container-orgheadline3" class="outline-4">
+<h4 id="orgheadline3">数据库增删查改</h4>
+<div class="outline-text-4" id="text-orgheadline3">
+<p>
+连接数据库：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">mysql -h IP -u NAME -p                  <span style="color: #666;"># </span><span style="color: #666;">&#30331;&#24405;MySQL</span>
+mysql -h IP -u NAME -D DB -p            <span style="color: #666;"># </span><span style="color: #666;">&#30331;&#24405;MySQL&#65292;&#25351;&#23450;&#20351;&#29992;&#30340;&#25968;&#25454;&#24211;</span>
+</pre>
+</div>
+
+<p>
+查看数据库信息:
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">show databases;                         <span style="color: #666;"># </span><span style="color: #666;">&#26597;&#30475;&#26377;&#21738;&#20123;&#25968;&#25454;&#24211;</span>
+use DB;                                 <span style="color: #666;"># </span><span style="color: #666;">&#20351;&#29992;&#19968;&#20010;&#25968;&#25454;&#24211;</span>
+show tables;                            <span style="color: #666;"># </span><span style="color: #666;">&#26597;&#30475;&#25968;&#25454;&#24211;&#19979;&#25152;&#26377;&#30340;&#34920;</span>
+show tables from DB;                    <span style="color: #666;"># </span><span style="color: #666;">&#30452;&#25509;&#26597;&#30475;&#26576;&#20010;&#25968;&#25454;&#24211;&#19979;&#30340;&#34920;</span>
+show columns from DB.TABLE;             <span style="color: #666;"># </span><span style="color: #666;">&#26597;&#30475;&#25351;&#23450;&#34920;&#30340;&#32467;&#26500;</span>
+show columns from TABLE from DB;        <span style="color: #666;"># </span><span style="color: #666;">&#26597;&#30475;&#25351;&#23450;&#34920;&#30340;&#32467;&#26500;</span>
+<span style="color: #800;">select</span> C1[ , C2 ...] from TABLE [COND]; <span style="color: #666;"># </span><span style="color: #666;">&#26597;&#35810;&#28385;&#36275;&#26465;&#20214;&#30340;&#25351;&#23450;&#21015;&#25968;&#25454;</span>
+<span style="color: #800;">select</span> * from TABLE [COND];             <span style="color: #666;"># </span><span style="color: #666;">&#26597;&#35810;&#34920;&#20013;&#25152;&#26377;&#20869;&#23481;</span>
+</pre>
+</div>
+
+<p>
+查询条件的写法：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">where C = V                             <span style="color: #666;"># </span><span style="color: #666;">&#25903;&#25345;&#25152;&#26377;&#27604;&#36739;&#36816;&#31639;&#65306;=,&gt;,&lt;,&gt;=,&lt;=,!=</span>
+where C is [not] null
+where C like <span style="color: #800;">"%&#29579;%"</span>
+where C<span style="color: #800;"> in</span> <span style="color: #800;">"str"</span>
+where C1 &lt; V1 and C2 &gt; V2;              <span style="color: #666;"># </span><span style="color: #666;">&#25903;&#25345;and/or&#32452;&#21512;&#26597;&#35810;</span>
+</pre>
+</div>
+
+<p>
+创建数据库：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">create database DB [OPTIONS];           <span style="color: #666;"># </span><span style="color: #666;">&#21019;&#24314;&#25968;&#25454;&#24211;</span>
+create table TABLE(DESC);               <span style="color: #666;"># </span><span style="color: #666;">&#21019;&#24314;&#34920;</span>
+</pre>
+</div>
+<p>
+如果表的描述信息很长，可以将其保存到一个文件，通过如下方式创建：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">mysql -D DB -h IP -u NAME -p &lt; createtable.sql
+</pre>
+</div>
+
+<p>
+数据库修改：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">insert [into] TABLE [(C1, C2, ...)] values (V1, V2, ...);
+update TABLE set <span style="color: #048;">C</span>=V [COND];
+update students set <span style="color: #048;">age</span>=age+1;          <span style="color: #666;"># </span><span style="color: #666;">&#23558;&#25152;&#26377;&#20154;&#24180;&#40836;&#22686;&#21152;1</span>
+delete from TABLE where [COND];         <span style="color: #666;"># </span><span style="color: #666;">&#21024;&#38500;&#25968;&#25454;</span>
+
+<span style="color: #666;"># </span><span style="color: #666;">&#23545;&#34920;&#32467;&#26500;&#30340;&#20462;&#25913;&#29992;&#22914;&#19979;&#19968;&#32452;&#21629;&#20196;</span>
+alter table TABLE add C1 TYPE;          <span style="color: #666;"># </span><span style="color: #666;">&#28155;&#21152;&#21015;&#65292;&#21487;&#20197;&#29992;after C0&#25351;&#23450;&#25554;&#20837;&#20301;&#32622;</span>
+alter table TABLE change C1 C2 TYPE;    <span style="color: #666;"># </span><span style="color: #666;">&#20462;&#25913;&#21015;</span>
+alter table TABLE drop C;               <span style="color: #666;"># </span><span style="color: #666;">&#21024;&#38500;&#21015;</span>
+alter table TABLE1 rename TABLE2;       <span style="color: #666;"># </span><span style="color: #666;">&#37325;&#21629;&#21517;&#34920;</span>
+
+delete from TABLE;                      <span style="color: #666;"># </span><span style="color: #666;">&#28165;&#38500;&#34920;&#20013;&#25968;&#25454;&#65292;&#20445;&#25345;increment id</span>
+truncate TABLE;                         <span style="color: #666;"># </span><span style="color: #666;">&#28165;&#38500;&#34920;&#20013;&#25968;&#25454;&#65292;&#28165;&#38500;increment id</span>
+
+drop table TABLE;                       <span style="color: #666;"># </span><span style="color: #666;">&#21024;&#38500;&#25972;&#24352;&#34920;</span>
+drop database DB;                       <span style="color: #666;"># </span><span style="color: #666;">&#21024;&#38500;&#25972;&#20010;&#25968;&#25454;&#24211;</span>
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-orgheadline4" class="outline-4">
+<h4 id="orgheadline4">账户管理</h4>
+<div class="outline-text-4" id="text-orgheadline4">
+<div class="org-src-container">
+
+<pre class="src src-sh">create user <span style="color: #800;">'USER'</span>@<span style="color: #800;">'localhost'</span> identified by <span style="color: #800;">'PASSWORD'</span>;
+grant [PERM] on [DB].[TABLE] to <span style="color: #800;">'[USER]'</span>@<span style="color: #800;">'localhost'</span>;
+grant all privileges on *.* to <span style="color: #800;">'USER'</span>@<span style="color: #800;">'localhost'</span>;
+flush privileges;
+
+drop user <span style="color: #800;">'USER'</span>@<span style="color: #800;">'localhost'</span>;
+mysqladmin -u NAME -p password NEWPSWD  <span style="color: #666;"># </span><span style="color: #666;">&#20462;&#25913;&#23494;&#30721;&#65292;&#20250;&#25552;&#31034;&#36755;&#20837;&#26087;&#23494;&#30721;</span>
+</pre>
+</div>
+<p>
+用户权限：
+</p>
+<dl class="org-dl">
+<dt>ALL PRIVILEGES</dt><dd>对数据库的所有权限</dd>
+<dt>CREATE</dt><dd>允许创建表和数据库</dd>
+<dt>DROP</dt><dd>允许删除表和数据库</dd>
+<dt>DELETE</dt><dd>允许删除表中的行</dd>
+<dt>INSERT</dt><dd>允许插入行到表中</dd>
+<dt>SELECT</dt><dd>允许读数据库</dd>
+<dt>UPDATE</dt><dd>允许更新表中的行</dd>
+<dt>GRANT OPTION</dt><dd>允许对其他用户的权限进行管理</dd>
+</dl>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline7" class="outline-2">
+<h2 id="orgheadline7">参考资料</h2>
+<div class="outline-text-2" id="text-orgheadline7">
+<ul class="org-ul">
+<li><a href="http://www.cnblogs.com/mr-wid/archive/2013/05/09/3068229.html">21分钟 MySQL 入门教程</a></li>
+</ul>
+</div>
+</div>
