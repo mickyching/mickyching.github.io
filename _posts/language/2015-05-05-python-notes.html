@@ -45,7 +45,7 @@ author: 敬叶
 </li>
 </ul>
 </li>
-<li><a href="#orgheadline24">注意事项</a>
+<li><a href="#orgheadline25">注意事项</a>
 <ul>
 <li><a href="#orgheadline21">兼容性问题</a>
 <ul>
@@ -53,9 +53,10 @@ author: 敬叶
 <li><a href="#orgheadline20">字典</a></li>
 </ul>
 </li>
-<li><a href="#orgheadline23">特殊函数</a>
+<li><a href="#orgheadline24">注意事项</a>
 <ul>
 <li><a href="#orgheadline22">慎用__del__()方法</a></li>
+<li><a href="#orgheadline23">内存泄漏</a></li>
 </ul>
 </li>
 </ul>
@@ -544,9 +545,9 @@ static
 </div>
 </div>
 
-<div id="outline-container-orgheadline24" class="outline-2">
-<h2 id="orgheadline24">注意事项</h2>
-<div class="outline-text-2" id="text-orgheadline24">
+<div id="outline-container-orgheadline25" class="outline-2">
+<h2 id="orgheadline25">注意事项</h2>
+<div class="outline-text-2" id="text-orgheadline25">
 </div><div id="outline-container-orgheadline21" class="outline-3">
 <h3 id="orgheadline21">兼容性问题</h3>
 <div class="outline-text-3" id="text-orgheadline21">
@@ -585,9 +586,9 @@ Python3中将raw_input删除了，而input的含义等同于python2中的raw_inp
 </div>
 </div>
 
-<div id="outline-container-orgheadline23" class="outline-3">
-<h3 id="orgheadline23">特殊函数</h3>
-<div class="outline-text-3" id="text-orgheadline23">
+<div id="outline-container-orgheadline24" class="outline-3">
+<h3 id="orgheadline24">注意事项</h3>
+<div class="outline-text-3" id="text-orgheadline24">
 </div><div id="outline-container-orgheadline22" class="outline-4">
 <h4 id="orgheadline22">慎用__del__()方法</h4>
 <div class="outline-text-4" id="text-orgheadline22">
@@ -621,6 +622,15 @@ Python3中将raw_input删除了，而input的含义等同于python2中的raw_inp
 B init
 A init
 </pre>
+</div>
+</div>
+
+<div id="outline-container-orgheadline23" class="outline-4">
+<h4 id="orgheadline23">内存泄漏</h4>
+<div class="outline-text-4" id="text-orgheadline23">
+<p>
+Python中的内存泄漏主要有两方面的原因：一种情况是对于长期运行程序而言，实例没有及时释放所有的引用导致内存泄漏。另一种情况是出现交叉引用，垃圾回收器不知道释放顺序而放弃释放。
+</p>
 </div>
 </div>
 </div>

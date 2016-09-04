@@ -11,57 +11,60 @@ author: 敬叶
 <div id="table-of-contents"><h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#orgheadline20">安装配置</a>
+<li><a href="#orgheadline23">安装配置</a>
 <ul>
-<li><a href="#orgheadline8">安装软件</a>
+<li><a href="#orgheadline9">安装软件</a>
 <ul>
 <li><a href="#orgheadline1">安装chrome-browser</a></li>
 <li><a href="#orgheadline2">安装fcitx</a></li>
-<li><a href="#orgheadline3">安装jdk</a></li>
-<li><a href="#orgheadline4">安装latex</a></li>
-<li><a href="#orgheadline5">安装stardict</a></li>
-<li><a href="#orgheadline6">安装uget/aria2</a></li>
-<li><a href="#orgheadline7">安装xware-desktop</a></li>
+<li><a href="#orgheadline3">安装golang</a></li>
+<li><a href="#orgheadline4">安装jdk</a></li>
+<li><a href="#orgheadline5">安装latex</a></li>
+<li><a href="#orgheadline6">安装stardict</a></li>
+<li><a href="#orgheadline7">安装uget/aria2</a></li>
+<li><a href="#orgheadline8">安装xware-desktop</a></li>
 </ul>
 </li>
-<li><a href="#orgheadline19">实用配置</a>
+<li><a href="#orgheadline22">实用配置</a>
 <ul>
-<li><a href="#orgheadline10">配置软件源</a>
+<li><a href="#orgheadline11">配置软件源</a>
 <ul>
-<li><a href="#orgheadline9">Ubuntu-16.04</a></li>
+<li><a href="#orgheadline10">Ubuntu-16.04</a></li>
 </ul>
 </li>
-<li><a href="#orgheadline13">配置NFS</a>
+<li><a href="#orgheadline14">配置NFS</a>
 <ul>
-<li><a href="#orgheadline11">服务端配置</a></li>
-<li><a href="#orgheadline12">客户端配置</a></li>
+<li><a href="#orgheadline12">服务端配置</a></li>
+<li><a href="#orgheadline13">客户端配置</a></li>
 </ul>
 </li>
-<li><a href="#orgheadline14">配置自动挂载USB设备</a></li>
-<li><a href="#orgheadline15">通过USB Live CD安装grub</a></li>
-<li><a href="#orgheadline16">处理隐藏GRUB</a></li>
-<li><a href="#orgheadline17">通过GRUB rescue修复grub</a></li>
-<li><a href="#orgheadline18">更新initramfs</a></li>
+<li><a href="#orgheadline15">配置自动挂载USB设备</a></li>
+<li><a href="#orgheadline16">通过USB Live CD安装grub</a></li>
+<li><a href="#orgheadline17">处理隐藏GRUB</a></li>
+<li><a href="#orgheadline18">通过GRUB rescue修复grub</a></li>
+<li><a href="#orgheadline19">更新initramfs</a></li>
+<li><a href="#orgheadline20">去掉桌面显示主目录下的文件</a></li>
+<li><a href="#orgheadline21">修改磁盘卷标</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="#orgheadline22">实用技术</a>
+<li><a href="#orgheadline25">实用技术</a>
 <ul>
-<li><a href="#orgheadline21">软件包管理</a></li>
+<li><a href="#orgheadline24">软件包管理</a></li>
 </ul>
 </li>
-<li><a href="#orgheadline23">参考资料</a></li>
+<li><a href="#orgheadline26">参考资料</a></li>
 </ul>
 </div>
 </div>
 
-<div id="outline-container-orgheadline20" class="outline-2">
-<h2 id="orgheadline20">安装配置</h2>
-<div class="outline-text-2" id="text-orgheadline20">
-</div><div id="outline-container-orgheadline8" class="outline-3">
-<h3 id="orgheadline8">安装软件</h3>
-<div class="outline-text-3" id="text-orgheadline8">
+<div id="outline-container-orgheadline23" class="outline-2">
+<h2 id="orgheadline23">安装配置</h2>
+<div class="outline-text-2" id="text-orgheadline23">
+</div><div id="outline-container-orgheadline9" class="outline-3">
+<h3 id="orgheadline9">安装软件</h3>
+<div class="outline-text-3" id="text-orgheadline9">
 </div><div id="outline-container-orgheadline1" class="outline-4">
 <h4 id="orgheadline1">安装chrome-browser</h4>
 <div class="outline-text-4" id="text-orgheadline1">
@@ -102,8 +105,33 @@ author: 敬叶
 </div>
 
 <div id="outline-container-orgheadline3" class="outline-4">
-<h4 id="orgheadline3">安装jdk</h4>
+<h4 id="orgheadline3">安装golang</h4>
 <div class="outline-text-4" id="text-orgheadline3">
+<div class="org-src-container">
+
+<pre class="src src-sh">sudo curl -O https://storage.googleapis.com/golang/go1.6.linux-amd64.tar.gz
+sudo tar -xvf go1.6.linux-amd64.tar.gz
+sudo mv go /usr/local
+<span style="color: #048;">DEV_PATH</span>=<span style="color: #800;">"$HOME/.local/dev"</span>
+<span style="color: #800;">export</span> <span style="color: #048;">GOROOT</span>=<span style="color: #800;">"/usr/local/go"</span>
+<span style="color: #800;">export</span> <span style="color: #048;">GOPATH</span>=<span style="color: #800;">"$DEV_PATH/go"</span>
+<span style="color: #048;">PATH</span>=<span style="color: #800;">"$GOROOT/bin:$GOPATH/bin:$PATH"</span>
+</pre>
+</div>
+
+<p>
+安装godef
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">go get github.com/rogpeppe/godef
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-orgheadline4" class="outline-4">
+<h4 id="orgheadline4">安装jdk</h4>
+<div class="outline-text-4" id="text-orgheadline4">
 <ul class="org-ul">
 <li><a href="https://www.digitalocean.com/community/tutorials/how-to-install-java-on-ubuntu-with-apt-get">How To Install Java on Ubuntu with Apt-Get</a></li>
 
@@ -129,9 +157,9 @@ author: 敬叶
 </div>
 </div>
 
-<div id="outline-container-orgheadline4" class="outline-4">
-<h4 id="orgheadline4">安装latex</h4>
-<div class="outline-text-4" id="text-orgheadline4">
+<div id="outline-container-orgheadline5" class="outline-4">
+<h4 id="orgheadline5">安装latex</h4>
+<div class="outline-text-4" id="text-orgheadline5">
 <div class="org-src-container">
 
 <pre class="src src-sh">wget https://github.com/scottkosty/install-tl-ubuntu/raw/master/install-tl-ubuntu
@@ -143,9 +171,9 @@ sudo ./install-tl-ubuntu                <span style="color: #666;"># </span><spa
 </div>
 </div>
 
-<div id="outline-container-orgheadline5" class="outline-4">
-<h4 id="orgheadline5">安装stardict</h4>
-<div class="outline-text-4" id="text-orgheadline5">
+<div id="outline-container-orgheadline6" class="outline-4">
+<h4 id="orgheadline6">安装stardict</h4>
+<div class="outline-text-4" id="text-orgheadline6">
 <div class="org-src-container">
 
 <pre class="src src-sh">sudo apt-get install stardict
@@ -176,9 +204,9 @@ sudo ./install-tl-ubuntu                <span style="color: #666;"># </span><spa
 </div>
 </div>
 
-<div id="outline-container-orgheadline6" class="outline-4">
-<h4 id="orgheadline6">安装uget/aria2</h4>
-<div class="outline-text-4" id="text-orgheadline6">
+<div id="outline-container-orgheadline7" class="outline-4">
+<h4 id="orgheadline7">安装uget/aria2</h4>
+<div class="outline-text-4" id="text-orgheadline7">
 <p>
 这两个工具可以配合使用，uget作为前端界面，在设置中选择下载插件为aria2即可，另外可以配置一下最大连接数等。
 </p>
@@ -199,9 +227,9 @@ sudo apt-get install aria2
 </div>
 </div>
 
-<div id="outline-container-orgheadline7" class="outline-4">
-<h4 id="orgheadline7">安装xware-desktop</h4>
-<div class="outline-text-4" id="text-orgheadline7">
+<div id="outline-container-orgheadline8" class="outline-4">
+<h4 id="orgheadline8">安装xware-desktop</h4>
+<div class="outline-text-4" id="text-orgheadline8">
 <ul class="org-ul">
 <li><a href="https://github.com/Xinkai/XwareDesktop/wiki/Ubuntu%E4%B8%8A%E7%BC%96%E8%AF%91%E5%AE%89%E8%A3%85%E8%AF%B4%E6%98%8E">XwareDesktop Ubuntu上编译安装说明</a></li>
 <li><a href="https://github.com/Xinkai/XwareDesktop/wiki/%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E">XwareDesktop使用说明</a></li>
@@ -248,15 +276,15 @@ killall xwared EmbedThunderManager
 </div>
 </div>
 
-<div id="outline-container-orgheadline19" class="outline-3">
-<h3 id="orgheadline19">实用配置</h3>
-<div class="outline-text-3" id="text-orgheadline19">
-</div><div id="outline-container-orgheadline10" class="outline-4">
-<h4 id="orgheadline10">配置软件源</h4>
-<div class="outline-text-4" id="text-orgheadline10">
-</div><div id="outline-container-orgheadline9" class="outline-5">
-<h5 id="orgheadline9">Ubuntu-16.04</h5>
-<div class="outline-text-5" id="text-orgheadline9">
+<div id="outline-container-orgheadline22" class="outline-3">
+<h3 id="orgheadline22">实用配置</h3>
+<div class="outline-text-3" id="text-orgheadline22">
+</div><div id="outline-container-orgheadline11" class="outline-4">
+<h4 id="orgheadline11">配置软件源</h4>
+<div class="outline-text-4" id="text-orgheadline11">
+</div><div id="outline-container-orgheadline10" class="outline-5">
+<h5 id="orgheadline10">Ubuntu-16.04</h5>
+<div class="outline-text-5" id="text-orgheadline10">
 <div class="org-src-container">
 
 <pre class="src src-sh"><span style="color: #666;"># </span><span style="color: #666;">file: /etc/apt/sources.list</span>
@@ -278,12 +306,12 @@ deb-src http://cn.mirrors.ustc.edu.cn/ubuntu/ xenial-proposed main restricted un
 </div>
 </div>
 
-<div id="outline-container-orgheadline13" class="outline-4">
-<h4 id="orgheadline13">配置NFS</h4>
-<div class="outline-text-4" id="text-orgheadline13">
-</div><div id="outline-container-orgheadline11" class="outline-5">
-<h5 id="orgheadline11">服务端配置</h5>
-<div class="outline-text-5" id="text-orgheadline11">
+<div id="outline-container-orgheadline14" class="outline-4">
+<h4 id="orgheadline14">配置NFS</h4>
+<div class="outline-text-4" id="text-orgheadline14">
+</div><div id="outline-container-orgheadline12" class="outline-5">
+<h5 id="orgheadline12">服务端配置</h5>
+<div class="outline-text-5" id="text-orgheadline12">
 <p>
 安装NFS服务工具：
 </p>
@@ -312,9 +340,9 @@ deb-src http://cn.mirrors.ustc.edu.cn/ubuntu/ xenial-proposed main restricted un
 </div>
 </div>
 </div>
-<div id="outline-container-orgheadline12" class="outline-5">
-<h5 id="orgheadline12">客户端配置</h5>
-<div class="outline-text-5" id="text-orgheadline12">
+<div id="outline-container-orgheadline13" class="outline-5">
+<h5 id="orgheadline13">客户端配置</h5>
+<div class="outline-text-5" id="text-orgheadline13">
 <p>
 客户端只需要挂载即可使用。
 </p>
@@ -327,9 +355,9 @@ deb-src http://cn.mirrors.ustc.edu.cn/ubuntu/ xenial-proposed main restricted un
 </div>
 </div>
 
-<div id="outline-container-orgheadline14" class="outline-4">
-<h4 id="orgheadline14">配置自动挂载USB设备</h4>
-<div class="outline-text-4" id="text-orgheadline14">
+<div id="outline-container-orgheadline15" class="outline-4">
+<h4 id="orgheadline15">配置自动挂载USB设备</h4>
+<div class="outline-text-4" id="text-orgheadline15">
 <p>
 创建文件<code>/etc/udev/rules.d/87-usb-automount.rules</code>
 </p>
@@ -367,9 +395,9 @@ ENV{ID_FS_LABEL}==<span style="color: #800;">""</span>, ENV{dir_name}=<span styl
 </div>
 </div>
 
-<div id="outline-container-orgheadline15" class="outline-4">
-<h4 id="orgheadline15">通过USB Live CD安装grub</h4>
-<div class="outline-text-4" id="text-orgheadline15">
+<div id="outline-container-orgheadline16" class="outline-4">
+<h4 id="orgheadline16">通过USB Live CD安装grub</h4>
+<div class="outline-text-4" id="text-orgheadline16">
 <div class="org-src-container">
 
 <pre class="src src-sh">sudo mount /dev/sda5 /mnt
@@ -384,9 +412,9 @@ sudo grub-install --root-directory=/mnt /dev/sda
 </div>
 </div>
 
-<div id="outline-container-orgheadline16" class="outline-4">
-<h4 id="orgheadline16">处理隐藏GRUB</h4>
-<div class="outline-text-4" id="text-orgheadline16">
+<div id="outline-container-orgheadline17" class="outline-4">
+<h4 id="orgheadline17">处理隐藏GRUB</h4>
+<div class="outline-text-4" id="text-orgheadline17">
 <p>
 如果执行<code>update-grub2</code>更新grub动作的时候能看到如下提示信息，则说明GRUB被隐藏了，启动的时候也看不到选择界面。
 </p>
@@ -405,9 +433,9 @@ when GRUB_HIDDEN_TIMEOUT is set is no longer supported.
 </div>
 </div>
 
-<div id="outline-container-orgheadline17" class="outline-4">
-<h4 id="orgheadline17">通过GRUB rescue修复grub</h4>
-<div class="outline-text-4" id="text-orgheadline17">
+<div id="outline-container-orgheadline18" class="outline-4">
+<h4 id="orgheadline18">通过GRUB rescue修复grub</h4>
+<div class="outline-text-4" id="text-orgheadline18">
 <div class="org-src-container">
 
 <pre class="src src-sh">grub&gt; set <span style="color: #048;">pager</span>=1
@@ -479,9 +507,9 @@ Installation finished. No error reported.
 </div>
 </div>
 
-<div id="outline-container-orgheadline18" class="outline-4">
-<h4 id="orgheadline18">更新initramfs</h4>
-<div class="outline-text-4" id="text-orgheadline18">
+<div id="outline-container-orgheadline19" class="outline-4">
+<h4 id="orgheadline19">更新initramfs</h4>
+<div class="outline-text-4" id="text-orgheadline19">
 <p>
 有时候删除内核模块之后，重启还是能看到已删除的模块载入到系统。这可能性是从<code>initramfs</code>中载入的，更新一下即可。
 </p>
@@ -496,15 +524,36 @@ Installation finished. No error reported.
 </dl>
 </div>
 </div>
+
+<div id="outline-container-orgheadline20" class="outline-4">
+<h4 id="orgheadline20">去掉桌面显示主目录下的文件</h4>
+<div class="outline-text-4" id="text-orgheadline20">
+<p>
+编辑<code>~/.config/user-dirs.dirs</code>文件，直接清空即可。
+</p>
 </div>
 </div>
 
-<div id="outline-container-orgheadline22" class="outline-2">
-<h2 id="orgheadline22">实用技术</h2>
-<div class="outline-text-2" id="text-orgheadline22">
-</div><div id="outline-container-orgheadline21" class="outline-3">
-<h3 id="orgheadline21">软件包管理</h3>
-<div class="outline-text-3" id="text-orgheadline21">
+<div id="outline-container-orgheadline21" class="outline-4">
+<h4 id="orgheadline21">修改磁盘卷标</h4>
+<div class="outline-text-4" id="text-orgheadline21">
+<div class="org-src-container">
+
+<pre class="src src-sh">sudo e2label DEV LABEL                  <span style="color: #666;"># </span><span style="color: #666;">ext3/ext4</span>
+sudo btrfs filesystem label DEV LABEL   <span style="color: #666;"># </span><span style="color: #666;">btrfs</span>
+sudo ntfslabel DEV LABEL                <span style="color: #666;"># </span><span style="color: #666;">ntfs</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="outline-container-orgheadline25" class="outline-2">
+<h2 id="orgheadline25">实用技术</h2>
+<div class="outline-text-2" id="text-orgheadline25">
+</div><div id="outline-container-orgheadline24" class="outline-3">
+<h3 id="orgheadline24">软件包管理</h3>
+<div class="outline-text-3" id="text-orgheadline24">
 <p>
 软件包管理主要需要熟悉的命令：<code>dpkg</code>、<code>apt-cache</code>、<code>apt-get</code>、<code>apt-file</code>等。
 </p>
@@ -566,9 +615,9 @@ sudo add-apt-repository -r ppa:username <span style="color: #666;"># </span><spa
 </div>
 </div>
 
-<div id="outline-container-orgheadline23" class="outline-2">
-<h2 id="orgheadline23">参考资料</h2>
-<div class="outline-text-2" id="text-orgheadline23">
+<div id="outline-container-orgheadline26" class="outline-2">
+<h2 id="orgheadline26">参考资料</h2>
+<div class="outline-text-2" id="text-orgheadline26">
 <ul class="org-ul">
 <li><a href="http://wiki.ubuntu.org.cn/UbuntuSkills">Ubuntu命令技巧</a></li>
 <li><a href="http://askubuntu.com/questions/145241/how-do-i-run-update-grub-from-a-livecd">How do I run update-grub from a LiveCD</a></li>
