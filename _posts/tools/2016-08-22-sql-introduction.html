@@ -11,29 +11,38 @@ author: 敬叶
 <div id="table-of-contents"><h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#orgheadline6">基本概念</a>
+<li><a href="#orgheadline12">基本概念</a>
 <ul>
 <li><a href="#orgheadline2">数据结构</a>
 <ul>
 <li><a href="#orgheadline1">数据类型</a></li>
 </ul>
 </li>
-<li><a href="#orgheadline5">基本操作</a>
+<li><a href="#orgheadline11">基本操作</a>
 <ul>
-<li><a href="#orgheadline3">数据库增删查改</a></li>
-<li><a href="#orgheadline4">账户管理</a></li>
+<li><a href="#orgheadline8">增删查改</a>
+<ul>
+<li><a href="#orgheadline3">连接数据库</a></li>
+<li><a href="#orgheadline4">创建数据库</a></li>
+<li><a href="#orgheadline5">删除数据库</a></li>
+<li><a href="#orgheadline6">修改数据库</a></li>
+<li><a href="#orgheadline7">查询数据库</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline9">账户管理</a></li>
+<li><a href="#orgheadline10">数据备份</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="#orgheadline7">参考资料</a></li>
+<li><a href="#orgheadline13">参考资料</a></li>
 </ul>
 </div>
 </div>
 
-<div id="outline-container-orgheadline6" class="outline-2">
-<h2 id="orgheadline6">基本概念</h2>
-<div class="outline-text-2" id="text-orgheadline6">
+<div id="outline-container-orgheadline12" class="outline-2">
+<h2 id="orgheadline12">基本概念</h2>
+<div class="outline-text-2" id="text-orgheadline12">
 </div><div id="outline-container-orgheadline2" class="outline-3">
 <h3 id="orgheadline2">数据结构</h3>
 <div class="outline-text-3" id="text-orgheadline2">
@@ -173,58 +182,33 @@ MySQL基本数据类型如下所示：
 </div>
 </div>
 
-<div id="outline-container-orgheadline5" class="outline-3">
-<h3 id="orgheadline5">基本操作</h3>
-<div class="outline-text-3" id="text-orgheadline5">
-</div><div id="outline-container-orgheadline3" class="outline-4">
-<h4 id="orgheadline3">数据库增删查改</h4>
-<div class="outline-text-4" id="text-orgheadline3">
-<p>
-连接数据库：
-</p>
+<div id="outline-container-orgheadline11" class="outline-3">
+<h3 id="orgheadline11">基本操作</h3>
+<div class="outline-text-3" id="text-orgheadline11">
+</div><div id="outline-container-orgheadline8" class="outline-4">
+<h4 id="orgheadline8">增删查改</h4>
+<div class="outline-text-4" id="text-orgheadline8">
+</div><div id="outline-container-orgheadline3" class="outline-5">
+<h5 id="orgheadline3">连接数据库</h5>
+<div class="outline-text-5" id="text-orgheadline3">
 <div class="org-src-container">
 
 <pre class="src src-sh">mysql -h IP -u NAME -p                  <span style="color: #666;"># </span><span style="color: #666;">&#30331;&#24405;MySQL</span>
 mysql -h IP -u NAME -D DB -p            <span style="color: #666;"># </span><span style="color: #666;">&#30331;&#24405;MySQL&#65292;&#25351;&#23450;&#20351;&#29992;&#30340;&#25968;&#25454;&#24211;</span>
 </pre>
 </div>
-
-<p>
-查看数据库信息:
-</p>
-<div class="org-src-container">
-
-<pre class="src src-sh">show databases;                         <span style="color: #666;"># </span><span style="color: #666;">&#26597;&#30475;&#26377;&#21738;&#20123;&#25968;&#25454;&#24211;</span>
-use DB;                                 <span style="color: #666;"># </span><span style="color: #666;">&#20351;&#29992;&#19968;&#20010;&#25968;&#25454;&#24211;</span>
-show tables;                            <span style="color: #666;"># </span><span style="color: #666;">&#26597;&#30475;&#25968;&#25454;&#24211;&#19979;&#25152;&#26377;&#30340;&#34920;</span>
-show tables from DB;                    <span style="color: #666;"># </span><span style="color: #666;">&#30452;&#25509;&#26597;&#30475;&#26576;&#20010;&#25968;&#25454;&#24211;&#19979;&#30340;&#34920;</span>
-show columns from DB.TABLE;             <span style="color: #666;"># </span><span style="color: #666;">&#26597;&#30475;&#25351;&#23450;&#34920;&#30340;&#32467;&#26500;</span>
-show columns from TABLE from DB;        <span style="color: #666;"># </span><span style="color: #666;">&#26597;&#30475;&#25351;&#23450;&#34920;&#30340;&#32467;&#26500;</span>
-<span style="color: #800;">select</span> C1[ , C2 ...] from TABLE [COND]; <span style="color: #666;"># </span><span style="color: #666;">&#26597;&#35810;&#28385;&#36275;&#26465;&#20214;&#30340;&#25351;&#23450;&#21015;&#25968;&#25454;</span>
-<span style="color: #800;">select</span> * from TABLE [COND];             <span style="color: #666;"># </span><span style="color: #666;">&#26597;&#35810;&#34920;&#20013;&#25152;&#26377;&#20869;&#23481;</span>
-</pre>
+</div>
 </div>
 
-<p>
-查询条件的写法：
-</p>
+<div id="outline-container-orgheadline4" class="outline-5">
+<h5 id="orgheadline4">创建数据库</h5>
+<div class="outline-text-5" id="text-orgheadline4">
 <div class="org-src-container">
 
-<pre class="src src-sh">where C = V                             <span style="color: #666;"># </span><span style="color: #666;">&#25903;&#25345;&#25152;&#26377;&#27604;&#36739;&#36816;&#31639;&#65306;=,&gt;,&lt;,&gt;=,&lt;=,!=</span>
-where C is [not] null
-where C like <span style="color: #800;">"%&#29579;%"</span>
-where C<span style="color: #800;"> in</span> <span style="color: #800;">"str"</span>
-where C1 &lt; V1 and C2 &gt; V2;              <span style="color: #666;"># </span><span style="color: #666;">&#25903;&#25345;and/or&#32452;&#21512;&#26597;&#35810;</span>
-</pre>
-</div>
-
-<p>
-创建数据库：
-</p>
-<div class="org-src-container">
-
-<pre class="src src-sh">create database DB [OPTIONS];           <span style="color: #666;"># </span><span style="color: #666;">&#21019;&#24314;&#25968;&#25454;&#24211;</span>
-create table TABLE(DESC);               <span style="color: #666;"># </span><span style="color: #666;">&#21019;&#24314;&#34920;</span>
+<pre class="src src-sql"><span style="color: #800;">create</span> database DB [<span style="color: #800;">OPTIONS</span>];           <span style="color: #666;">-- &#21019;&#24314;&#25968;&#25454;&#24211;</span>
+<span style="color: #800;">create</span> <span style="color: #800;">table</span> <span style="color: #800;">TABLE</span>(<span style="color: #800;">DESC</span>);               <span style="color: #666;">-- &#21019;&#24314;&#34920;</span>
+<span style="color: #800;">create</span> <span style="color: #800;">table</span> <span style="color: #048; font-weight: bold;">TAB_NEW</span> <span style="color: #800;">like</span> TAB_OLD       <span style="color: #666;">-- &#21019;&#24314;&#34920;</span>
+<span style="color: #800;">create</span> <span style="color: #800;">table</span> <span style="color: #048; font-weight: bold;">TAB_NEW</span> <span style="color: #800;">as</span> <span style="color: #800;">select</span> C1,C2 <span style="color: #800;">from</span> TAB_OLD definition <span style="color: #800;">only</span>
 </pre>
 </div>
 <p>
@@ -235,35 +219,105 @@ create table TABLE(DESC);               <span style="color: #666;"># </span><spa
 <pre class="src src-sh">mysql -D DB -h IP -u NAME -p &lt; createtable.sql
 </pre>
 </div>
+</div>
+</div>
 
-<p>
-数据库修改：
-</p>
+<div id="outline-container-orgheadline5" class="outline-5">
+<h5 id="orgheadline5">删除数据库</h5>
+<div class="outline-text-5" id="text-orgheadline5">
 <div class="org-src-container">
 
-<pre class="src src-sh">insert [into] TABLE [(C1, C2, ...)] values (V1, V2, ...);
-update TABLE set <span style="color: #048;">C</span>=V [COND];
-update students set <span style="color: #048;">age</span>=age+1;          <span style="color: #666;"># </span><span style="color: #666;">&#23558;&#25152;&#26377;&#20154;&#24180;&#40836;&#22686;&#21152;1</span>
-delete from TABLE where [COND];         <span style="color: #666;"># </span><span style="color: #666;">&#21024;&#38500;&#25968;&#25454;</span>
+<pre class="src src-sql"><span style="color: #800;">delete</span> <span style="color: #800;">from</span> <span style="color: #800;">TABLE</span>;                      <span style="color: #666;">-- &#28165;&#38500;&#34920;&#20013;&#25968;&#25454;&#65292;&#20445;&#25345;increment id</span>
+truncate <span style="color: #800;">TABLE</span>;                         <span style="color: #666;">-- &#28165;&#38500;&#34920;&#20013;&#25968;&#25454;&#65292;&#28165;&#38500;increment id</span>
 
-<span style="color: #666;"># </span><span style="color: #666;">&#23545;&#34920;&#32467;&#26500;&#30340;&#20462;&#25913;&#29992;&#22914;&#19979;&#19968;&#32452;&#21629;&#20196;</span>
-alter table TABLE add C1 TYPE;          <span style="color: #666;"># </span><span style="color: #666;">&#28155;&#21152;&#21015;&#65292;&#21487;&#20197;&#29992;after C0&#25351;&#23450;&#25554;&#20837;&#20301;&#32622;</span>
-alter table TABLE change C1 C2 TYPE;    <span style="color: #666;"># </span><span style="color: #666;">&#20462;&#25913;&#21015;</span>
-alter table TABLE drop C;               <span style="color: #666;"># </span><span style="color: #666;">&#21024;&#38500;&#21015;</span>
-alter table TABLE1 rename TABLE2;       <span style="color: #666;"># </span><span style="color: #666;">&#37325;&#21629;&#21517;&#34920;</span>
-
-delete from TABLE;                      <span style="color: #666;"># </span><span style="color: #666;">&#28165;&#38500;&#34920;&#20013;&#25968;&#25454;&#65292;&#20445;&#25345;increment id</span>
-truncate TABLE;                         <span style="color: #666;"># </span><span style="color: #666;">&#28165;&#38500;&#34920;&#20013;&#25968;&#25454;&#65292;&#28165;&#38500;increment id</span>
-
-drop table TABLE;                       <span style="color: #666;"># </span><span style="color: #666;">&#21024;&#38500;&#25972;&#24352;&#34920;</span>
-drop database DB;                       <span style="color: #666;"># </span><span style="color: #666;">&#21024;&#38500;&#25972;&#20010;&#25968;&#25454;&#24211;</span>
+<span style="color: #800;">drop</span> <span style="color: #800;">table</span> <span style="color: #800;">TABLE</span>;                       <span style="color: #666;">-- &#21024;&#38500;&#25972;&#24352;&#34920;</span>
+<span style="color: #800;">drop</span> database DB;                       <span style="color: #666;">-- &#21024;&#38500;&#25972;&#20010;&#25968;&#25454;&#24211;</span>
 </pre>
 </div>
 </div>
 </div>
-<div id="outline-container-orgheadline4" class="outline-4">
-<h4 id="orgheadline4">账户管理</h4>
-<div class="outline-text-4" id="text-orgheadline4">
+<div id="outline-container-orgheadline6" class="outline-5">
+<h5 id="orgheadline6">修改数据库</h5>
+<div class="outline-text-5" id="text-orgheadline6">
+<p>
+修改表项：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sql"><span style="color: #800;">insert</span> [<span style="color: #800;">into</span>] <span style="color: #800;">TABLE</span> [(C1, C2, ...)] <span style="color: #800;">values</span> (V1, V2, ...);
+<span style="color: #800;">update</span> <span style="color: #800;">TABLE</span> <span style="color: #800;">set</span> C1=V1[, C2=V2...] [COND];
+<span style="color: #800;">update</span> students <span style="color: #800;">set</span> age=age+1;          <span style="color: #666;">-- &#23558;&#25152;&#26377;&#20154;&#24180;&#40836;&#22686;&#21152;1</span>
+<span style="color: #800;">delete</span> <span style="color: #800;">from</span> <span style="color: #800;">TABLE</span> [COND];               <span style="color: #666;">-- &#21024;&#38500;&#25968;&#25454;</span>
+load <span style="color: #800;">data</span> <span style="color: #800;">local</span> infile <span style="color: #800;">'FILE'</span> <span style="color: #800;">into</span> <span style="color: #800;">table</span> <span style="color: #800;">TABLE</span>;
+</pre>
+</div>
+<p>
+修改表结构：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sql"><span style="color: #800;">alter</span> <span style="color: #800;">table</span> <span style="color: #800;">TABLE</span> <span style="color: #800;">add</span> C1 <span style="color: #800;">TYPE</span>;          <span style="color: #666;">-- &#28155;&#21152;&#21015;&#65292;&#21487;&#20197;&#29992;after C0&#25351;&#23450;&#25554;&#20837;&#20301;&#32622;</span>
+<span style="color: #800;">alter</span> <span style="color: #800;">table</span> <span style="color: #800;">TABLE</span> <span style="color: #048; font-weight: bold;">change</span> C1 C2 <span style="color: #800;">TYPE</span>;    <span style="color: #666;">-- &#20462;&#25913;&#21015;</span>
+<span style="color: #800;">alter</span> <span style="color: #800;">table</span> <span style="color: #800;">TABLE</span> <span style="color: #800;">drop</span> C;               <span style="color: #666;">-- &#21024;&#38500;&#21015;</span>
+<span style="color: #800;">alter</span> <span style="color: #800;">table</span> <span style="color: #048; font-weight: bold;">TABLE1</span> rename TABLE2;       <span style="color: #666;">-- &#37325;&#21629;&#21517;&#34920;</span>
+<span style="color: #800;">alter</span> <span style="color: #800;">table</span> <span style="color: #800;">TABLE</span> <span style="color: #800;">add</span> <span style="color: #800;">primary</span> <span style="color: #800;">key</span>(C);   <span style="color: #666;">-- &#28155;&#21152;&#20027;&#38190;</span>
+<span style="color: #800;">alter</span> <span style="color: #800;">table</span> <span style="color: #800;">TABLE</span> <span style="color: #800;">drop</span> <span style="color: #800;">primary</span> <span style="color: #800;">key</span>(C);  <span style="color: #666;">-- &#21024;&#38500;&#20027;&#38190;</span>
+<span style="color: #800;">create</span> [<span style="color: #800;">unique</span>] index IDXNAME <span style="color: #800;">on</span> <span style="color: #800;">TABLE</span>(C1,C2);
+<span style="color: #800;">drop</span> index IDXNAME;
+<span style="color: #800;">create</span> <span style="color: #800;">view</span> <span style="color: #048; font-weight: bold;">VNAME</span> <span style="color: #800;">as</span> <span style="color: #800;">select</span> CMD;
+<span style="color: #800;">drop</span> <span style="color: #800;">view</span> <span style="color: #048; font-weight: bold;">VNAME</span>;
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline7" class="outline-5">
+<h5 id="orgheadline7">查询数据库</h5>
+<div class="outline-text-5" id="text-orgheadline7">
+<div class="org-src-container">
+
+<pre class="src src-sql">show databases;                         <span style="color: #666;">-- &#26597;&#30475;&#26377;&#21738;&#20123;&#25968;&#25454;&#24211;</span>
+use DB;                                 <span style="color: #666;">-- &#20351;&#29992;&#19968;&#20010;&#25968;&#25454;&#24211;</span>
+show tables;                            <span style="color: #666;">-- &#26597;&#30475;&#25968;&#25454;&#24211;&#19979;&#25152;&#26377;&#30340;&#34920;</span>
+show tables <span style="color: #800;">from</span> DB;                    <span style="color: #666;">-- &#30452;&#25509;&#26597;&#30475;&#26576;&#20010;&#25968;&#25454;&#24211;&#19979;&#30340;&#34920;</span>
+show columns <span style="color: #800;">from</span> DB.<span style="color: #800;">TABLE</span>;             <span style="color: #666;">-- &#26597;&#30475;&#25351;&#23450;&#34920;&#30340;&#32467;&#26500;</span>
+show columns <span style="color: #800;">from</span> <span style="color: #800;">TABLE</span> <span style="color: #800;">from</span> DB;        <span style="color: #666;">-- &#26597;&#30475;&#25351;&#23450;&#34920;&#30340;&#32467;&#26500;</span>
+<span style="color: #800;">select</span> C1[ , C2 ...] <span style="color: #800;">from</span> <span style="color: #800;">TABLE</span> [COND]; <span style="color: #666;">-- &#26597;&#35810;&#28385;&#36275;&#26465;&#20214;&#30340;&#25351;&#23450;&#21015;&#25968;&#25454;</span>
+<span style="color: #800;">select</span> * <span style="color: #800;">from</span> <span style="color: #800;">TABLE</span> [COND];             <span style="color: #666;">-- &#26597;&#35810;&#34920;&#20013;&#25152;&#26377;&#20869;&#23481;</span>
+</pre>
+</div>
+
+<p>
+查询条件的写法：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sql"><span style="color: #800;">where</span> C=V                               <span style="color: #666;">-- &#25903;&#25345;&#25152;&#26377;&#27604;&#36739;&#36816;&#31639;&#65306;=,&gt;,&lt;,&gt;=,&lt;=,!=</span>
+<span style="color: #800;">where</span> C1&lt;V1 <span style="color: #800;">and</span> C2&gt;V2;                  <span style="color: #666;">-- &#25903;&#25345;and/or&#32452;&#21512;&#26597;&#35810;</span>
+<span style="color: #800;">where</span> C <span style="color: #800;">is</span> [<span style="color: #800;">not</span>] <span style="color: #800;">null</span>
+<span style="color: #800;">where</span> C <span style="color: #800;">like</span> "%&#29579;%"
+<span style="color: #800;">where</span> C <span style="color: #800;">in</span> "str"
+</pre>
+</div>
+
+<p>
+基本查询示例：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sql"><span style="color: #800;">select</span> * <span style="color: #800;">from</span> <span style="color: #800;">TABLE</span> <span style="color: #800;">where</span> C <span style="color: #800;">like</span> <span style="color: #800;">'%micky%'</span>
+<span style="color: #800;">select</span> * <span style="color: #800;">from</span> <span style="color: #800;">TABLE</span> <span style="color: #800;">order</span> <span style="color: #800;">by</span> C1,C2
+<span style="color: #800;">select</span> <span style="color: #800;">count</span> <span style="color: #800;">as</span> TOTAL_COUNT <span style="color: #800;">from</span> <span style="color: #800;">TABLE</span>  <span style="color: #666;">-- &#24635;&#25968;</span>
+<span style="color: #800;">select</span> <span style="color: #800;">sum</span>(C) <span style="color: #800;">as</span> SUM_VAL <span style="color: #800;">from</span> <span style="color: #800;">TABLE</span>     <span style="color: #666;">-- &#24635;&#21644;</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline9" class="outline-4">
+<h4 id="orgheadline9">账户管理</h4>
+<div class="outline-text-4" id="text-orgheadline9">
 <div class="org-src-container">
 
 <pre class="src src-sh">create user <span style="color: #800;">'USER'</span>@<span style="color: #800;">'localhost'</span> identified by <span style="color: #800;">'PASSWORD'</span>;
@@ -290,12 +344,23 @@ mysqladmin -u NAME -p password NEWPSWD  <span style="color: #666;"># </span><spa
 </dl>
 </div>
 </div>
-</div>
-</div>
 
-<div id="outline-container-orgheadline7" class="outline-2">
-<h2 id="orgheadline7">参考资料</h2>
-<div class="outline-text-2" id="text-orgheadline7">
+<div id="outline-container-orgheadline10" class="outline-4">
+<h4 id="orgheadline10">数据备份</h4>
+<div class="outline-text-4" id="text-orgheadline10">
+<div class="org-src-container">
+
+<pre class="src src-sql"><span style="color: #800;">exec</span> sp_addumpdevice <span style="color: #800;">'disk'</span>, <span style="color: #800;">'sqldev'</span>, <span style="color: #800;">'sqldump.dat'</span>
+backup database DB <span style="color: #800;">to</span> sqldev
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="outline-container-orgheadline13" class="outline-2">
+<h2 id="orgheadline13">参考资料</h2>
+<div class="outline-text-2" id="text-orgheadline13">
 <ul class="org-ul">
 <li><a href="http://www.cnblogs.com/mr-wid/archive/2013/05/09/3068229.html">21分钟 MySQL 入门教程</a></li>
 </ul>
