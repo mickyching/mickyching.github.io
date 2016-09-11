@@ -1,0 +1,547 @@
+---
+title: Sed and Awk
+categories: tools
+tags: 笔记 linux sed awk
+author: 敬叶
+---
+<dl class="post-meta">
+<dt class="post-meta">2016-09-10</dt><dd>敬叶 初稿</dd>
+</dl>
+<hr><br>
+<div id="table-of-contents"><h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#orgheadline1">前言</a></li>
+<li><a href="#orgheadline5">Sed</a>
+<ul>
+<li><a href="#orgheadline2">基本概念</a></li>
+<li><a href="#orgheadline3">文本替换</a></li>
+<li><a href="#orgheadline4">实用操作</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline17">Awk</a>
+<ul>
+<li><a href="#orgheadline6">基本概念</a>
+<ul>
+<li><a href="#orgheadline7">记录和域</a></li>
+<li><a href="#orgheadline8">数据类型</a>
+<ul>
+<li><a href="#orgheadline9">内置变量</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline10">表达算式</a></li>
+<li><a href="#orgheadline11">语句流程</a></li>
+<li><a href="#orgheadline14">函数</a>
+<ul>
+<li><a href="#orgheadline12">内置函数</a></li>
+<li><a href="#orgheadline13">自定义函数</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#orgheadline15">正则表达式</a></li>
+<li><a href="#orgheadline16">示例代码</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline18">参考资料</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline1" class="outline-2">
+<h2 id="orgheadline1">前言</h2>
+<div class="outline-text-2" id="text-orgheadline1">
+<!--abstract-begin-->
+<p>
+本文介绍的sed/awk是高级文本流处理工具，如果对这两个工具很熟悉，可以快速实现一些复杂的需求。两个工具比较而言，Sed的优势是文本流的增删替换，
+Awk的优势在于分列信息抽取。要高效的使用它们，还需要熟悉正则表达式，正则表达式虽然是相通的，但是这两个工具的写法却不尽相同。
+</p>
+<!--abstract-end-->
+</div>
+</div>
+
+<div id="outline-container-orgheadline5" class="outline-2">
+<h2 id="orgheadline5">Sed</h2>
+<div class="outline-text-2" id="text-orgheadline5">
+</div><div id="outline-container-orgheadline2" class="outline-3">
+<h3 id="orgheadline2">基本概念</h3>
+<div class="outline-text-3" id="text-orgheadline2">
+<div class="org-src-container">
+
+<pre class="src src-sh">sed options <span style="color: #800;">'cond cmd/arg1/arg2/flags'</span> filename
+</pre>
+</div>
+<p>
+一般采用<code>/</code>作为分界符，分界符可以用其它字符，例如要操作的字符串包含<code>/</code>，那么可以用<code>:</code>作为分界符来避免引入转义字符。
+</p>
+
+<dl class="org-dl">
+<dt>-E</dt><dd>扩展正则表达式</dd>
+<dt>-n</dt><dd>只输出匹配的行</dd>
+<dt>-e</dt><dd>脚本表达法，可以执行多条命令</dd>
+<dt>-f file</dt><dd>指定脚本名字</dd>
+<dt>-i</dt><dd>就地处理，不产生副本</dd>
+</dl>
+
+<p>
+常用条件写法：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">number                                  <span style="color: #666;"># </span><span style="color: #666;">match the only number line</span>
+$                                       <span style="color: #666;"># </span><span style="color: #666;">match last line</span>
+/regexp/                                <span style="color: #666;"># </span><span style="color: #666;">match regexp</span>
+line1,line2                             <span style="color: #666;"># </span><span style="color: #666;">[line1, line2]</span>
+line,+N                                 <span style="color: #666;"># </span><span style="color: #666;">[line, line+N]</span>
+</pre>
+</div>
+
+<p>
+常用命令：
+</p>
+<dl class="org-dl">
+<dt>=             </dt><dd>打印匹配行号</dd>
+<dt>a\text        </dt><dd>将文本插入匹配行之后</dd>
+<dt>i\text        </dt><dd>将文本插入匹配行之前</dd>
+<dt>c\text        </dt><dd>将匹配行替换为制定文本</dd>
+<dt>d             </dt><dd>删除匹配行</dd>
+<dt>p             </dt><dd>打印匹配行</dd>
+<dt>s/expr1/expr2/</dt><dd>将匹配行expr1替换为expr2</dd>
+<dt>y/expr1/expr2/</dt><dd>将匹配行中expr1中字符替换为expr2中字符，没什么用</dd>
+</dl>
+
+<p>
+常用标志：
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<tbody>
+<tr>
+<td class="org-left">g</td>
+<td class="org-left">作用于全局</td>
+</tr>
+
+<tr>
+<td class="org-left">I</td>
+<td class="org-left">忽略大小写</td>
+</tr>
+
+<tr>
+<td class="org-left">p</td>
+<td class="org-left">打印</td>
+</tr>
+
+<tr>
+<td class="org-left">w fname</td>
+<td class="org-left">输出到文件</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+可以用如下的方式来写sed脚本，如果要指定选项，必须将选项放到<code>-f</code>之前：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #666;">#</span><span style="color: #666;">!/bin/</span><span style="color: #800;">sed</span><span style="color: #666;"> -nf</span>
+s/a/A/g
+s/e/E/g
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline3" class="outline-3">
+<h3 id="orgheadline3">文本替换</h3>
+<div class="outline-text-3" id="text-orgheadline3">
+<div class="org-src-container">
+
+<pre class="src src-sh">sed <span style="color: #800;">'s/src/dst/flags'</span> fname &gt; fname.sed
+</pre>
+</div>
+
+<p>
+在sed中，特殊符号<code>&amp;</code>用于引用匹配字符串，在下面例子中要注意贪婪算法。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #800;">echo</span> <span style="color: #800;">"123 abc"</span> | sed <span style="color: #800;">'s/[0-9]*/&amp; &amp;/'</span>    <span style="color: #666;"># </span><span style="color: #666;">123 123 abc</span>
+<span style="color: #800;">echo</span> <span style="color: #800;">"abc 123"</span> | sed <span style="color: #800;">'s/[0-9]*/&amp; &amp;/'</span>    <span style="color: #666;"># </span><span style="color: #666;">abc 123</span>
+<span style="color: #800;">echo</span> <span style="color: #800;">"abc 123"</span> | sed -E <span style="color: #800;">'s/[0-9]+/&amp; &amp;/'</span> <span style="color: #666;"># </span><span style="color: #666;">abc 123 123</span>
+</pre>
+</div>
+
+<p>
+分组表达式是非常重要的特性，每个小括号创建一个分组，用<code>\1</code>、<code>\2</code>等引用分组，最多可引用分组为9个。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #800;">echo</span> hello123 | sed -E <span style="color: #800;">'s/([a-z]*).*/\1/'</span>               <span style="color: #666;"># </span><span style="color: #666;">hello</span>
+<span style="color: #800;">echo</span> hello world | sed -E <span style="color: #800;">'s/([a-z]+) ([a-z]+)/\2 \1/'</span>  <span style="color: #666;"># </span><span style="color: #666;">world hello</span>
+<span style="color: #800;">echo</span> hello hello world | sed -E <span style="color: #800;">'s/([a-z]+) \1/\1/'</span>     <span style="color: #666;"># </span><span style="color: #666;">hello world</span>
+</pre>
+</div>
+
+<p>
+如果只想修改第n次出现，可以用如下表达式：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #800;">echo</span> 1b 2b 3b 4b | sed -E <span style="color: #800;">'s/b/?/3'</span>     <span style="color: #666;"># </span><span style="color: #666;">1b 2b 3? 4b</span>
+<span style="color: #800;">echo</span> 1b 2b 3b 4b | sed -E <span style="color: #800;">'s/b/?/3g'</span>    <span style="color: #666;"># </span><span style="color: #666;">1b 2b 3? 4?</span>
+</pre>
+</div>
+
+<p>
+指定行号范围：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">sed -nE <span style="color: #800;">'10,20 p'</span>                       <span style="color: #666;"># </span><span style="color: #666;">print line 10-20</span>
+sed -nE <span style="color: #800;">'10,20 !p'</span>                      <span style="color: #666;"># </span><span style="color: #666;">print line not in 10-20</span>
+sed -nE <span style="color: #800;">'/^#/ s/[0-9]+//gp'</span>             <span style="color: #666;"># </span><span style="color: #666;">del num in #line</span>
+sed -nE <span style="color: #800;">'10,/^#/ s/[0-9]+//gp'</span>          <span style="color: #666;"># </span><span style="color: #666;">del num from 10line to #line</span>
+sed -nE <span style="color: #800;">'10,/^#/ d'</span>                     <span style="color: #666;"># </span><span style="color: #666;">del line from 10line to #line</span>
+sed -nE <span style="color: #800;">'10,/^#/ !d'</span>                    <span style="color: #666;"># </span><span style="color: #666;">del line not in 10line to #line</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline4" class="outline-3">
+<h3 id="orgheadline4">实用操作</h3>
+<div class="outline-text-3" id="text-orgheadline4">
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #666;"># </span><span style="color: #666;">Windows line to Unix(remove ^M)</span>
+sed -i <span style="color: #800;">'s/\r//'</span> fname
+
+<span style="color: #666;"># </span><span style="color: #666;">upper to lower</span>
+sed <span style="color: #800;">'y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/'</span> fname
+
+<span style="color: #666;"># </span><span style="color: #666;">grep line begin with cp or scp</span>
+sed -n <span style="color: #800;">'/^s*cp / p'</span> fname
+sed -n <span style="color: #800;">'/^s*cp / ='</span> fname                       <span style="color: #666;"># </span><span style="color: #666;">print line-number only</span>
+
+<span style="color: #666;"># </span><span style="color: #666;">delete line begin with cp or scp</span>
+sed -n <span style="color: #800;">'/^s*cp / d'</span> fname
+
+<span style="color: #666;"># </span><span style="color: #666;">del begin whitespace in line</span>
+sed -i <span style="color: #800;">'s/^[ \t]*//g'</span> fname
+
+<span style="color: #666;"># </span><span style="color: #666;">del trailing whitespace in line</span>
+sed -i <span style="color: #800;">'s/[ \t]*$//g'</span> fname
+
+<span style="color: #800;">echo</span> world | sed <span style="color: #800;">'/world/ i\hello '</span>             <span style="color: #666;"># </span><span style="color: #666;">insert before world-line</span>
+<span style="color: #800;">echo</span> world | sed <span style="color: #800;">'/world/ a\hello \nend'</span>        <span style="color: #666;"># </span><span style="color: #666;">append after world-line</span>
+<span style="color: #800;">echo</span> world | sed <span style="color: #800;">'/world/ c\hello '</span>             <span style="color: #666;"># </span><span style="color: #666;">change line to hello-line</span>
+ls -lF | sed -nE <span style="color: #800;">'/^total\ |.*\/$/ !p'</span>          <span style="color: #666;"># </span><span style="color: #666;">show file except directory</span>
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #666;">#</span><span style="color: #666;">!/bin/</span><span style="color: #800;">bash</span>
+
+<span style="color: #048;">fname</span>=$<span style="color: #048;">1</span>
+<span style="color: #800;">function</span> <span style="color: #048; font-weight: bold;">del_cpp_comment</span>()
+{
+    <span style="color: #666;"># </span><span style="color: #666;">del //... in line begin</span>
+    sed -i <span style="color: #800;">'/^[ \t]*\/\// d'</span> $<span style="color: #048;">fname</span>
+
+    <span style="color: #666;"># </span><span style="color: #666;">del //... in line end</span>
+    sed -i <span style="color: #800;">"s/[ \t]*\/\/[^\"]*$//"</span> $<span style="color: #048;">fname</span>
+
+    <span style="color: #666;"># </span><span style="color: #666;">del single line only have /*...*/</span>
+    sed -i <span style="color: #800;">'/^[ \t]*\/\*.*\*\/[ \t]*$/ d'</span> $<span style="color: #048;">fname</span>
+
+    <span style="color: #666;"># </span><span style="color: #666;">del single line /*...*/</span>
+    sed -i <span style="color: #800;">'s/[ \t]*\/\*.*\*\///'</span> $<span style="color: #048;">fname</span>
+
+    <span style="color: #666;"># </span><span style="color: #666;">del multi line /*...*/</span>
+    sed -i <span style="color: #800;">'/^[ \t]*\/\*/,/.*\*\// d'</span> $<span style="color: #048;">fname</span>
+}
+del_cpp_comment
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline17" class="outline-2">
+<h2 id="orgheadline17">Awk</h2>
+<div class="outline-text-2" id="text-orgheadline17">
+</div><div id="outline-container-orgheadline6" class="outline-3">
+<h3 id="orgheadline6">基本概念</h3>
+<div class="outline-text-3" id="text-orgheadline6">
+<div class="org-src-container">
+
+<pre class="src src-sh">awk [-W option] [-F value] [-v <span style="color: #048;">var</span>=value] [--] <span style="color: #800;">'program text'</span> [file ...]
+awk [-W option] [-F value] [-v <span style="color: #048;">var</span>=value] [-f program] [--] [file ...]
+</pre>
+</div>
+<dl class="org-dl">
+<dt>-F value</dt><dd>指定域分割符</dd>
+<dt>-v var=value</dt><dd>变量赋值</dd>
+<dt>-f file</dt><dd>指定程序文件</dd>
+<dt>--</dt><dd>指示选项结束</dd>
+</dl>
+
+<p>
+程序结构：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-awk"><span style="color: #800;">BEGIN</span> { cmds }
+<span style="color: #800;">/pattern/</span> { cmds }
+<span style="color: #800;">END</span> { cmds }
+</pre>
+</div>
+
+<p>
+一般来讲表达式就是执行一些操作，分无条件操作和有条件操作，条件可以是逻辑比较、也可以是正则表达式匹配。
+</p>
+</div>
+
+<div id="outline-container-orgheadline7" class="outline-4">
+<h4 id="orgheadline7">记录和域</h4>
+<div class="outline-text-4" id="text-orgheadline7">
+<p>
+一次读取一个记录，保存到域变量<code>$0</code>，然后分割成<code>$0</code>、<code>$1</code>、&#x2026;、<code>$NF</code>。记录类似行，域类似列。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline8" class="outline-4">
+<h4 id="orgheadline8">数据类型</h4>
+<div class="outline-text-4" id="text-orgheadline8">
+<p>
+可以基本类型是字符串，数字在需要时会转换为字符串。
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #800;">echo</span> 24 24E | awk <span style="color: #800;">'{ print($1&gt;100, $1&gt;"100", $2&gt;100, $2&gt;"100") }'</span>
+</pre>
+</div>
+</div>
+
+<div id="outline-container-orgheadline9" class="outline-5">
+<h5 id="orgheadline9">内置变量</h5>
+<div class="outline-text-5" id="text-orgheadline9">
+<dl class="org-dl">
+<dt>ARGC</dt><dd>命令行参数个数</dd>
+<dt>ARGV</dt><dd>命令行参数数组</dd>
+<dt>ENVIRON</dt><dd>环境变量数组，用变量名索引</dd>
+<dt>FILENAME</dt><dd>输入文件名</dd>
+
+<dt>CONVFMT</dt><dd>数字转字符串格式</dd>
+<dt>OFMT</dt><dd>数字打印格式</dd>
+
+<dt>FNR</dt><dd>总行数</dd>
+<dt>NR</dt><dd>当前行号</dd>
+<dt>NF</dt><dd>总列数</dd>
+<dt>FS</dt><dd>列分割符</dd>
+<dt>OFS</dt><dd>列分隔符（用于输出）</dd>
+<dt>RS</dt><dd>行结束符</dd>
+<dt>ORS</dt><dd>行结束符（用于输出）</dd>
+<dt>RLENGTH</dt><dd>匹配长度</dd>
+<dt>RSTART</dt><dd>匹配索引</dd>
+</dl>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline10" class="outline-4">
+<h4 id="orgheadline10">表达算式</h4>
+<div class="outline-text-4" id="text-orgheadline10">
+<p>
+表达式语法类似C语言，运算符优先级如下：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">$                                       &#22495;
+++ --                                   &#33258;&#22686;
+^                                       &#25351;&#25968;(&lt;-)
+<span style="color: #c00;">!</span>                                       &#38750;
++  -                                    &#21333;&#30446;/&#27491;&#36127;
+*  /  %                                 &#20056;&#38500;
++  -                                    &#21152;&#20943;
+                                        &#36830;&#25509;
+&lt;  &gt;   &lt;=  &gt;=  ==  !=                   &#20851;&#31995;/&#27604;&#36739;
+~   !~                                  &#21305;&#37197;
+<span style="color: #800;">in</span>                                      &#25968;&#32452;&#25104;&#21592;
+&amp;&amp;                                      &#19982;
+||                                      &#25110;
+?  :                                    &#26465;&#20214;(&lt;-)
+=  +=  -=  *=  /=  %=  ^=               &#36171;&#20540;(&lt;-)
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline11" class="outline-4">
+<h4 id="orgheadline11">语句流程</h4>
+<div class="outline-text-4" id="text-orgheadline11">
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #800;">if</span> ( expr ) statement
+<span style="color: #800;">if</span> ( expr ) statement else statement
+<span style="color: #800;">while</span> ( expr ) statement
+<span style="color: #800;">do</span> statement while ( expr )
+<span style="color: #800;">for</span> ( opt_expr ; opt_expr ; opt_expr ) statement
+<span style="color: #800;">for</span> ( var<span style="color: #800;"> in</span> array ) statement
+<span style="color: #800;">continue</span>
+<span style="color: #800;">break</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline14" class="outline-4">
+<h4 id="orgheadline14">函数</h4>
+<div class="outline-text-4" id="text-orgheadline14">
+</div><div id="outline-container-orgheadline12" class="outline-5">
+<h5 id="orgheadline12">内置函数</h5>
+<div class="outline-text-5" id="text-orgheadline12">
+<dl class="org-dl">
+<dt>index(var, sub)</dt><dd>输出查找的索引，没找到返回0，索引从1开始计数</dd>
+<dt>length(var)</dt><dd>字符串长度</dd>
+<dt>match(var, r)</dt><dd>输出第一个匹配，没找到返回0</dd>
+<dt>split(var, arr, r)</dt><dd>分割为数组，如果忽略<code>r</code>则使用<code>FS</code>分割</dd>
+
+<dt>print</dt><dd><code>print $0 ORS</code></dd>
+<dt>print expr1, expr2</dt><dd><code>print expr1 OFS expr2 ORS</code></dd>
+<dt>printf(fmt, args)</dt><dd>格式化输出</dd>
+<dt>sprintf(fmt, args)</dt><dd>生成格式化字符串</dd>
+<dt>getline</dt><dd>读取一行到<code>$0</code></dd>
+<dt>getline var</dt><dd>读取一行到<code>var</code></dd>
+<dt>getline &lt; file</dt><dd>从文件读取一行到<code>$0</code></dd>
+<dt>getline var &lt; file</dt><dd>从文件读取一行到<code>var</code></dd>
+<dt>cmd | getline</dt><dd>从管道读取到<code>$0</code></dd>
+<dt>cmd | getline var</dt><dd>从管道读取到<code>var</code></dd>
+</dl>
+
+
+<dl class="org-dl">
+<dt>gsub(r, s, var)</dt><dd>全局替换，将正则表达式<code>r</code>替换为<code>s</code>。如果没有传递<code>var</code>，默认使用<code>$0</code>。字符串<code>s</code>中的<code>&amp;</code>表示匹配子串，需要使用<code>\&amp;</code>和<code>\\</code>输出<code>&amp;</code>和<code>\</code>。</dd>
+<dt>sub(r, s, var)</dt><dd>单次替换</dd>
+<dt>substr(var, i, len)</dt><dd>提取子串</dd>
+<dt>tolower(var)</dt><dd>小写</dd>
+<dt>toupper(var)</dt><dd>大写</dd>
+<dt>atan2(y,x) &#x2026;</dt><dd>cos(x) sin(x) exp(x) log(x) sqrt(x)
+int(x) rand(x) srand(x)</dd>
+</dl>
+</div>
+</div>
+
+<div id="outline-container-orgheadline13" class="outline-5">
+<h5 id="orgheadline13">自定义函数</h5>
+<div class="outline-text-5" id="text-orgheadline13">
+<div class="org-src-container">
+
+<pre class="src src-awk"><span style="color: #800;">function</span> <span style="color: #048; font-weight: bold;">name</span>( args ) { statements }
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline15" class="outline-3">
+<h3 id="orgheadline15">正则表达式</h3>
+<div class="outline-text-3" id="text-orgheadline15">
+<div class="org-src-container">
+
+<pre class="src src-awk">expr ~ <span style="color: #800;">/r/</span>
+<span style="color: #800;">/r/</span> { action }                          <span style="color: #666;"># </span><span style="color: #666;">$0 ~ /r/ { action }</span>
+</pre>
+</div>
+
+<p>
+特殊字符包括：<code>^ $ . [ ] | ( ) * + ?</code>。
+</p>
+
+<dl class="org-dl">
+<dt>c</dt><dd>普通字符</dd>
+<dt>\c</dt><dd>转义字符</dd>
+<dt>.</dt><dd>任意字符，包括换行符</dd>
+<dt>^</dt><dd>字符串开头</dd>
+<dt>$</dt><dd>字符串结尾</dd>
+<dt>[c1c2c3&#x2026;]</dt><dd>匹配括号内任意字符</dd>
+<dt>[^c1c2c3&#x2026;]</dt><dd>匹配除括号内任意字符</dd>
+<dt>r1r2</dt><dd>连续匹配</dd>
+<dt>r1 | r2</dt><dd>选择匹配</dd>
+<dt>r*</dt><dd>重复匹配0次或多次</dd>
+<dt>r+</dt><dd>重复匹配多次</dd>
+<dt>r?</dt><dd>匹配0次或一次</dd>
+<dt>(r)</dt><dd>分组</dd>
+</dl>
+
+
+<dl class="org-dl">
+<dt><i>^[_a-zA-Z][_a-zA-Z0-9]*$</i></dt><dd>匹配AWK标识符</dd>
+<dt><i>^[-+]?([0-9]+\.?|\.[0-9])[0-9]*([eE][-+]?[0-9]+)?$</i></dt><dd>匹配数字</dd>
+</dl>
+</div>
+</div>
+
+<div id="outline-container-orgheadline16" class="outline-3">
+<h3 id="orgheadline16">示例代码</h3>
+<div class="outline-text-3" id="text-orgheadline16">
+<div class="org-src-container">
+
+<pre class="src src-awk"><span style="color: #800;">BEGIN</span> { identifier = <span style="color: #800;">"[_a-zA-Z][_a-zA-Z0-9]*"</span> }
+$0 ~ <span style="color: #800;">"^"</span> identifier
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #800;">echo</span>  abc | awk <span style="color: #800;">'{ gsub(//, "X") ; print }'</span>
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-awk">{ <span style="color: #800;">print</span> }
+<span style="color: #800;">END</span>                                     <span style="color: #666;"># </span><span style="color: #666;">echo</span>
+
+{ <span style="color: #800;">/micky/</span> {cnt++}
+}
+<span style="color: #800;">END</span> { <span style="color: #800;">print</span> <span style="color: #800;">"count="</span>, cnt }             <span style="color: #666;"># </span><span style="color: #666;">match count</span>
+
+{ chars += <span style="color: #800;">length</span>($0) + 1
+    words += <span style="color: #048;">NF</span>
+}
+<span style="color: #800;">END</span>{ <span style="color: #800;">print</span> <span style="color: #048;">NR</span>, lines, words, chars }    <span style="color: #666;"># </span><span style="color: #666;">wc</span>
+
+<span style="color: #800;">BEGIN</span> { <span style="color: #048;">FS</span> = <span style="color: #800;">"[^A-Za-z]+"</span> }
+{ <span style="color: #800;">for</span>(i = 1 ; i &lt;= <span style="color: #048;">NF</span> ; i++)  word[$i] += 1 }
+<span style="color: #800;">END</span> { <span style="color: #800;">delete</span> word[<span style="color: #800;">""</span>]
+      <span style="color: #800;">for</span> ( i <span style="color: #800;">in</span> word ) { <span style="color: #800;">print</span> i, word[i]; cnt++ }
+      <span style="color: #800;">print</span> cnt }                       <span style="color: #666;"># </span><span style="color: #666;">count uniq words</span>
+
+$1 ~ <span style="color: #800;">/credit|gain/</span> { sum += $2 }
+$1 ~ <span style="color: #800;">/debit|loss/</span>  { sum -= $2 }
+<span style="color: #800;">END</span> { <span style="color: #800;">print</span> sum }                       <span style="color: #666;"># </span><span style="color: #666;">sum 2nd-row base on 1st-row</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline18" class="outline-2">
+<h2 id="orgheadline18">参考资料</h2>
+<div class="outline-text-2" id="text-orgheadline18">
+<ul class="org-ul">
+<li><a href="https://www.gnu.org/software/sed/manual/html_node/Regular-Expressions.html">sed正则表达式</a></li>
+</ul>
+</div>
+</div>
