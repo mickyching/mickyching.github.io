@@ -1,0 +1,511 @@
+---
+title: Docker命令详解
+categories: cloud
+tags: 笔记 docker
+author: 敬叶
+---
+<dl class="post-meta">
+<dt class="post-meta">2016-10-10</dt><dd>敬叶 初稿</dd>
+</dl>
+<hr><br>
+<div id="table-of-contents"><h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#orgheadline2">全局信息</a>
+<ul>
+<li><a href="#orgheadline1">info|help|version</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline6">生命周期</a>
+<ul>
+<li><a href="#orgheadline3">create|run|update</a>
+<ul>
+<li><a href="#orgheadline4">entrypoint|cmd</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline5">wait|stop|start|restart|kill|rm</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline11">容器管理</a>
+<ul>
+<li><a href="#orgheadline7">ps|top|logs|stats|diff</a></li>
+<li><a href="#orgheadline8">port|events|inspect</a></li>
+<li><a href="#orgheadline9">rename|attach|pause|unpause</a></li>
+<li><a href="#orgheadline10">cp|exec</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline15">镜像管理</a>
+<ul>
+<li><a href="#orgheadline12">images|commit|tag|rmi|history</a></li>
+<li><a href="#orgheadline13">build|export|import|save|load</a></li>
+<li><a href="#orgheadline14">login|logout|pull|push|search</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline16">volume</a></li>
+<li><a href="#orgheadline17">network</a></li>
+<li><a href="#orgheadline18">service</a></li>
+<li><a href="#orgheadline19">node</a></li>
+<li><a href="#orgheadline20">swarm</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline2" class="outline-2">
+<h2 id="orgheadline2">全局信息</h2>
+<div class="outline-text-2" id="text-orgheadline2">
+</div><div id="outline-container-orgheadline1" class="outline-3">
+<h3 id="orgheadline1">info|help|version</h3>
+<div class="outline-text-3" id="text-orgheadline1">
+<pre class="example">
+docker info
+docker help
+docker version
+</pre>
+
+<!--abstract-begin-->
+
+<p>
+从<code>docker help</code>可以查看到docker支持的所有命令，基础功能包括三个方面：容器生命周期管理、容器管理、镜像管理。
+</p>
+
+<p>
+容器本身可以和一个进程进行类比，管理方式上也相似，只不过docker提供了一组简明的接口来专门管理。
+</p>
+
+<p>
+镜像可以类比为可执行文件，相比于普通应用程序，它涵盖了几乎所有的配置，在不同平台上启动不需要配置环境。镜像管理方式上也和普通程序有所不同，由于它可以保留提交历史记录，所以用起来会更加方便。
+</p>
+
+<!--abstract-end-->
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline6" class="outline-2">
+<h2 id="orgheadline6">生命周期</h2>
+<div class="outline-text-2" id="text-orgheadline6">
+</div><div id="outline-container-orgheadline3" class="outline-3">
+<h3 id="orgheadline3">create|run|update</h3>
+<div class="outline-text-3" id="text-orgheadline3">
+<p>
+<code>docker run</code>实际上包括两步：第一步调用<code>docker create</code>，第二步运行容器。二者参数几乎一样。
+<code>docker update</code>则用于更改容器配置。
+</p>
+
+<pre class="example">
+docker run [OPTIONS] IMG [CMD] [ARGS...]
+-i                      interactive mode
+-a                      attach stdio
+-d                      detach stdio, backgroud
+-c                      cpu share, defaut using max 1024
+-m                      memory limit, unit: b,k,m,g
+-t                      allocate a tty
+-v H:C                  mount container dir to host: -v /host:/container
+-w                      working directory inside the container
+-p PORT                 expose container port
+--name                  assign a name
+--entrypoint            overwrite default ENTRYPOINT
+--expose                expose a port
+--link                  link to another container
+--rm                    auto remove container when stopped
+--mac-address           set mac address
+--ipc=host              using host shm, semaphore, mq
+--ipc=container:CID     using container shm, semaphore, mq
+--cap-add|--cap-drop    add or drop cap
+--net                   bridge: create network stack on the docker bridge
+                        none: no networking
+                        container: reuse another container network stack
+                        host: use the host network stack
+
+docker update CONTAINER [CONTAINER...]
+  --blkio-weight        Block IO (relative weight), between 10 and 1000
+  -c, --cpu-shares      CPU shares (relative weight)
+  --cpu-period          Limit CPU CFS (Completely Fair Scheduler) period
+  --cpu-quota           Limit CPU CFS (Completely Fair Scheduler) quota
+  --cpuset-cpus         CPUs in which to allow execution (0-3, 0,1)
+  --cpuset-mems         MEMs in which to allow execution (0-3, 0,1)
+  --help                Print usage
+  --kernel-memory       Kernel memory limit
+  -m, --memory          Memory limit
+  --memory-reservation  Memory soft limit
+  --memory-swap         Swap limit equal to memory plus swap: '-1' to enable unlimited swap
+  --restart             Restart policy to apply when a container exits
+</pre>
+
+<p>
+运行容器会返回容器ID（记为CID），很多对容器操作的命令都是用CID来指定容器。使用时只需要使用CID前面几位就可以了。
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">docker run -it --entrypoint /bin/bash IMG <span style="color: #666;"># </span><span style="color: #666;">overwrite entrypoint</span>
+docker run -d ubuntu /bin/sh -c <span style="color: #800;">"while true; do date &gt;&gt; /var/hello.log; sleep 1; done"</span>
+</pre>
+</div>
+</div>
+
+<div id="outline-container-orgheadline4" class="outline-4">
+<h4 id="orgheadline4">entrypoint|cmd</h4>
+<div class="outline-text-4" id="text-orgheadline4">
+<p>
+这两个参数在Dockerfile中对应两个指令。
+</p>
+
+<p>
+Dockerfile中的CMD有三种用途：
+</p>
+<ol class="org-ol">
+<li>以shell形式执行命令(shell form)</li>
+<li>运行可执行文件并提供参数(exec form)</li>
+<li>给ENTRYPOINT提供参数(args form)</li>
+</ol>
+
+<p>
+运行<code>docker run</code>命令时指定CMD会覆盖Dockerfile的CMD指令。
+</p>
+
+<p>
+Dockerfile中的ENTRYPOINT用于指定容器入口，所有容器都有ENTRYPOINT，无论哪种形式的CMD本质上都是ENTRYPOINT的参数。只不过像<code>/bin/bash</code>这样的ENTRYPOINT让CMD看起来有三种形式而已。
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline5" class="outline-3">
+<h3 id="orgheadline5">wait|stop|start|restart|kill|rm</h3>
+<div class="outline-text-3" id="text-orgheadline5">
+<p>
+这一组命令都是相同的格式，如：<code>docker stop [OPTIONS] CID [CID...]</code>
+</p>
+
+<p>
+<code>docker wait</code>用于等待容器结束并打印退出码。
+<code>docker stop</code>首先发送<code>SIGTERM</code>，然后发送<code>SIGKILL</code>。
+<code>docker kill</code>直接发送<code>SIGKILL</code>或指定的信号。
+<code>docker rm</code>用于清理数据，该命令不能删除运行中的容器。
+</p>
+
+<pre class="example">
+docker wait
+
+docker stop
+  -t, --time int        Seconds to wait for stop before killing it (default 10)
+
+docker start
+  -a, --attach          Attach STDOUT/STDERR and forward signals
+  -i, --interactive     Attach container's STDIN
+
+docker restart
+  -t, --time int        Seconds to wait for stop before killing the container (default 10)
+
+docker kill
+  -s, --signal string   Signal to send to the container (default "KILL")
+
+docker rm
+  -f, --force           Force the removal of a running container (uses SIGKILL)
+  -l, --link            Remove the specified link
+  -v, --volumes         Remove the volumes associated with the container
+</pre>
+
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #666;"># </span><span style="color: #666;">stop and remove all container</span>
+docker stop $(<span style="font-weight: bold;">docker</span> ps -q)
+docker rm $(<span style="font-weight: bold;">docker</span> ps -qa)
+</pre>
+</div>
+</div>
+</div>
+</div>
+<div id="outline-container-orgheadline11" class="outline-2">
+<h2 id="orgheadline11">容器管理</h2>
+<div class="outline-text-2" id="text-orgheadline11">
+</div><div id="outline-container-orgheadline7" class="outline-3">
+<h3 id="orgheadline7">ps|top|logs|stats|diff</h3>
+<div class="outline-text-3" id="text-orgheadline7">
+<p>
+<code>docker stats</code>用于查看资源使用统计信息，默认只显示运行容器的统计信息。
+</p>
+
+<pre class="example">
+docker ps [OPTIONS]
+  -a, --all             Show all containers (default shows just running)
+  -f, --filter value    Filter output based on conditions provided (default [])
+      --format string   Pretty-print containers using a Go template
+  -n, --last int        Show n last created containers (includes all states) (default -1)
+  -l, --latest          Show the latest created container (includes all states)
+      --no-trunc        Don't truncate output
+  -q, --quiet           Only display numeric IDs
+  -s, --size            Display total file sizes
+
+docker top CONTAINER [ps OPTIONS]
+
+docker logs [OPTIONS] CONTAINER
+      --details         Show extra details provided to logs
+  -f, --follow          Follow log output
+      --since string    Show logs since timestamp
+      --tail string     Number of lines to show from the end of the logs (default "all")
+  -t, --timestamps      Show timestamps
+
+docker stats [OPTIONS] [CONTAINER...]
+  -a, --all             Show all containers (default shows just running)
+      --no-stream       Disable streaming stats and only pull the first result
+
+docker diff CONTAINER
+</pre>
+</div>
+</div>
+
+<div id="outline-container-orgheadline8" class="outline-3">
+<h3 id="orgheadline8">port|events|inspect</h3>
+<div class="outline-text-3" id="text-orgheadline8">
+<p>
+<code>docker port</code>用于显示端口映射。
+</p>
+<pre class="example">
+docker port CONTAINER [PRIVATE_PORT[/PROTO]]
+
+docker events [OPTIONS]
+  -f, --filter value   Filter output based on conditions provided (default [])
+      --since string   Show all events created since timestamp
+      --until string   Stream events until this timestamp
+
+docker inspect [OPTIONS] CONTAINER|IMAGE|TASK [CONTAINER|IMAGE|TASK...]
+  -f, --format       Format the output using the given go template
+  -s, --size         Display total file sizes if the type is container
+  --type             Return JSON for specified type, (e.g image, container or task)
+</pre>
+</div>
+</div>
+<div id="outline-container-orgheadline9" class="outline-3">
+<h3 id="orgheadline9">rename|attach|pause|unpause</h3>
+<div class="outline-text-3" id="text-orgheadline9">
+<p>
+<code>docker rename</code>由于修改容器名字。
+<code>docker pause</code>用于暂停容器中的所有进程。
+</p>
+<pre class="example">
+docker rename OLD_NAME NEW_NAME
+docker attach [OPTIONS] CONTAINER
+      --detach-keys string   Override the key sequence for detaching a container
+      --help                 Print usage
+      --no-stdin             Do not attach STDIN
+      --sig-proxy            Proxy all received signals to the process (default true)
+
+docker pause CONTAINER [CONTAINER...]
+docker unpause CONTAINER [CONTAINER...]
+</pre>
+</div>
+</div>
+<div id="outline-container-orgheadline10" class="outline-3">
+<h3 id="orgheadline10">cp|exec</h3>
+<div class="outline-text-3" id="text-orgheadline10">
+<p>
+<code>docker exec</code>基本上就是一个后门程序，使用该命令可以随意的窥探并修改容器。
+</p>
+<pre class="example">
+docker cp [OPTIONS] CONTAINER:SRC_PATH DEST_PATH|-
+docker cp [OPTIONS] SRC_PATH|- CONTAINER:DEST_PATH
+  -L, --follow-link   Always follow symbol link in SRC_PATH
+
+docker exec [OPTIONS] CONTAINER COMMAND [ARG...]
+  -d, --detach         Detached mode: run command in the background
+  --detach-keys        Override the key sequence for detaching a container
+  --help               Print usage
+  -i, --interactive    Keep STDIN open even if not attached
+  --privileged         Give extended privileges to the command
+  -t, --tty            Allocate a pseudo-TTY
+  -u, --user           Username or UID (format: &lt;name|uid&gt;[:&lt;group|gid&gt;])
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-orgheadline15" class="outline-2">
+<h2 id="orgheadline15">镜像管理</h2>
+<div class="outline-text-2" id="text-orgheadline15">
+</div><div id="outline-container-orgheadline12" class="outline-3">
+<h3 id="orgheadline12">images|commit|tag|rmi|history</h3>
+<div class="outline-text-3" id="text-orgheadline12">
+<p>
+<code>commit</code>用于将容器保存为镜像，<code>tag</code>用于修改镜像名，
+<code>rmi</code>删除镜像需要确保没有容器和镜像依赖目标镜像。
+</p>
+
+<pre class="example">
+docker images [OPTIONS] [REPOSITORY[:TAG]]
+  -a, --all             Show all images (default hides intermediate images)
+      --digests         Show digests
+  -f, --filter value    Filter output based on conditions provided (default [])
+      --format string   Pretty-print images using a Go template
+      --help            Print usage
+      --no-trunc        Don't truncate output
+  -q, --quiet           Only show numeric IDs
+
+docker commit [OPTIONS] CONTAINER [REPOSITORY[:TAG]]
+  -a, --author string   Author (e.g., "John Hannibal Smith &lt;hannibal@a-team.com&gt;")
+  -c, --change value    Apply Dockerfile instruction to the created image (default [])
+  -m, --message string  Commit message
+  -p, --pause           Pause container during commit (default true)
+
+docker tag IMAGE[:TAG] IMAGE[:TAG]
+
+docker rmi [OPTIONS] IMAGE [IMAGE...]
+  -f, --force           Force removal of the image
+      --no-prune        Do not delete untagged parents
+
+docker history [OPTIONS] IMAGE
+  -H, --human      Print sizes and dates in human readable format (default true)
+      --no-trunc   Don't truncate output
+  -q, --quiet      Only show numeric IDs
+</pre>
+</div>
+</div>
+
+<div id="outline-container-orgheadline13" class="outline-3">
+<h3 id="orgheadline13">build|export|import|save|load</h3>
+<div class="outline-text-3" id="text-orgheadline13">
+<p>
+<code>export|import</code>的对象是容器，<code>save|load</code>的对象是镜像，后者包括完整的提交历史。
+</p>
+<pre class="example">
+docker build [OPTIONS] PATH | URL | -
+      --build-arg value         Set build-time variables (default [])
+      --cgroup-parent string    Optional parent cgroup for the container
+      --cpu-period int          Limit the CPU CFS (Completely Fair Scheduler) period
+      --cpu-quota int           Limit the CPU CFS (Completely Fair Scheduler) quota
+  -c, --cpu-shares int          CPU shares (relative weight)
+      --cpuset-cpus string      CPUs in which to allow execution (0-3, 0,1)
+      --cpuset-mems string      MEMs in which to allow execution (0-3, 0,1)
+      --disable-content-trust   Skip image verification (default true)
+  -f, --file string             Name of the Dockerfile (Default is 'PATH/Dockerfile')
+      --force-rm                Always remove intermediate containers
+      --help                    Print usage
+      --isolation string        Container isolation technology
+      --label value             Set metadata for an image (default [])
+  -m, --memory string           Memory limit
+      --memory-swap string      Swap limit equal to memory plus swap: '-1' to enable unlimited swap
+      --no-cache                Do not use cache when building the image
+      --pull                    Always attempt to pull a newer version of the image
+  -q, --quiet                   Suppress the build output and print image ID on success
+      --rm                      Remove intermediate containers after a successful build (default true)
+      --shm-size string         Size of /dev/shm, default value is 64MB
+  -t, --tag value               Name and optionally a tag in the 'name:tag' format (default [])
+      --ulimit value            Ulimit options (default [])
+
+docker export [OPTIONS] CONTAINER
+  -o, --output string   Write to a file, instead of STDOUT
+
+docker import [OPTIONS] file|URL|- [REPOSITORY[:TAG]]
+  -c, --change value    Apply Dockerfile instruction to the created image (default [])
+  -m, --message string  Set commit message for imported image
+
+docker save [OPTIONS] IMAGE [IMAGE...]
+  -o, --output string   Write to a file, instead of STDOUT
+
+docker load [OPTIONS]
+  -i, --input string    Read from tar archive file, instead of STDIN
+  -q, --quiet           Suppress the load output
+</pre>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">docker save -o images.tar ubuntu centos
+docker load -i images.tar
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-orgheadline14" class="outline-3">
+<h3 id="orgheadline14">login|logout|pull|push|search</h3>
+<div class="outline-text-3" id="text-orgheadline14">
+<pre class="example">
+docker login [OPTIONS] [SERVER]
+  -p, --password string   Password
+  -u, --username string   Username
+
+docker logout [SERVER]
+
+docker pull [OPTIONS] NAME[:TAG|@DIGEST]
+  -a, --all-tags                Download all tagged images in the repository
+      --disable-content-trust   Skip image verification (default true)
+
+docker push [OPTIONS] NAME[:TAG]
+      --disable-content-trust   Skip image verification (default true)
+
+docker search [OPTIONS] TERM
+  -f, --filter value   Filter output based on conditions provided (default [])
+      --limit int      Max number of search results (default 25)
+      --no-trunc       Don't truncate output
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-orgheadline16" class="outline-2">
+<h2 id="orgheadline16">volume</h2>
+<div class="outline-text-2" id="text-orgheadline16">
+<pre class="example">
+docker volume COMMAND
+  create      Create a volume
+  inspect     Display detailed information on one or more volumes
+  ls          List volumes
+  rm          Remove one or more volumes
+</pre>
+</div>
+</div>
+<div id="outline-container-orgheadline17" class="outline-2">
+<h2 id="orgheadline17">network</h2>
+<div class="outline-text-2" id="text-orgheadline17">
+<pre class="example">
+docker network COMMAND
+  connect     Connect a container to a network
+  create      Create a network
+  disconnect  Disconnect a container from a network
+  inspect     Display detailed information on one or more networks
+  ls          List networks
+  rm          Remove one or more networks
+</pre>
+</div>
+</div>
+<div id="outline-container-orgheadline18" class="outline-2">
+<h2 id="orgheadline18">service</h2>
+<div class="outline-text-2" id="text-orgheadline18">
+<pre class="example">
+docker service COMMAND
+  create      Create a new service
+  inspect     Display detailed information on one or more services
+  ps          List the tasks of a service
+  ls          List services
+  rm          Remove one or more services
+  scale       Scale one or multiple services
+  update      Update a service
+</pre>
+</div>
+</div>
+<div id="outline-container-orgheadline19" class="outline-2">
+<h2 id="orgheadline19">node</h2>
+<div class="outline-text-2" id="text-orgheadline19">
+<pre class="example">
+docker node COMMAND
+  demote      Demote one or more nodes from manager in the swarm
+  inspect     Display detailed information on one or more nodes
+  ls          List nodes in the swarm
+  promote     Promote one or more nodes to manager in the swarm
+  rm          Remove one or more nodes from the swarm
+  ps          List tasks running on a node
+  update      Update a node
+</pre>
+</div>
+</div>
+<div id="outline-container-orgheadline20" class="outline-2">
+<h2 id="orgheadline20">swarm</h2>
+<div class="outline-text-2" id="text-orgheadline20">
+<pre class="example">
+docker swarm COMMAND
+  init        Initialize a swarm
+  join        Join a swarm as a node and/or manager
+  join-token  Manage join tokens
+  update      Update the swarm
+  leave       Leave a swarm
+</pre>
+</div>
+</div>
