@@ -40,10 +40,12 @@ ul, ol, dl, figure,
 }
 
 table{
+    margin: 0 auto;
     margin-top: 0.5em;
     margin-bottom: 0.5em;
     border-top:solid 3px;
     border-bottom:solid 3px;
+    min-width: 70%;
 }
 
 
@@ -199,18 +201,22 @@ pre {
     }
 }
 
+table, th, td {
+    border: 1px solid black;
+}
+
 th {
-    /* background-color: $tags-background; */
+    background-color: $note-background;
 }
 td {
     font-family: monospace;
     padding: 0.2em 1em;
 }
 tr:nth-child(2n+1) {
-    /* background-color: $note-background; */
+    background-color: $text-background;
 }
 tr:nth-child(2n+2) {
-    /* background-color: $text-background; */
+    background-color: $code-background;
 }
 dl {
     @extend %clearfix;
