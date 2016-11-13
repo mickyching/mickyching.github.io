@@ -116,6 +116,7 @@ docker run [OPTIONS] IMG [CMD] [ARGS...]
                         none: no networking
                         container: reuse another container network stack
                         host: use the host network stack
+--volumes-from VALUE    Mount volumes from the specified container
 
 docker update CONTAINER [CONTAINER...]
   --blkio-weight        Block IO (relative weight), between 10 and 1000
@@ -136,10 +137,18 @@ docker update CONTAINER [CONTAINER...]
 运行容器会返回容器ID（记为CID），很多对容器操作的命令都是用CID来指定容器。使用时只需要使用CID前面几位就可以了。
 </p>
 
+<p>
+volume(-v)有两种形式：<code>-v host:container</code>或<code>-v container</code>，前者称为绑定模式。执行<code>docker rm -v CID</code>时，绑定模式的volume不会被删除。
+</p>
+
 <div class="org-src-container">
 
 <pre class="src src-sh">docker run -it --entrypoint /bin/bash IMG <span style="color: #666;"># </span><span style="color: #666;">overwrite entrypoint</span>
 docker run -d ubuntu /bin/sh -c <span style="color: #800;">"while true; do date &gt;&gt; /var/hello.log; sleep 1; done"</span>
+
+<span style="color: #666;"># </span><span style="color: #666;">backup dbdata:/var/lib/postgresql/data</span>
+docker run --rm --volumes-from dbdata -v $(<span style="font-weight: bold;">pwd</span>):/backup debian <span style="color: #800;">\</span>
+       tar -czf /backup/backup.tar.gz /var/lib/postgresql/data
 </pre>
 </div>
 </div>
@@ -337,7 +346,6 @@ docker images [OPTIONS] [REPOSITORY[:TAG]]
       --digests         Show digests
   -f, --filter value    Filter output based on conditions provided (default [])
       --format string   Pretty-print images using a Go template
-      --help            Print usage
       --no-trunc        Don't truncate output
   -q, --quiet           Only show numeric IDs
 

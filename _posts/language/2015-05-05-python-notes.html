@@ -367,6 +367,12 @@ accept arbitrary numerical arguments and return their sum
 </pre>
 </div>
 
+<pre class="example">
+call 1th power(0) = 0, last call power(None) = None
+call 2th power(1) = 1, last call power(0) = 0
+call 3th power(2) = 4, last call power(1) = 1
+</pre>
+
 <p>
 Python2不允许修改外部作用域的局部变量，上面的例子分别通过修改可变类型和定义局部类型来实现修改外部作用域的值。
 </p>
@@ -388,6 +394,12 @@ Python2不允许修改外部作用域的局部变量，上面的例子分别通�
     f(2)
 </pre>
 </div>
+
+<pre class="example">
+4
+4
+4
+</pre>
 
 <p>
 比包的用途不仅在于提供装饰器，也可用于保存运行环境、根据外部变量来生成不同结果等。
