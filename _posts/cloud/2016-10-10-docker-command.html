@@ -1,8 +1,8 @@
 ---
 title: Docker命令详解
+author: 敬叶
 categories: cloud
 tags: 笔记 docker
-author: 敬叶
 ---
 <dl class="post-meta">
 <dt class="post-meta">2016-10-10</dt><dd>敬叶 初稿</dd>
@@ -117,6 +117,7 @@ docker run [OPTIONS] IMG [CMD] [ARGS...]
                         container: reuse another container network stack
                         host: use the host network stack
 --volumes-from VALUE    Mount volumes from the specified container
+--privileged            给容器特权
 
 docker update CONTAINER [CONTAINER...]
   --blkio-weight        Block IO (relative weight), between 10 and 1000
@@ -151,6 +152,235 @@ docker run --rm --volumes-from dbdata -v $(<span style="font-weight: bold;">pwd<
        tar -czf /backup/backup.tar.gz /var/lib/postgresql/data
 </pre>
 </div>
+
+<p>
+给容器特权<code>--priviliged</code>需要谨慎，特权可以让容器起容器，也可以让容器访问主机上的设备。标准容器可以用<code>df</code>查看文件系统和设备映射，但是不能看到<code>/dev/sdx</code>设备，特权容器则不同，能够看到硬盘设备，也能够挂载设备。所以这个权限是否开启需要十分谨慎，开启就意味着主机在容器中完全暴露了。相关论述可参考：<a href="http://obrown.io/2016/02/15/privileged-containers.html">Privileged Docker Containers</a>。
+</p>
+
+<p>
+和特权相关的还有<code>--cap-add</code>和<code>--cap-drop</code>选项，默认选项包括：
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">权限</th>
+<th scope="col" class="org-left">含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">SETPCAP</td>
+<td class="org-left">修改进程CAP</td>
+</tr>
+
+<tr>
+<td class="org-left">MKNOD</td>
+<td class="org-left">创建特殊文件：mknod</td>
+</tr>
+
+<tr>
+<td class="org-left">AUDIT_WRITE</td>
+<td class="org-left">写内核日志</td>
+</tr>
+
+<tr>
+<td class="org-left">CHOWN</td>
+<td class="org-left">修改UIDs和GIDs</td>
+</tr>
+
+<tr>
+<td class="org-left">NET_RAW</td>
+<td class="org-left">使用RAW/PACKET套接字</td>
+</tr>
+
+<tr>
+<td class="org-left">DAC_OVERRIDE</td>
+<td class="org-left">绕过文件RWX检查</td>
+</tr>
+
+<tr>
+<td class="org-left">FOWNER</td>
+<td class="org-left">绕过文件UID检查</td>
+</tr>
+
+<tr>
+<td class="org-left">FSETID</td>
+<td class="org-left">文件修改时不清除SUID和SGID权限位</td>
+</tr>
+
+<tr>
+<td class="org-left">KILL</td>
+<td class="org-left">绕过发送信号权限检查</td>
+</tr>
+
+<tr>
+<td class="org-left">SETGID</td>
+<td class="org-left">更改GID</td>
+</tr>
+
+<tr>
+<td class="org-left">SETUID</td>
+<td class="org-left">更改UID</td>
+</tr>
+
+<tr>
+<td class="org-left">NET_BIND_SERVICE</td>
+<td class="org-left">绑定套接字到特权端口（&lt;1024）</td>
+</tr>
+
+<tr>
+<td class="org-left">SYS_CHROOT</td>
+<td class="org-left">修改root目录：chroot</td>
+</tr>
+
+<tr>
+<td class="org-left">SETFCAP</td>
+<td class="org-left">设置文件权限</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+默认未添加的权限包括：
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">权限</th>
+<th scope="col" class="org-left">含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">SYS_MODULE</td>
+<td class="org-left">内核模块载入和卸载</td>
+</tr>
+
+<tr>
+<td class="org-left">SYS_RAWIO</td>
+<td class="org-left">IO端口操作：iopl, ioperm</td>
+</tr>
+
+<tr>
+<td class="org-left">SYS_PACCT</td>
+<td class="org-left">进程记账开关：acct</td>
+</tr>
+
+<tr>
+<td class="org-left">SYS_ADMIN</td>
+<td class="org-left">系统管理操作</td>
+</tr>
+
+<tr>
+<td class="org-left">SYS_NICE</td>
+<td class="org-left">修改进程优先级：nice, setpriority</td>
+</tr>
+
+<tr>
+<td class="org-left">SYS_RESOURCE</td>
+<td class="org-left">修改资源限制</td>
+</tr>
+
+<tr>
+<td class="org-left">SYS_TIME</td>
+<td class="org-left">设置系统和硬件时钟：settimeofday, stime, adjtimex</td>
+</tr>
+
+<tr>
+<td class="org-left">SYS_TTY_CONFIG</td>
+<td class="org-left">用于对TTY的各种特权ioctl操作</td>
+</tr>
+
+<tr>
+<td class="org-left">AUDIT_CONTROL</td>
+<td class="org-left">开启/关闭内核审计日志，查看状态和过滤规则</td>
+</tr>
+
+<tr>
+<td class="org-left">MAC_OVERRIDE</td>
+<td class="org-left">配置MAC和修改状态，用于LSM</td>
+</tr>
+
+<tr>
+<td class="org-left">MAC_ADMIN</td>
+<td class="org-left">覆盖MAC，用于LSM</td>
+</tr>
+
+<tr>
+<td class="org-left">NET_ADMIN</td>
+<td class="org-left">网络相关操作</td>
+</tr>
+
+<tr>
+<td class="org-left">SYSLOG</td>
+<td class="org-left">特权syslog操作</td>
+</tr>
+
+<tr>
+<td class="org-left">DAC_READ_SEARCH</td>
+<td class="org-left">绕过文件执行权限和目录访问权限检查</td>
+</tr>
+
+<tr>
+<td class="org-left">LINUX_IMMUTABLE</td>
+<td class="org-left">设置inode标志位：FS_APPEND_FL, FS_IMMUTABLE_FL</td>
+</tr>
+
+<tr>
+<td class="org-left">NET_BROADCAST</td>
+<td class="org-left">发送广播，监听多播</td>
+</tr>
+
+<tr>
+<td class="org-left">IPC_LOCK</td>
+<td class="org-left">内存锁：mlock, mlockall, mmap, shmctl</td>
+</tr>
+
+<tr>
+<td class="org-left">IPC_OWNER</td>
+<td class="org-left">绕过对System V IPC对象的权限检查</td>
+</tr>
+
+<tr>
+<td class="org-left">SYS_PTRACE</td>
+<td class="org-left">跟踪进程：ptrace</td>
+</tr>
+
+<tr>
+<td class="org-left">SYS_BOOT</td>
+<td class="org-left">重启和载入新的内核：reboot, kexec_load</td>
+</tr>
+
+<tr>
+<td class="org-left">LEASE</td>
+<td class="org-left">创建租期：fcntl</td>
+</tr>
+
+<tr>
+<td class="org-left">WAKE_ALARM</td>
+<td class="org-left">通过触发某些条件唤醒系统</td>
+</tr>
+
+<tr>
+<td class="org-left">BLOCK_SUSPEND</td>
+<td class="org-left">阻塞系统挂起</td>
+</tr>
+</tbody>
+</table>
 </div>
 
 <div id="outline-container-orgheadline4" class="outline-4">

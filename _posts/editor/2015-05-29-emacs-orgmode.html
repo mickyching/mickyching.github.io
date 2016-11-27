@@ -1,8 +1,8 @@
 ---
 title: Emacs Orgmode
+author: 敬叶
 categories: editor
 tags: 笔记 emacs
-author: 敬叶
 ---
 <dl class="post-meta">
 <dt class="post-meta">2015-05-29</dt><dd>敬叶 初稿</dd>
@@ -405,7 +405,7 @@ TODO操作可以通过跟踪子项完成情况来计算进度，只需要在TODO
 </p>
 <div class="org-src-container">
 
-<pre class="src src-org"><span style="text-decoration: underline;"><a href="file:fig/logo.png">file:fig/logo.png</a></span>
+<pre class="src src-text">file:fig/logo.png
 </pre>
 </div>
 
@@ -445,7 +445,7 @@ TODO操作可以通过跟踪子项完成情况来计算进度，只需要在TODO
 <tr>
 <td class="org-left">width</td>
 <td class="org-left">设置宽度</td>
-<td class="org-left">8cm 0.8\textwidth</td>
+<td class="org-left">8cm<code>0.8\textwidth</code></td>
 </tr>
 
 <tr>
@@ -651,10 +651,10 @@ TODO操作可以通过跟踪子项完成情况来计算进度，只需要在TODO
 </p>
 <div class="org-src-container">
 
-<pre class="src src-org"><span style="color: #666;">#+NAME: &lt;refname&gt;</span>
-<span style="color: #666;">#+BEGIN_SRC &lt;language&gt; &lt;switches&gt; &lt;header arguments&gt;</span>
+<pre class="src src-text">#+NAME: &lt;refname&gt;
+#+BEGIN_SRC &lt;language&gt; &lt;switches&gt; &lt;header arguments&gt;
   &lt;body&gt;
-<span style="color: #666;">#+END_SRC</span>
+#+END_SRC
 </pre>
 </div>
 
@@ -663,7 +663,7 @@ TODO操作可以通过跟踪子项完成情况来计算进度，只需要在TODO
 </p>
 <div class="org-src-container">
 
-<pre class="src src-org">src_&lt;language&gt;[&lt;header arguments&gt;]{&lt;body&gt;}
+<pre class="src src-text">src_&lt;language&gt;[&lt;header arguments&gt;]{&lt;body&gt;}
 </pre>
 </div>
 
@@ -672,11 +672,11 @@ TODO操作可以通过跟踪子项完成情况来计算进度，只需要在TODO
 </p>
 <div class="org-src-container">
 
-<pre class="src src-org"><span style="color: #666;">#+INCLUDE: &lt;file&gt; src &lt;language&gt;</span>
+<pre class="src src-text">#+INCLUDE: &lt;file&gt; src &lt;language&gt;
 
-<span style="color: #666;">#+INCLUDE: "~/.emacs" :lines "5-10"   Include lines 5 to 10, 10 excluded</span>
-<span style="color: #666;">#+INCLUDE: "~/.emacs" :lines "-10"    Include lines 1 to 10, 10 excluded</span>
-<span style="color: #666;">#+INCLUDE: "~/.emacs" :lines "10-"    Include lines from 10 to EOF</span>
+#+INCLUDE: "~/.emacs" :lines "5-10"   Include lines 5 to 10, 10 excluded
+#+INCLUDE: "~/.emacs" :lines "-10"    Include lines 1 to 10, 10 excluded
+#+INCLUDE: "~/.emacs" :lines "10-"    Include lines from 10 to EOF
 </pre>
 </div>
 
@@ -770,7 +770,7 @@ Orgmode支持很多语言，请参考 <a href="http://orgmode.org/org.html#Langu
 </p>
 <div class="org-src-container">
 
-<pre class="src src-org"><span style="color: #666;">#+CALL: &lt;name&gt;[&lt;inside header arguments&gt;](&lt;arguments&gt;) &lt;end header arguments&gt;</span>
+<pre class="src src-text">#+CALL: &lt;name&gt;[&lt;inside header arguments&gt;](&lt;arguments&gt;) &lt;end header arguments&gt;
 </pre>
 </div>
 </div>

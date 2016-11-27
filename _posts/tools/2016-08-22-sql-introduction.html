@@ -1,8 +1,8 @@
 ---
 title: MySQL Introduction
+author: 敬叶
 categories: tools
 tags: 笔记 database
-author: 敬叶
 ---
 <dl class="post-meta">
 <dt class="post-meta">2016-08-22</dt><dd>敬叶 初稿</dd>
@@ -351,14 +351,22 @@ mysqladmin -u NAME -p password NEWPSWD  <span style="color: #666;"># </span><spa
 <div class="outline-text-4" id="text-orgheadline10">
 <div class="org-src-container">
 
-<pre class="src src-sql"><span style="color: #800;">exec</span> sp_addumpdevice <span style="color: #800;">'disk'</span>, <span style="color: #800;">'sqldev'</span>, <span style="color: #800;">'sqldump.dat'</span>
-backup database DB <span style="color: #800;">to</span> sqldev
+<pre class="src src-sql">mysqldump -u <span style="color: #800;">user</span> -p dbname &gt; dbname.<span style="color: #800;">sql</span> <span style="color: #666;">-- &#22791;&#20221;&#25968;&#25454;&#24211;</span>
+mysqldump -u <span style="color: #800;">user</span> -p dbname tblname &gt; dbname-tblname.<span style="color: #800;">sql</span> <span style="color: #666;">-- &#22791;&#20221;&#34920;</span>
+</pre>
+</div>
+<div class="org-src-container">
+
+<pre class="src src-sql">use dbname                              <span style="color: #666;">-- &#23548;&#20837;&#22791;&#20221;&#25968;&#25454;&#24211;</span>
+<span style="color: #800;">set</span> <span style="color: #800;">names</span> utf8;
+<span style="color: #800;">source</span> dbname.<span style="color: #800;">sql</span>
 </pre>
 </div>
 </div>
 </div>
 </div>
 </div>
+
 <div id="outline-container-orgheadline13" class="outline-2">
 <h2 id="orgheadline13">参考资料</h2>
 <div class="outline-text-2" id="text-orgheadline13">
