@@ -16,12 +16,12 @@ $on-laptop:        1000px;
 // Our variables
 $base-font-family: Helvetica, Arial, sans-serif;
 $base-font-size:   16px;
-$font-size-level-1:$base-font-size * 2;
-$font-size-level-2:$base-font-size * 2.0;
-$font-size-level-3:$base-font-size * 1.8;
-$font-size-level-4:$base-font-size * 1.6;
-$font-size-level-5:$base-font-size * 1.4;
-$font-size-level-6:$base-font-size * 1.2;
+$font-size-level-1:$base-font-size * 2.0;
+$font-size-level-2:$base-font-size * 1.8;
+$font-size-level-3:$base-font-size * 1.6;
+$font-size-level-4:$base-font-size * 1.4;
+$font-size-level-5:$base-font-size * 1.2;
+$font-size-level-6:$base-font-size * 1.0;
 $font-size-level-7:$base-font-size * 1.0;
 
 $tall-line-height: 1.8;
@@ -41,7 +41,7 @@ $side-color:       #EEEEDD;
 $text-background:  #FFFFF0;
 $text-color:       #001122;
 
-$code-background:  #DDDDDD;
+$code-background:  #EEEEEE;
 $code-color:       #660000;
 
 $note-background:  #EEEECC;

@@ -45,7 +45,7 @@ table{
     margin-bottom: 0.5em;
     border-top:solid 3px;
     border-bottom:solid 3px;
-    min-width: 70%;
+    width: 90%;
 }
 
 
@@ -58,10 +58,10 @@ img {
 }
 
 
+.figure {
+    text-align: center;
+}
 
-/**
- * Figures
- */
 figure > img {
     display: block;
 }
@@ -145,7 +145,6 @@ code {
 }
 
 pre {
-    border-left: $text-margin solid $link-color;
     padding: $text-margin $block-margin;
     color: $text-color;
     background-color: $code-background;
@@ -202,11 +201,14 @@ pre {
 }
 
 table, th, td {
+    min-width: 80%;
     border: 1px solid black;
 }
 
 th {
     background-color: $note-background;
+    padding: 0.2em 1em;
+    text-align: left;
 }
 td {
     font-family: monospace;
@@ -223,20 +225,23 @@ dl {
 }
 
 dt {
-    display: inline-block;
     font-family: monospace;
     font-weight: bold;
     color: $note-color;
+    margin: 0;
+    padding: 0 0.5em;
+    width: 28%;
+    float: left;
+    clear: left;
 }
 
 dd {
-    display: inline;
-    margin-left: 1em;
-}
-
-dd::after {
-    content: "\A";
-    white-space: pre;
+    font-family: monospace;
+    margin: 0;
+    float: left;
+    padding: 0 0.5em;
+    border-left: solid 2px $note-color;
+    width: 65%;
 }
 
 .center {
