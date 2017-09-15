@@ -1,15 +1,13 @@
 ---
-title: 基本排序算法
+title: 排序算法
 author: 敬叶
 categories: algorithm
-tags: 笔记 sort algorithm
+tags: sort algorithm
 ---
-<dl class="post-meta">
-<dt class="post-meta">2015-05-17</dt><dd>敬叶 初稿</dd>
-</dl>
-<hr><br>
-<div id="table-of-contents"><h2>Table of Contents</h2>
+<div id="table-of-contents"><h2>&#30446;&#24405;</h2>
 <div id="text-table-of-contents">
+<ul>
+<li><a href="#orgheadline10">排序算法</a>
 <ul>
 <li><a href="#orgheadline3">简单排序</a>
 <ul>
@@ -30,16 +28,20 @@ tags: 笔记 sort algorithm
 </ul>
 </li>
 </ul>
+</li>
+</ul>
 </div>
 </div>
 
-<div id="outline-container-orgheadline3" class="outline-2">
-<h2 id="orgheadline3">简单排序</h2>
-<div class="outline-text-2" id="text-orgheadline3">
-</div><div id="outline-container-orgheadline1" class="outline-3">
-<h3 id="orgheadline1">冒包排序</h3>
-<div class="outline-text-3" id="text-orgheadline1">
-<!--abstract-begin-->
+<div id="outline-container-orgheadline10" class="outline-2">
+<h2 id="orgheadline10">排序算法</h2>
+<div class="outline-text-2" id="text-orgheadline10">
+</div><div id="outline-container-orgheadline3" class="outline-3">
+<h3 id="orgheadline3">简单排序</h3>
+<div class="outline-text-3" id="text-orgheadline3">
+</div><div id="outline-container-orgheadline1" class="outline-4">
+<h4 id="orgheadline1">冒包排序</h4>
+<div class="outline-text-4" id="text-orgheadline1">
 <p>
 冒泡排序第一趟找出最小的元素，第二趟找出剩下最小的元素，依次类推。
 </p>
@@ -62,23 +64,20 @@ tags: 笔记 sort algorithm
 <pre class="example">
 [7, 7, 8, 31, 45, 63, 94]
 </pre>
-<!--abstract-end-->
 </div>
 </div>
 
-<div id="outline-container-orgheadline2" class="outline-3">
-<h3 id="orgheadline2">插入排序</h3>
-<div class="outline-text-3" id="text-orgheadline2">
+<div id="outline-container-orgheadline2" class="outline-4">
+<h4 id="orgheadline2">插入排序</h4>
+<div class="outline-text-4" id="text-orgheadline2">
 <p>
 将当前元素插入到前面已经排序的合适位置，在算法设计的时候可以将前面比当前大的元素依次后移，再把当前元素插入正确的空位中。
 </p>
-<div class="org-center">
+
 
 <div class="figure">
-<p><img src="/resource/algorithm/fig/sort/insert-sort.png" alt="insert-sort.png" />
+<p><img src="/resource/algorithm/fig/insert-sort.png" alt="insert-sort.png" />
 </p>
-<p><span class="figure-number">Figure 1:</span> 插入排序示意图</p>
-</div>
 </div>
 
 <div class="org-src-container">
@@ -108,12 +107,12 @@ tags: 笔记 sort algorithm
 </div>
 </div>
 
-<div id="outline-container-orgheadline7" class="outline-2">
-<h2 id="orgheadline7">经典排序</h2>
-<div class="outline-text-2" id="text-orgheadline7">
-</div><div id="outline-container-orgheadline4" class="outline-3">
-<h3 id="orgheadline4">归并排序</h3>
-<div class="outline-text-3" id="text-orgheadline4">
+<div id="outline-container-orgheadline7" class="outline-3">
+<h3 id="orgheadline7">经典排序</h3>
+<div class="outline-text-3" id="text-orgheadline7">
+</div><div id="outline-container-orgheadline4" class="outline-4">
+<h4 id="orgheadline4">归并排序</h4>
+<div class="outline-text-4" id="text-orgheadline4">
 <p>
 归并排序需要两步工作，第一步是划分未排序，第二步是合并已排序。
 </p>
@@ -152,24 +151,25 @@ tags: 笔记 sort algorithm
 </div>
 </div>
 
-<div id="outline-container-orgheadline5" class="outline-3">
-<h3 id="orgheadline5">堆排序</h3>
-<div class="outline-text-3" id="text-orgheadline5">
+<div id="outline-container-orgheadline5" class="outline-4">
+<h4 id="orgheadline5">堆排序</h4>
+<div class="outline-text-4" id="text-orgheadline5">
+<!--abstract-begin-->
+
 <p>
-堆排序是设计非常巧妙的排序，堆是一个数组，展开为树结构之后保证上一层元素比下一层元素小。
+堆排序是设计非常巧妙的排序，堆是一个数组，展开为树结构之后保证上一层元素比下一层元素大。
 </p>
-<div class="org-center">
+
+<p>
+堆排序最巧妙的函数是<code>max_heapify()</code>，需要注意这是一个递归函数，它将一个不合法的值插入到根节点，前提是左右子堆都是合法的堆，通过递归交换，把不合法的值传递到合法的位置，时间复杂度为<code>O(nlgn)</code>。这个函数被两次利用，建堆的时候用一次，排序的时候调用一次。建堆时从下往上构建，排序时从上往下取出最大值。
+</p>
+
+<!--abstract-end-->
 
 <div class="figure">
-<p><img src="/resource/algorithm/fig/sort/heap-arrary.png" alt="heap-arrary.png" />
+<p><img src="/resource/algorithm/fig/heap-arrary.png" alt="heap-arrary.png" />
 </p>
-<p><span class="figure-number">Figure 2:</span> 堆数组</p>
 </div>
-</div>
-
-<p>
-堆排序最巧妙的函数是<code>max_heapify()</code>，需要注意这是一个递归函数，它将一个不合法的值插入到根节点，前提是左右子堆都是合法的堆，通过递归交换，把不合法的值传递到合法的位置。这个函数被两次利用，建堆的时候用一次，排序的时候又用一次，这其中的巧妙需要细细体会。
-</p>
 
 <div class="org-src-container">
 
@@ -178,7 +178,7 @@ tags: 笔记 sort algorithm
 <span style="color: #800;">def</span> <span style="color: #048; font-weight: bold;">right</span>(i):
     <span style="color: #800;">return</span> 2*i + 2
 
-<span style="color: #800;">def</span> <span style="color: #048; font-weight: bold;">max_heapify</span>(A, i, size):
+<span style="color: #800;">def</span> <span style="color: #048; font-weight: bold;">max_heapify</span>(A, i, size):            <span style="color: #666;"># </span><span style="color: #666;">O(lgn)</span>
     <span style="color: #048;">maxi</span>, <span style="color: #048;">l</span>, <span style="color: #048;">r</span> = i, left(i), right(i)
     <span style="color: #800;">if</span> l &lt; size <span style="color: #800;">and</span> A[l] &gt; A[maxi]:     <span style="color: #666;"># </span><span style="color: #666;">find max idx</span>
         <span style="color: #048;">maxi</span> = l
@@ -188,18 +188,15 @@ tags: 笔记 sort algorithm
         A[i], <span style="color: #048;">A</span>[maxi] = A[maxi], A[i]   <span style="color: #666;"># </span><span style="color: #666;">A[i] set to be max</span>
         max_heapify(A, maxi, size)      <span style="color: #666;"># </span><span style="color: #666;">heapify sub-heap</span>
 
-<span style="color: #800;">def</span> <span style="color: #048; font-weight: bold;">build_max_heap</span>(A, size):
-    <span style="color: #800;">for</span> i <span style="color: #800;">in</span> <span style="color: #800;">range</span>(size/2, -1, -1):
-        max_heapify(A, i, size)         <span style="color: #666;"># </span><span style="color: #666;">O(lgn)</span>
-
 <span style="color: #800;">def</span> <span style="color: #048; font-weight: bold;">heap_sort</span>(A):
     <span style="color: #048;">size</span> = <span style="color: #800;">len</span>(A)
     <span style="color: #800;">if</span> size &lt; 2:
         <span style="color: #800;">return</span> A
-    build_max_heap(A, size)             <span style="color: #666;"># </span><span style="color: #666;">O(nlgn)</span>
+    <span style="color: #800;">for</span> i <span style="color: #800;">in</span> <span style="color: #800;">range</span>(size/2, -1, -1):     <span style="color: #666;"># </span><span style="color: #666;">build heap</span>
+        max_heapify(A, i, size)
     <span style="color: #800;">for</span> i <span style="color: #800;">in</span> <span style="color: #800;">range</span>(size - 1, 0, -1):
         A[i], <span style="color: #048;">A</span>[0] = A[0], A[i]         <span style="color: #666;"># </span><span style="color: #666;">set A[i] to max value</span>
-        max_heapify(A, 0, i)            <span style="color: #666;"># </span><span style="color: #666;">heapify left unsorted sequence</span>
+        max_heapify(A, 0, i)            <span style="color: #666;"># </span><span style="color: #666;">heapify left unsorted array</span>
     <span style="color: #800;">return</span> A
 
 <span style="color: #800;">print</span> heap_sort([8, 94, 45, 63, 7, 7, 31])
@@ -212,9 +209,9 @@ tags: 笔记 sort algorithm
 </div>
 </div>
 
-<div id="outline-container-orgheadline6" class="outline-3">
-<h3 id="orgheadline6">快速排序</h3>
-<div class="outline-text-3" id="text-orgheadline6">
+<div id="outline-container-orgheadline6" class="outline-4">
+<h4 id="orgheadline6">快速排序</h4>
+<div class="outline-text-4" id="text-orgheadline6">
 <p>
 快速排序的思路还是比较清晰的，将序列分成两半，一半比指定值小，一半比指定值大，递归分割完成之后就排好序了。
 </p>
@@ -270,12 +267,12 @@ tags: 笔记 sort algorithm
 </div>
 </div>
 
-<div id="outline-container-orgheadline9" class="outline-2">
-<h2 id="orgheadline9">特殊排序</h2>
-<div class="outline-text-2" id="text-orgheadline9">
-</div><div id="outline-container-orgheadline8" class="outline-3">
-<h3 id="orgheadline8">计数排序</h3>
-<div class="outline-text-3" id="text-orgheadline8">
+<div id="outline-container-orgheadline9" class="outline-3">
+<h3 id="orgheadline9">特殊排序</h3>
+<div class="outline-text-3" id="text-orgheadline9">
+</div><div id="outline-container-orgheadline8" class="outline-4">
+<h4 id="orgheadline8">计数排序</h4>
+<div class="outline-text-4" id="text-orgheadline8">
 <p>
 计数排序的思路是非常简单的，如果我们知道小于或等于当前元素的个数，那么就可以直接将当前元素放到输出序列的对应位置。
 </p>
@@ -308,6 +305,7 @@ tags: 笔记 sort algorithm
 <pre class="example">
 [7, 7, 8, 31, 45, 63, 94]
 </pre>
+</div>
 </div>
 </div>
 </div>
