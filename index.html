@@ -5,6 +5,7 @@ layout: body
 <div class="home">
 
   <ul class="post-list">
+    <br>
     {% for post in paginator.posts %}
     {% if post.content contains "<!--abstract-end-->" %}
     <header class="post-header">
