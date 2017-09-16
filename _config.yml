@@ -13,7 +13,7 @@ port: 4001
 github_username: mickyching
 
 permalink: /:categories/:title.html
-paginate: 7
+paginate: 10
 paginate_path: "page/:num"
 gems: [jekyll-paginate]
 

@@ -11,6 +11,9 @@ layout: default
     {% for tag in page.tags %}
     <a class="post-tags" href="/resource/tags/{{ tag }}.html">{{ tag }}</a>
     {% endfor %}
+    <span style="float: right">
+      {{ page.date | date: "%Y年%m月%d日" }} {{ page.author }}
+    </span>
     </p>
   </header>
 
