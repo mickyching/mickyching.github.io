@@ -2,16 +2,12 @@
 title: Go语言笔记
 author: 敬叶
 categories: language
-tags: 笔记 golang
+tags: golang
 ---
-<dl class="post-meta">
-<dt class="post-meta">2015-07-14</dt><dd>敬叶 初稿</dd>
-</dl>
-<hr><br>
-<div id="table-of-contents"><h2>Table of Contents</h2>
+<div id="table-of-contents"><h2>&#30446;&#24405;</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#orgheadline17">语法要点</a>
+<li><a href="#orgheadline18">语法要点</a>
 <ul>
 <li><a href="#orgheadline1">语言特性</a>
 <ul>
@@ -25,47 +21,64 @@ tags: 笔记 golang
 <li><a href="#orgheadline5">复合类型</a></li>
 </ul>
 </li>
-<li><a href="#orgheadline12">过程语法</a>
+<li><a href="#orgheadline13">过程语法</a>
 <ul>
 <li><a href="#orgheadline7">表达式</a></li>
 <li><a href="#orgheadline8">分支语句</a></li>
 <li><a href="#orgheadline9">迭代语句</a></li>
 <li><a href="#orgheadline10">循环语句</a></li>
-<li><a href="#orgheadline11">函数</a></li>
+<li><a href="#orgheadline11">函数语法</a></li>
+<li><a href="#orgheadline12">匿名函数</a></li>
 </ul>
 </li>
-<li><a href="#orgheadline16">对象语法</a>
+<li><a href="#orgheadline17">对象语法</a>
 <ul>
-<li><a href="#orgheadline13">数据成员</a></li>
-<li><a href="#orgheadline14">方法成员</a></li>
-<li><a href="#orgheadline15">接口</a></li>
+<li><a href="#orgheadline14">数据成员</a></li>
+<li><a href="#orgheadline15">方法成员</a></li>
+<li><a href="#orgheadline16">接口</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="#orgheadline22">高级特性</a>
+<li><a href="#orgheadline26">高级特性</a>
 <ul>
-<li><a href="#orgheadline18">并发</a></li>
-<li><a href="#orgheadline21">项目管理</a>
+<li><a href="#orgheadline19">线程通信</a>
 <ul>
-<li><a href="#orgheadline19">环境变量</a></li>
-<li><a href="#orgheadline20">包管理</a></li>
+<li><a href="#orgheadline20">防止过度并发</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline25">项目管理</a>
+<ul>
+<li><a href="#orgheadline21">环境变量</a></li>
+<li><a href="#orgheadline22">包管理</a></li>
+<li><a href="#orgheadline23">质量管理</a></li>
+<li><a href="#orgheadline24">单元测试</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="#orgheadline23">参考资料</a></li>
+<li><a href="#orgheadline27">糟糕设计</a>
+<ul>
+<li><a href="#orgheadline29">优化方法</a>
+<ul>
+<li><a href="#orgheadline28">字典排序</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#orgheadline30">参考资料</a></li>
 </ul>
 </div>
 </div>
 
-<div id="outline-container-orgheadline17" class="outline-2">
-<h2 id="orgheadline17">语法要点</h2>
-<div class="outline-text-2" id="text-orgheadline17">
+<div id="outline-container-orgheadline18" class="outline-2">
+<h2 id="orgheadline18">语法要点</h2>
+<div class="outline-text-2" id="text-orgheadline18">
 </div><div id="outline-container-orgheadline1" class="outline-3">
 <h3 id="orgheadline1">语言特性</h3>
 <div class="outline-text-3" id="text-orgheadline1">
 <!--abstract-begin-->
+
 <p>
 从Go语言的演化来看，可以分为三条主线：从C语言继承了基本数据类型、表达式语法、指针与函数。从Pascal-Oberon-2继承了包管理和面向对象声明语法。从CSP中继承管道通信。
 </p>
@@ -130,6 +143,9 @@ function: make len cap new append copy close delete complex real imag
 <div id="outline-container-orgheadline3" class="outline-4">
 <h4 id="orgheadline3">运算符优先级</h4>
 <div class="outline-text-4" id="text-orgheadline3">
+<p>
+Go语言在运算符优先级上也做了较大简化，如下所示，一共只有五级。
+</p>
 <pre class="example">
 %      *      /      &lt;&lt;       &gt;&gt;     &amp;(AND)   &amp;^
 +      -      |(OR)  ^(NOT, XOR)
@@ -138,7 +154,7 @@ function: make len cap new append copy close delete complex real imag
 ||
 </pre>
 <p>
-对于<code>&amp;^</code>更倾向于认为他们是两个操作的叠加，将<code>^</code>解释为单目按位取反操作。逻辑操作<code>&amp;&amp;</code>和<code>||</code>可以更形象比作逻辑乘法和逻辑加法。
+对于<code>&amp;^</code>更倾向于认为他们是两个操作的叠加，将<code>^</code>解释为单目按位取反操作，可以认为<code>^a = 0xF...F ^ a</code>。逻辑操作<code>&amp;&amp;</code>和<code>||</code>可以更形象比作逻辑乘法和逻辑加法。
 </p>
 </div>
 </div>
@@ -238,9 +254,9 @@ slice := array[1:4:5]                    <span style="color: #666;">// </span><s
 </div>
 </div>
 
-<div id="outline-container-orgheadline12" class="outline-3">
-<h3 id="orgheadline12">过程语法</h3>
-<div class="outline-text-3" id="text-orgheadline12">
+<div id="outline-container-orgheadline13" class="outline-3">
+<h3 id="orgheadline13">过程语法</h3>
+<div class="outline-text-3" id="text-orgheadline13">
 </div><div id="outline-container-orgheadline7" class="outline-4">
 <h4 id="orgheadline7">表达式</h4>
 <div class="outline-text-4" id="text-orgheadline7">
@@ -352,7 +368,7 @@ channel      e
 </div>
 
 <div id="outline-container-orgheadline11" class="outline-4">
-<h4 id="orgheadline11">函数</h4>
+<h4 id="orgheadline11">函数语法</h4>
 <div class="outline-text-4" id="text-orgheadline11">
 <p>
 不支持嵌套、重载和默认参数。支持匿名函数和闭包。
@@ -412,14 +428,59 @@ fc &lt;- <span style="color: #800;">func</span>() <span style="color: #800;">str
 </p>
 </div>
 </div>
+
+<div id="outline-container-orgheadline12" class="outline-4">
+<h4 id="orgheadline12">匿名函数</h4>
+<div class="outline-text-4" id="text-orgheadline12">
+<p>
+当匿名函数需要递归调用时，需要先声明变量：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-go"><span style="color: #800;">var</span> visitAll <span style="color: #800;">func</span>(items []<span style="color: #800;">string</span>)
+visitAll = <span style="color: #800;">func</span>(items []<span style="color: #800;">string</span>) {
+        <span style="color: #048; font-weight: bold;">visitAll</span>(m[item])               <span style="color: #666;">// </span><span style="color: #666;">ok</span>
+}
+</pre>
+</div>
+<div class="org-src-container">
+
+<pre class="src src-go">visitAll := <span style="color: #800;">func</span>(items []<span style="color: #800;">string</span>) {
+        <span style="color: #048; font-weight: bold;">visitAll</span>(m[item])               <span style="color: #666;">// </span><span style="color: #666;">compile error: undefined: visitAll</span>
+}
+</pre>
 </div>
 
-<div id="outline-container-orgheadline16" class="outline-3">
-<h3 id="orgheadline16">对象语法</h3>
-<div class="outline-text-3" id="text-orgheadline16">
-</div><div id="outline-container-orgheadline13" class="outline-4">
-<h4 id="orgheadline13">数据成员</h4>
-<div class="outline-text-4" id="text-orgheadline13">
+<p>
+在循环中使用匿名函数时要格外小心，下面的问题在于循环变量的作用域，当运行匿名函数时循环已经结束，此时所有线程都是针对最后一个值进行操作：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-go"><span style="color: #800;">var</span> rmdirs []<span style="color: #800;">func</span>()
+<span style="color: #800;">for</span> _, dir := <span style="color: #800;">range</span> <span style="color: #048; font-weight: bold;">tempDirs</span>() {
+        os.<span style="color: #048; font-weight: bold;">MkdirAll</span>(dir, 0755)          <span style="color: #666;">// </span><span style="color: #666;">ok</span>
+        rmdirs = <span style="color: #800;">append</span>(rmdirs, <span style="color: #800;">func</span>() {
+                os.<span style="color: #048; font-weight: bold;">RemoveAll</span>(dir)       <span style="color: #666;">// </span><span style="color: #666;">NOTE: incorrect!</span>
+        })
+}
+<span style="color: #800;">for</span> _, rmdir := <span style="color: #800;">range</span> rmdirs {
+    <span style="color: #048; font-weight: bold;">rmdir</span>()
+}
+</pre>
+</div>
+<p>
+正确的操作是：在循环内部声明一个变量，或者定义带参数的匿名函数。
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline17" class="outline-3">
+<h3 id="orgheadline17">对象语法</h3>
+<div class="outline-text-3" id="text-orgheadline17">
+</div><div id="outline-container-orgheadline14" class="outline-4">
+<h4 id="orgheadline14">数据成员</h4>
+<div class="outline-text-4" id="text-orgheadline14">
 <p>
 结构体定义用如下格式：
 </p>
@@ -437,9 +498,9 @@ fc &lt;- <span style="color: #800;">func</span>() <span style="color: #800;">str
 </p>
 </div>
 </div>
-<div id="outline-container-orgheadline14" class="outline-4">
-<h4 id="orgheadline14">方法成员</h4>
-<div class="outline-text-4" id="text-orgheadline14">
+<div id="outline-container-orgheadline15" class="outline-4">
+<h4 id="orgheadline15">方法成员</h4>
+<div class="outline-text-4" id="text-orgheadline15">
 <p>
 方法只不过多了一个接收对象，可以理解为函数的第一个隐式参数。对于方法的查找，要注意不支持多级指针查找，也就是说想通过多级指针调用方法，就必须显式声明接收对象为多级指针。
 </p>
@@ -473,9 +534,9 @@ method value会复制接收对象，下面的代码中，如果<code>Print()</co
 </div>
 </div>
 </div>
-<div id="outline-container-orgheadline15" class="outline-4">
-<h4 id="orgheadline15">接口</h4>
-<div class="outline-text-4" id="text-orgheadline15">
+<div id="outline-container-orgheadline16" class="outline-4">
+<h4 id="orgheadline16">接口</h4>
+<div class="outline-text-4" id="text-orgheadline16">
 <p>
 接口本质上就是方法的集合，只要一个类实现了接口中的所有函数，那么就是提供了该接口。如下所示，所有动物都可以定一个Speak()接口。
 </p>
@@ -497,12 +558,12 @@ method value会复制接收对象，下面的代码中，如果<code>Print()</co
 </div>
 </div>
 
-<div id="outline-container-orgheadline22" class="outline-2">
-<h2 id="orgheadline22">高级特性</h2>
-<div class="outline-text-2" id="text-orgheadline22">
-</div><div id="outline-container-orgheadline18" class="outline-3">
-<h3 id="orgheadline18">并发</h3>
-<div class="outline-text-3" id="text-orgheadline18">
+<div id="outline-container-orgheadline26" class="outline-2">
+<h2 id="orgheadline26">高级特性</h2>
+<div class="outline-text-2" id="text-orgheadline26">
+</div><div id="outline-container-orgheadline19" class="outline-3">
+<h3 id="orgheadline19">线程通信</h3>
+<div class="outline-text-3" id="text-orgheadline19">
 <p>
 在语言层面提供了<code>goroutine</code>，单个进程可以执行成千上万的并发任务，提供<code>channel</code>来通讯。
 <code>channel</code>在内部实现提供了同步机制，能确保并发安全，默认采用同步模式，接收和发送必须配对，否则一直阻塞。
@@ -531,11 +592,15 @@ method value会复制接收对象，下面的代码中，如果<code>Print()</co
 </div>
 
 <p>
-异步方式通过缓冲区来决定是否阻塞，利用缓冲区来提供效率，另一方面应该考虑指针来规避大数据复制。
+异步方式通过缓冲区来决定是否阻塞，利用缓冲区来提供效率，另一方面应该考虑指针来规避大数据复制。内置函数cap()可以获取缓冲大小，len()可以获取有效元素个数，在并发程序len()的值会不准确。
 </p>
 
 <p>
-对已关闭的channel发送数据会引发panic，从已关闭channel接收数据会返回零值。对于nil channel，收发都会阻塞。
+对已关闭的channel发送数据会引发panic，从已关闭channel接收数据会返回零值，所以关闭应该由生产方控制，接受方也可以通过第二个返回值判断信道是否被关闭，或者用range迭代来自动退出关闭信道。
+</p>
+
+<p>
+对于nil channel，收发都会阻塞。
 </p>
 
 <div class="org-src-container">
@@ -574,18 +639,31 @@ send &lt;- 1
 </pre>
 </div>
 </div>
+
+<div id="outline-container-orgheadline20" class="outline-4">
+<h4 id="orgheadline20">防止过度并发</h4>
+<div class="outline-text-4" id="text-orgheadline20">
+<p>
+Go语言圣经中8.6节提供第一种通过tokens的方法来避免过度并发，原理上类似semaphore，但是这种方法并不是没有缺点的，当传递给信道的列表足够大时，仍然会有过度并发问题，此时将出现大量线程竞争semaphore的情况。
+</p>
+
+<p>
+比较正规的做法是建立一个工人组（线程池），他们随时等待活干。
+</p>
+</div>
+</div>
 </div>
 
-<div id="outline-container-orgheadline21" class="outline-3">
-<h3 id="orgheadline21">项目管理</h3>
-<div class="outline-text-3" id="text-orgheadline21">
-</div><div id="outline-container-orgheadline19" class="outline-4">
-<h4 id="orgheadline19">环境变量</h4>
-<div class="outline-text-4" id="text-orgheadline19">
+<div id="outline-container-orgheadline25" class="outline-3">
+<h3 id="orgheadline25">项目管理</h3>
+<div class="outline-text-3" id="text-orgheadline25">
+</div><div id="outline-container-orgheadline21" class="outline-4">
+<h4 id="orgheadline21">环境变量</h4>
+<div class="outline-text-4" id="text-orgheadline21">
 <dl class="org-dl">
 <dt>GOROOT</dt><dd>安装位置</dd>
 <dt>GOARCH</dt><dd>目标处理器架构</dd>
-<dt>GOOS</dt><dd>主机操作系统</dd>
+<dt>GOOS</dt><dd>目标主机操作系统</dd>
 <dt>GOBIN</dt><dd>编译器安装位置</dd>
 <dt>GOHOSTOS</dt><dd>目标机器操作系统</dd>
 <dt>GOHOSTARCH</dt><dd>目标机器处理器架构</dd>
@@ -593,9 +671,9 @@ send &lt;- 1
 </dl>
 </div>
 </div>
-<div id="outline-container-orgheadline20" class="outline-4">
-<h4 id="orgheadline20">包管理</h4>
-<div class="outline-text-4" id="text-orgheadline20">
+<div id="outline-container-orgheadline22" class="outline-4">
+<h4 id="orgheadline22">包管理</h4>
+<div class="outline-text-4" id="text-orgheadline22">
 <p>
 每个包对应一个独立名字空间，包内的名字如果以大写字符开头那么该名字就是导出的。如果文件被声明为<code>package main</code>就是指定该文件为主程序，当一个包包含多个文件时，构建工具根据文件名排序发给编译器，编译器再逐个初始化。包文件中可以定义一个<code>init()</code>函数来指定初始化顺序。
 </p>
@@ -611,14 +689,169 @@ send &lt;- 1
 <span style="color: #800;">import</span>  _  <span style="color: #800;">"sample/test"</span>      <span style="color: #666;">// </span><span style="color: #666;">&#20165;&#25191;&#34892;&#21021;&#22987;&#21270;&#20989;&#25968;</span>
 </pre>
 </div>
+
+<p>
+常用包：<a href="http://studygolang.com/static/pkgdoc/index.html">标准库索引</a>
+</p>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">报名</th>
+<th scope="col" class="org-left">说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left"><a href="http://studygolang.com/static/pkgdoc/pkg/fmt.htm">fmt</a></td>
+<td class="org-left">格式化输出</td>
+</tr>
+
+<tr>
+<td class="org-left"><a href="http://studygolang.com/static/pkgdoc/pkg/log.htm">log</a></td>
+<td class="org-left">简易日志</td>
+</tr>
+
+<tr>
+<td class="org-left"><a href="http://studygolang.com/static/pkgdoc/pkg/os.htm">os</a></td>
+<td class="org-left">操作系统函数和底层文件操作</td>
+</tr>
+
+<tr>
+<td class="org-left"><a href="http://studygolang.com/static/pkgdoc/pkg/time.htm">time</a></td>
+<td class="org-left">时间操作接口</td>
+</tr>
+
+<tr>
+<td class="org-left"><a href="http://studygolang.com/static/pkgdoc/pkg/net.htm">net</a></td>
+<td class="org-left">网络</td>
+</tr>
+
+<tr>
+<td class="org-left"><a href="http://studygolang.com/static/pkgdoc/pkg/database_sql.htm">sql</a></td>
+<td class="org-left">数据库</td>
+</tr>
+</tbody>
+</table>
+
+
+<p>
+io包提供字节切片操作接口，以及少量实现，如io.Copy，
+io/ioutil实现了一些辅助函数来处理文件一次性读写和输入输出任务。
+os包提供了一个比较强大的File类型来支持文件读写。
+bufio的核心在缓冲，io仅仅定义了接口，而bufio可以认为是对io中接口的一个很好的实现。
+bytes提供的函数和对象集中在对字节切片的操作上，strings和bytes包在形式上一致，只不过strings用于字符串处理。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline23" class="outline-4">
+<h4 id="orgheadline23">质量管理</h4>
+<div class="outline-text-4" id="text-orgheadline23">
+<div class="org-src-container">
+
+<pre class="src src-sh">godoc -http=:4001                       <span style="color: #666;"># </span><span style="color: #666;">&#29983;&#25104;&#26412;&#22320;&#25991;&#26723;</span>
+go vet package/path/name
+go tool vet -shadow source/directory/*.go
+go tool vet source/directory
+</pre>
+</div>
+<p>
+默认会使用<code>-all</code>选项，如果指定某个选项，则只检测该选项，如果禁止某个选项，则只禁止该选项。比较实用的是<code>-shadow</code>用来检测变量覆盖问题。
+</p>
+</div>
+</div>
+<div id="outline-container-orgheadline24" class="outline-4">
+<h4 id="orgheadline24">单元测试</h4>
+<div class="outline-text-4" id="text-orgheadline24">
+<p>
+测试文件需要命名为：<code>[^.]*_test.go</code>。测试函数分为功能测试和性能测试：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-go"><span style="color: #800;">func</span> <span style="color: #048; font-weight: bold;">TestAdd1</span>(t *<span style="color: #800;">testing.T</span>)
+<span style="color: #800;">func</span> <span style="color: #048; font-weight: bold;">BenchmarkAdd1</span>(t *<span style="color: #800;">testing.T</span>)
+</pre>
+</div>
+<p>
+性能测试可以在启动测试先暂停计时器：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-go"><span style="color: #800;">func</span> <span style="color: #048; font-weight: bold;">BenchmarkAdd1</span>(b *<span style="color: #800;">testing.B</span>) {
+        b.<span style="color: #048; font-weight: bold;">StopTimer</span>()
+        <span style="color: #048; font-weight: bold;">DoPreparation</span>()
+        b.<span style="color: #048; font-weight: bold;">StartTimer</span>()
+
+        <span style="color: #800;">for</span> i := 0; i &lt; b.N; i++ {
+                <span style="color: #048; font-weight: bold;">Add</span>(1, 2)
+        }
+}
+</pre>
 </div>
 </div>
 </div>
 </div>
-<div id="outline-container-orgheadline23" class="outline-2">
-<h2 id="orgheadline23">参考资料</h2>
-<div class="outline-text-2" id="text-orgheadline23">
+</div>
+
+<div id="outline-container-orgheadline27" class="outline-2">
+<h2 id="orgheadline27">糟糕设计</h2>
+<div class="outline-text-2" id="text-orgheadline27">
+<ol class="org-ol">
+<li>Go语言的注释并不总是注释，例如导入C包时，注释可以用来写C语言代码，如果需要在某些情况下清除代码中的注释，就会导致代码被破坏。</li>
+</ol>
+</div>
+<div id="outline-container-orgheadline29" class="outline-3">
+<h3 id="orgheadline29">优化方法</h3>
+<div class="outline-text-3" id="text-orgheadline29">
+</div><div id="outline-container-orgheadline28" class="outline-4">
+<h4 id="orgheadline28">字典排序</h4>
+<div class="outline-text-4" id="text-orgheadline28">
+<p>
+Go语言中的map在输出时，没有对key排序，通过如下方法可以将其排序。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-go"><span style="color: #800;">type</span> <span style="color: #800;">Smap</span> <span style="color: #800;">map</span>[<span style="color: #800;">string</span>]<span style="color: #800;">interface</span>{}
+
+<span style="color: #800;">func</span> (self <span style="color: #800;">Smap</span>) <span style="color: #048; font-weight: bold;">Keys</span>() []<span style="color: #800;">string</span> {
+        keys := []<span style="color: #800;">string</span>{}
+        <span style="color: #800;">for</span> key, _ := <span style="color: #800;">range</span> <span style="color: #800;">map</span>[<span style="color: #800;">string</span>]<span style="color: #800;">interface</span>{}(self) {
+                keys = <span style="color: #800;">append</span>(keys, key)
+        }
+        sort.<span style="color: #048; font-weight: bold;">Strings</span>(keys)
+        <span style="color: #800;">return</span> keys
+}
+
+<span style="color: #800;">func</span> (self <span style="color: #800;">Smap</span>) <span style="color: #048; font-weight: bold;">String</span>() <span style="color: #800;">string</span> {
+        line := <span style="color: #800;">""</span>
+        <span style="color: #800;">for</span> _, key := <span style="color: #800;">range</span> self.<span style="color: #048; font-weight: bold;">Keys</span>() {
+                line += fmt.<span style="color: #048; font-weight: bold;">Sprintf</span>(<span style="color: #800;">"%s:%+v "</span>, key, self[key])
+        }
+        <span style="color: #800;">return</span> strings.<span style="color: #048; font-weight: bold;">TrimSpace</span>(line)
+}
+</pre>
+</div>
+<p>
+在打印map时，将其强制转换为<code>Smap</code>即可。
+</p>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline30" class="outline-2">
+<h2 id="orgheadline30">参考资料</h2>
+<div class="outline-text-2" id="text-orgheadline30">
 <ul class="org-ul">
+<li><a href="http://studygolang.com/static/pkgdoc/index.html">标准库索引</a></li>
 <li><a href="https://docs.ruanjiadeng.com/gopl-zh/index.html">Go语言圣经（中文版）</a></li>
 <li><a href="http://xhrwang.me/2014/12/22/golang-fundamentals-1-types-variables-constants.html">Golang语言基础系列</a></li>
 <li><a href="http://wiki.jikexueyuan.com/project/the-way-to-go/">Go入门指南</a></li>
