@@ -68,7 +68,7 @@ function init_document() {
 
   var toc = document.getElementById("table-of-contents");
   document.getElementById("sidebar-toc").innerHTML = toc.innerHTML;
-  $("#sidebar-toc ul ul ul").hide();
+  $("#sidebar-toc ul ul ul ul").hide();
 }
 
 $(toggle_sidebar);
