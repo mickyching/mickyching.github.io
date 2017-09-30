@@ -1,258 +1,702 @@
 ---
 title: Linux用户指南
-categories: linux
-tags: linux
 author: 敬叶
+categories: linux
+tags: linux ubuntu
 ---
-<dl class="post-meta">
-<dt class="post-meta">2016-04-30</dt><dd>敬叶 初稿</dd>
-</dl>
-<hr><br>
-<div id="table-of-contents"><h2>Table of Contents</h2>
+<div id="table-of-contents"><h2>&#30446;&#24405;</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#orgheadline12">基本安装与配置</a>
+<li><a href="#orgheadline6">通用管理</a>
 <ul>
-<li><a href="#orgheadline11">Ubuntu系统安装与配置</a>
+<li><a href="#orgheadline1">用户管理</a></li>
+<li><a href="#orgheadline4">网络管理</a>
 <ul>
-<li><a href="#orgheadline1">软件源配置</a></li>
-<li><a href="#orgheadline2">grub配置</a></li>
-<li><a href="#orgheadline3">fstab配置</a></li>
-<li><a href="#orgheadline4">输入法配置</a></li>
-<li><a href="#orgheadline5">hosts设置</a></li>
-<li><a href="#orgheadline6">chrome浏览器配置</a>
-<ul>
-<li><a href="#orgheadline7">flash插件</a></li>
+<li><a href="#orgheadline2">基本配置</a></li>
+<li><a href="#orgheadline3">分析工具</a></li>
 </ul>
 </li>
-<li><a href="#orgheadline8"><del>过期信息</del></a>
+<li><a href="#orgheadline5">系统时间</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline25">Ubuntu使用指南</a>
 <ul>
-<li><a href="#orgheadline9"><del>给nautilus添加右键打开终端选项</del></a></li>
-<li><a href="#orgheadline10"><del>安装jekyll</del></a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a href="#orgheadline15">常用工具简介</a>
+<li><a href="#orgheadline21">安装配置</a>
 <ul>
-<li><a href="#orgheadline14">分区工具</a>
-<ul>
-<li><a href="#orgheadline13">修改分区名称</a></li>
+<li><a href="#orgheadline7">安装软件</a></li>
+<li><a href="#orgheadline19">实用配置</a></li>
+<li><a href="#orgheadline20">语言环境</a></li>
 </ul>
 </li>
+<li><a href="#orgheadline23">实用技术</a>
+<ul>
+<li><a href="#orgheadline22">软件包管理</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline24">参考资料</a></li>
 </ul>
 </li>
 </ul>
 </div>
 </div>
 
-<div id="outline-container-orgheadline12" class="outline-2">
-<h2 id="orgheadline12">基本安装与配置</h2>
-<div class="outline-text-2" id="text-orgheadline12">
-</div><div id="outline-container-orgheadline11" class="outline-3">
-<h3 id="orgheadline11">Ubuntu系统安装与配置</h3>
-<div class="outline-text-3" id="text-orgheadline11">
-</div><div id="outline-container-orgheadline1" class="outline-4">
-<h4 id="orgheadline1">软件源配置</h4>
-<div class="outline-text-4" id="text-orgheadline1">
-<ul class="org-ul">
-<li><a href="https://lug.ustc.edu.cn/repogen/">https://lug.ustc.edu.cn/repogen/</a></li>
-</ul>
-</div>
-</div>
-
-<div id="outline-container-orgheadline2" class="outline-4">
-<h4 id="orgheadline2">grub配置</h4>
-<div class="outline-text-4" id="text-orgheadline2">
-<ul class="org-ul">
-<li><a href="https://help.ubuntu.com/community/Grub2/Setup">Grub2/Setup</a></li>
-</ul>
-
+<div id="outline-container-orgheadline6" class="outline-2">
+<h2 id="orgheadline6">通用管理</h2>
+<div class="outline-text-2" id="text-orgheadline6">
+</div><div id="outline-container-orgheadline1" class="outline-3">
+<h3 id="orgheadline1">用户管理</h3>
+<div class="outline-text-3" id="text-orgheadline1">
 <p>
-如果要让启动菜单不包括其他磁盘的系统信息，可以使用如下配置。
+账户管理相关配置文件如下表所示。
 </p>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">配置</th>
+<th scope="col" class="org-left">功能</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">/etc/passwd</td>
+<td class="org-left">每个用户一行，用户基本信息</td>
+</tr>
+
+<tr>
+<td class="org-left">/etc/shadow</td>
+<td class="org-left">每个用户一行，包括加密密码</td>
+</tr>
+
+<tr>
+<td class="org-left">/etc/group</td>
+<td class="org-left">系统中的用户组</td>
+</tr>
+
+<tr>
+<td class="org-left">/etc/default/useradd</td>
+<td class="org-left">命令useradd默认会加入的组</td>
+</tr>
+
+<tr>
+<td class="org-left">/etc/login.defs</td>
+<td class="org-left">用于配置/etc/shadow</td>
+</tr>
+</tbody>
+</table>
+
 <div class="org-src-container">
 
-<pre class="src src-sh"><span style="color: #666;"># </span><span style="color: #666;">file: /etc/default/grub</span>
-<span style="color: #048;">GRUB_DISABLE_OS_PROBER</span>=true
+<pre class="src src-sh">useradd -G group user                   <span style="color: #666;"># </span><span style="color: #666;">&#23558;&#29992;&#25143;&#21152;&#20837;&#25351;&#23450;&#32452;</span>
+useradd -G admins,ftp,developers user   <span style="color: #666;"># </span><span style="color: #666;">&#23558;&#29992;&#25143;&#21152;&#20837;&#22810;&#20010;&#32452;</span>
+useradd -g developers user              <span style="color: #666;"># </span><span style="color: #666;">&#23558;&#29992;&#25143;&#21152;&#20837;&#22522;&#30784;&#32452;&#65292;&#19968;&#20010;&#29992;&#25143;&#21482;&#33021;&#26377;&#19968;&#20010;&#22522;&#30784;&#32452;</span>
+usermod -a -G ftp user                  <span style="color: #666;"># </span><span style="color: #666;">&#23558;&#24050;&#26377;&#29992;&#25143;append&#21040;&#25351;&#23450;&#32452;</span>
+usermod -g www user                     <span style="color: #666;"># </span><span style="color: #666;">&#26356;&#25442;&#29992;&#25143;&#22522;&#30784;&#32452;</span>
+groupadd developers                     <span style="color: #666;"># </span><span style="color: #666;">&#28155;&#21152;&#19968;&#20010;&#26032;&#30340;&#29992;&#25143;&#32452;</span>
+id user                                 <span style="color: #666;"># </span><span style="color: #666;">&#26597;&#30475;&#19968;&#20010;&#29992;&#25143;id&#20449;&#24687;&#20197;&#21450;&#22312;&#21738;&#20123;&#32452;</span>
 </pre>
 </div>
 
 <p>
-配置完成之后运行命令更新grub配置。
+将用户加入sudo组之后，配置<code>/etc/sudoers</code>添加如下行即可使用sudo命令：
+</p>
+<pre class="example">
+# using command add user to sudo group: usermod -a -G sudo &lt;username&gt;
+# Allow members of group sudo to execute any command
+%sudo   ALL=(ALL:ALL) ALL
+</pre>
+</div>
+</div>
+
+<div id="outline-container-orgheadline4" class="outline-3">
+<h3 id="orgheadline4">网络管理</h3>
+<div class="outline-text-3" id="text-orgheadline4">
+</div><div id="outline-container-orgheadline2" class="outline-4">
+<h4 id="orgheadline2">基本配置</h4>
+<div class="outline-text-4" id="text-orgheadline2">
+<p>
+基本网络接口控制可以通过<code>ifconfig</code>命令配置，但是该命令只能临时配置，持久化需要通过配置文件实现。
 </p>
 <div class="org-src-container">
 
-<pre class="src src-sh">sudo update-grub
+<pre class="src src-sh">ifconfig eth0 up|down                   <span style="color: #666;"># </span><span style="color: #666;">&#24320;&#21551;/&#20851;&#38381;</span>
+ifconfig eth0[:1] 192.168.2.10 [netmask 255.255.255.0] [broadcast 192.168.2.255]
+ifconfig eth0 hw ether AA:BB:CC:DD:EE:FF
+ifconfig eth0 mtu 1024                  <span style="color: #666;"># </span><span style="color: #666;">&#35774;&#32622;MTU</span>
+ifconfig eth0 arp|-arp                  <span style="color: #666;"># </span><span style="color: #666;">&#21551;&#29992;/&#20851;&#38381;ARP&#21327;&#35758;</span>
+ifconfig eth0 promisc|-promisc          <span style="color: #666;"># </span><span style="color: #666;">promisc&#34920;&#31034;&#19981;&#20250;&#20002;&#24323;&#21035;&#20154;&#30340;&#21253;</span>
+ifconfig eth0 add 33ffe:3240:800:1005::2/64    <span style="color: #666;"># </span><span style="color: #666;">&#37197;&#32622;IPv6&#22320;&#22336;</span>
+ifconfig eth0 del 33ffe:3240:800:1005::2/64    <span style="color: #666;"># </span><span style="color: #666;">&#21024;&#38500;IPv6&#22320;&#22336;</span>
+</pre>
+</div>
+
+<p>
+永久修改MTU：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #666;"># </span><span style="color: #666;">-- CentOS / RHEL / Fedora: /etc/sysconfig/network-scripts/ifcfg-eth0</span>
+<span style="color: #048;">MTU</span>=<span style="color: #800;">"1500"</span>                              <span style="color: #666;"># </span><span style="color: #666;">service network restart</span>
+<span style="color: #048;">IPV6_MTU</span>=<span style="color: #800;">"1280"</span>                         <span style="color: #666;"># </span><span style="color: #666;">for IPv6</span>
+
+<span style="color: #666;"># </span><span style="color: #666;">-- Debian / Ubuntu: /etc/network/interfaces</span>
+mtu 9000                                <span style="color: #666;"># </span><span style="color: #666;">/etc/init.d/networking restart</span>
 </pre>
 </div>
 </div>
 </div>
 
 <div id="outline-container-orgheadline3" class="outline-4">
-<h4 id="orgheadline3">fstab配置</h4>
+<h4 id="orgheadline3">分析工具</h4>
 <div class="outline-text-4" id="text-orgheadline3">
 <p>
-如果要让系统启动之后自动挂载磁盘，可以加入如下配置。
+探测网络连通性，常用<code>ping</code>命令，该命令最终要的参数如下：
 </p>
-<div class="org-src-container">
+<dl class="org-dl">
+<dt>-s packagesize</dt><dd>指定数据包大小，单位为字节，默认56B</dd>
+<dt>-i seconds</dt><dd>时间间隔</dd>
+<dt>-c count</dt><dd>次数</dd>
+</dl>
 
-<pre class="src src-sh"><span style="color: #666;"># </span><span style="color: #666;">file: /etc/fstab</span>
-<span style="color: #048;">UUID</span>=ab1b3396-4d52-4baf-9c0c-b497d30d8df2 /repo           ext4    defaults        0       2
-<span style="color: #048;">UUID</span>=1c4e18b9-9b9b-4ef5-8e90-b06da97e16e9 /data           ext4    defaults        0       2
-</pre>
-</div>
-</div>
-</div>
-
-<div id="outline-container-orgheadline4" class="outline-4">
-<h4 id="orgheadline4">输入法配置</h4>
-<div class="outline-text-4" id="text-orgheadline4">
 <p>
-安装fcitx需要卸载ibus输入法，卸载ibus输入法时注意不要卸载ibus，因为卸载ibus会导致整个unity桌面环境被卸载。
+检查服务端口可用<code>netstat</code>命令：
 </p>
-
-<div class="org-src-container">
-
-<pre class="src src-sh">sudo apt-get purge ibus-gtk ibus-gtk3 ibus-table
-sudo apt-get install fcitx fcitx-googlepinyin
-</pre>
+<dl class="org-dl">
+<dt>netstat</dt><dd>显示当前建立的连接</dd>
+<dt>netstat -lnptux</dt><dd>显示正在监听的服务，包括TCP、UDP和UNIX</dd>
+</dl>
 </div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline5" class="outline-3">
+<h3 id="orgheadline5">系统时间</h3>
+<div class="outline-text-3" id="text-orgheadline5">
 <p>
-安装完fcitx之后需要运行如下命令选择输入法。
+debian下的时间通常比windows快8个小时，这在双系统上很容易测试出来。通过如下命令可以让其和windows时间相同：
 </p>
 <div class="org-src-container">
 
-<pre class="src src-sh">im-config
+<pre class="src src-sh">hwclock -w --localtime
 </pre>
 </div>
 </div>
 </div>
+</div>
+<div id="outline-container-orgheadline25" class="outline-2">
+<h2 id="orgheadline25">Ubuntu使用指南</h2>
+<div class="outline-text-2" id="text-orgheadline25">
+</div><div id="outline-container-orgheadline21" class="outline-3">
+<h3 id="orgheadline21">安装配置</h3>
+<div class="outline-text-3" id="text-orgheadline21">
+</div><div id="outline-container-orgheadline7" class="outline-4">
+<h4 id="orgheadline7">安装软件</h4>
+<div class="outline-text-4" id="text-orgheadline7">
+<ol class="org-ol">
+<li><p>
+google-chrome
+</p>
+<div class="org-src-container">
 
-<div id="outline-container-orgheadline5" class="outline-4">
-<h4 id="orgheadline5">hosts设置</h4>
-<div class="outline-text-4" id="text-orgheadline5">
+<pre class="src src-sh"><span style="color: #666;"># </span><span style="color: #666;">&#33258;&#24102;flash&#25554;&#20214;</span>
+wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+</pre>
+</div></li>
+
+<li><p>
+fcitx
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #666;"># </span><span style="color: #666;">&#22312; &#31995;&#32479;|&#35821;&#35328;&#25903;&#25345; &#20013;&#36873;&#25321; fcitx &#20316;&#20026;&#38190;&#30424;&#36755;&#20837;&#27861;</span>
+apt-get install fcitx-googlepinyin
+</pre>
+</div></li>
+
+<li><p>
+jdk
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">apt install default-jdk
+
+<span style="color: #666;"># </span><span style="color: #666;">&#37197;&#32622;&#29615;&#22659;&#21464;&#37327;</span>
+<span style="color: #048;">JAVA_HOME</span>=<span style="color: #800;">"/usr/lib/jvm/default-java"</span>
+</pre>
+</div></li>
+
+<li><p>
+latex
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">wget https://github.com/scottkosty/install-tl-ubuntu/raw/master/install-tl-ubuntu
+chmod +x install-tl-ubuntu
+./install-tl-ubuntu --help              <span style="color: #666;"># </span><span style="color: #666;">show help</span>
+sudo ./install-tl-ubuntu                <span style="color: #666;"># </span><span style="color: #666;">install latex</span>
+</pre>
+</div></li>
+
+<li><p>
+stardict
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">sudo apt-get install stardict
+
+<span style="color: #666;"># </span><span style="color: #666;">&#23433;&#35013;&#35789;&#24211;</span>
+ls *.bz2 | xargs -n 1 -I {} sudo tar -xjvf {} -C /usr/share/stardict/dic/
+
+<span style="color: #666;"># </span><span style="color: #666;">&#38544;&#34255;&#20027;&#31383;&#21475;&#65306;&#36873;&#39033;|&#20027;&#31383;&#21475;|Options|&#38544;&#34255;&#20027;&#31383;&#21475;</span>
+<span style="color: #666;"># </span><span style="color: #666;">&#25171;&#24320;&#20027;&#31383;&#21475;</span>
+stardict - Lookup words
+</pre>
+</div></li>
+
+<li><p>
+virtualbox
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #666;"># </span><span style="color: #666;">&#23558;&#29992;&#25143;&#21152;&#20837;&#21040;vboxusers&#32452;&#65292;&#20197;&#20415;usb&#35774;&#22791;&#23548;&#20837;&#21040;&#34394;&#25311;&#26426;&#20013;</span>
+usermod -a -G vboxusers micky
+</pre>
+</div></li>
+</ol>
+</div>
+</div>
+
+<div id="outline-container-orgheadline19" class="outline-4">
+<h4 id="orgheadline19">实用配置</h4>
+<div class="outline-text-4" id="text-orgheadline19">
+</div><ul class="org-ul"><li><a id="orgheadline8"></a>配置软件源<br  /><div class="outline-text-5" id="text-orgheadline8">
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #666;"># </span><span style="color: #666;">version: ubuntu-16.04</span>
+<span style="color: #666;"># </span><span style="color: #666;">file: /etc/apt/sources.list</span>
+<span style="color: #666;"># </span><span style="color: #666;">site: https://lug.ustc.edu.cn/wiki/mirrors/help/ubuntu</span>
+deb http://cn.mirrors.ustc.edu.cn/ubuntu/ xenial main restricted universe multiverse
+deb http://cn.mirrors.ustc.edu.cn/ubuntu/ xenial-security main restricted universe multiverse
+deb http://cn.mirrors.ustc.edu.cn/ubuntu/ xenial-updates main restricted universe multiverse
+deb http://cn.mirrors.ustc.edu.cn/ubuntu/ xenial-backports main restricted universe multiverse
+deb http://cn.mirrors.ustc.edu.cn/ubuntu/ xenial-proposed main restricted universe multiverse
+
+deb-src http://cn.mirrors.ustc.edu.cn/ubuntu/ xenial main restricted universe multiverse
+deb-src http://cn.mirrors.ustc.edu.cn/ubuntu/ xenial-security main restricted universe multiverse
+deb-src http://cn.mirrors.ustc.edu.cn/ubuntu/ xenial-updates main restricted universe multiverse
+deb-src http://cn.mirrors.ustc.edu.cn/ubuntu/ xenial-backports main restricted universe multiverse
+deb-src http://cn.mirrors.ustc.edu.cn/ubuntu/ xenial-proposed main restricted universe multiverse
+</pre>
+</div>
+</div></li>
+
+<li><a id="orgheadline9"></a>配置SSH<br  /><div class="outline-text-5" id="text-orgheadline9">
+<p>
+对于要输入动态密码登录跳板机的情况，不仅非常麻烦，而且还可能会有时间限制，如一分钟只能登录一次这样的情况。利用SSH的ControlPersist特性，可以让多条连接共享，这样不用每次都输入用户名、密码。
+</p>
+
+<p>
+配置<code>~/.ssh/config</code>如下：
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">Host *
+        ControlMaster auto
+        ControlPath ~/.ssh/%r@%h-%p
+        ControlPersist yes
+        Compression yes
+</pre>
+</div>
+
+<p>
+连接共享不止可以帮助你共享多个SSH连接，如果你需要通过SFTP与服务器传输文件，你会发现，它们使用的依然是同一条连接，如果你使用的Bash，你会发现，SSH甚至支持Tab对服务器端文件进行自动补全，共享连接选项对于那些需要借助SSH的工具，比如rsync，git等等也同样有效。
+</p>
+
+<p>
+如果你发现自己每条需要连接同一个服务器无数次，那么长连接选项就是为你准备的。打开之后即使关闭了所有的已连接ssh连接，一段时间内也能无需密码重新连接。这个选项对于通过scp拷贝多个文件提速尤其明显，因为你不在需要为每个文件做单独的认证了。
+</p>
+
+<p>
+Compression为压缩选项，打开之后加快数据传输速度。
+</p>
+
+<p>
+参考链接：
+</p>
 <ul class="org-ul">
-<li><a href="https://github.com/racaljk/hosts">https://github.com/racaljk/hosts</a></li>
+<li><a href="http://www.hi-linux.com/2016/04/13/%E5%88%A9%E7%94%A8ControlPersist%E7%89%B9%E6%80%A7%E8%87%AA%E5%8A%A8%E7%99%BB%E9%99%86SSH%E6%9C%8D%E5%8A%A1%E5%99%A8/">利用ControlPersist特性自动登陆SSH服务器</a></li>
 </ul>
+</div></li>
+<li><a id="orgheadline10"></a>配置NFS<br  /><div class="outline-text-5" id="text-orgheadline10">
+<p>
+安装NFS服务工具：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">sudo apt-get install nfs-kernel-server
+</pre>
+</div>
+
+<p>
+编辑<code>/etc/exports</code>添加如下一行。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">/home/micky/dev/nfs   *(ro,sync,no_root_squash)
+</pre>
+</div>
+
+<p>
+重启NFS服务。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">sudo service nfs-kernel-server restart
+</pre>
+</div>
+
+<p>
+客户端只需要挂载即可使用：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">mount -t nfs -o <span style="color: #048;">proto</span>=tcp,<span style="color: #048;">port</span>=2049,nolock 192.168.1.67:/home/micky/dev/nfs /mnt/
+</pre>
+</div>
+</div></li>
+
+<li><a id="orgheadline11"></a>配置自动挂载USB设备<br  /><div class="outline-text-5" id="text-orgheadline11">
+<p>
+创建文件<code>/etc/udev/rules.d/87-usb-automount.rules</code>
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">KERNEL!=<span style="color: #800;">"sd[a-z][0-9]"</span>, <span style="color: #048;">GOTO</span>=<span style="color: #800;">"exit_automount"</span>
+<span style="color: #666;"># </span><span style="color: #666;">Import FS info</span>
+IMPORT{program}=<span style="color: #800;">"/sbin/blkid -o udev -p %N"</span>
+<span style="color: #666;"># </span><span style="color: #666;">Get a label if present, otherwise specify one</span>
+ENV{ID_FS_LABEL}!=<span style="color: #800;">""</span>, ENV{dir_name}=<span style="color: #800;">"%E{ID_FS_LABEL}"</span>
+ENV{ID_FS_LABEL}==<span style="color: #800;">""</span>, ENV{dir_name}=<span style="color: #800;">"Disk-%k"</span>
+<span style="color: #666;"># </span><span style="color: #666;">Global mount options</span>
+<span style="color: #048;">ACTION</span>==<span style="color: #800;">"add"</span>, ENV{mount_options}=<span style="color: #800;">"relatime"</span>
+<span style="color: #666;"># </span><span style="color: #666;">Filesystem-specific mount options</span>
+<span style="color: #048;">ACTION</span>==<span style="color: #800;">"add"</span>, ENV{ID_FS_TYPE}==<span style="color: #800;">"vfat|ntfs"</span>, ENV{mount_options}=<span style="color: #800;">"$env{mount_options},utf8,gid=100,umask=002"</span>
+<span style="color: #666;"># </span><span style="color: #666;">Mount the device</span>
+<span style="color: #048;">ACTION</span>==<span style="color: #800;">"add"</span>, <span style="color: #048;">RUN</span>+=<span style="color: #800;">"/bin/mkdir -p /media/%E{dir_name}"</span>, <span style="color: #048;">RUN</span>+=<span style="color: #800;">"/bin/mount -o $env{mount_options} /dev/%k /media/%E{dir_name}"</span>
+<span style="color: #666;"># </span><span style="color: #666;">Clean up after removal</span>
+<span style="color: #048;">ACTION</span>==<span style="color: #800;">"remove"</span>, ENV{dir_name}!=<span style="color: #800;">""</span>, <span style="color: #048;">RUN</span>+=<span style="color: #800;">"/bin/umount /dev/%k"</span>
+<span style="color: #048;">ACTION</span>==<span style="color: #800;">"remove"</span>, ENV{dir_name}!=<span style="color: #800;">""</span>, <span style="color: #048;">RUN</span>+=<span style="color: #800;">"/bin/umount -l /media/%E{dir_name}"</span>, <span style="color: #048;">RUN</span>+=<span style="color: #800;">"/bin/rmdir /media/%E{dir_name}"</span>
+<span style="color: #666;"># </span><span style="color: #666;">Exit</span>
+<span style="color: #048;">LABEL</span>=<span style="color: #800;">"exit_automount"</span>
+</pre>
+</div>
+
+<p>
+更新配置：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">udevadm control --reload-rules
+</pre>
+</div>
+</div></li>
+
+<li><a id="orgheadline12"></a>配置通过USB Live CD安装grub<br  /><div class="outline-text-5" id="text-orgheadline12">
+<div class="org-src-container">
+
+<pre class="src src-sh">sudo mount /dev/sda5 /mnt
+sudo mount --bind /dev /mnt/dev
+sudo mount --bind /sys /mnt/sys
+sudo mount --bind /proc /mnt/proc
+sudo mount /dev/sdaX /mnt/boot          <span style="color: #666;"># </span><span style="color: #666;">only if you separate boot partition</span>
+sudo chroot /mnt
+sudo grub-install --root-directory=/mnt /dev/sda
+</pre>
+</div>
+</div></li>
+
+<li><a id="orgheadline13"></a>处理隐藏GRUB<br  /><div class="outline-text-5" id="text-orgheadline13">
+<p>
+如果执行<code>update-grub2</code>更新grub动作的时候能看到如下提示信息，则说明GRUB被隐藏了，启动的时候也看不到选择界面。
+</p>
+
+<blockquote>
+<p>
+Generating grub configuration file &#x2026;
+Warning: Setting GRUB_TIMEOUT to a non-zero value
+when GRUB_HIDDEN_TIMEOUT is set is no longer supported.
+</p>
+</blockquote>
+
+<p>
+处理办法是编辑<code>/etc/default/grub</code>注释掉<code>GRUB_HIDDEN_TIMEOUT</code>行。
+</p>
+</div></li>
+
+<li><a id="orgheadline14"></a>通过GRUB rescue修复grub<br  /><div class="outline-text-5" id="text-orgheadline14">
+<div class="org-src-container">
+
+<pre class="src src-sh">grub&gt; set <span style="color: #048;">pager</span>=1
+
+grub&gt; ls
+(hd0) (hd0,msdos2) (hd0,msdos1)
+
+grub&gt; ls (hd0,1)/
+lost+found/ bin/ boot/ cdrom/ dev/ etc/ home/  lib/
+lib64/ media/ mnt/ opt/ proc/ root/ run/ sbin/
+srv/ sys/ tmp/ usr/ var/ vmlinuz vmlinuz.old
+initrd.img initrd.img.old
+
+grub&gt; cat (hd0,1)/etc/issue
+Ubuntu 14.04 LTS \n \l
+
+grub&gt; set <span style="color: #048;">root</span>=(hd0,1)
+grub&gt; linux /boot/vmlinuz-3.13.0-29-generic <span style="color: #048;">root</span>=/dev/sda1
+grub&gt; initrd /boot/initrd.img-3.13.0-29-generic
+grub&gt; boot
+
+<span style="color: #666;"># </span><span style="color: #666;">&#26377;&#20123;Linux&#31995;&#32479;&#24050;&#32463;&#26377;&#20102;&#36229;&#38142;&#25509;&#65292;&#21487;&#20197;&#37319;&#29992;&#26356;&#31616;&#21333;&#30340;&#20889;&#27861;</span>
+grub&gt; set <span style="color: #048;">root</span>=(hd0,1)
+grub&gt; linux /vmlinuz <span style="color: #048;">root</span>=/dev/sda1
+grub&gt; initrd /initrd.img
+grub&gt; boot
+</pre>
+</div>
+
+<p>
+如果GRUB rescue shell和通常的不一样，可以载入模块normal.mod和linux.mod。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">grub rescue&gt; set <span style="color: #048;">prefix</span>=(hd0,1)/boot/grub
+grub rescue&gt; set <span style="color: #048;">root</span>=(hd0,1)
+grub rescue&gt; insmod normal
+grub rescue&gt; normal
+grub rescue&gt; insmod linux
+grub rescue&gt; linux /boot/vmlinuz-3.13.0-29-generic <span style="color: #048;">root</span>=/dev/sda1
+grub rescue&gt; initrd /boot/initrd.img-3.13.0-29-generic
+grub rescue&gt; boot
+</pre>
+</div>
+
+<p>
+最好在启动之后永久性的修复一下。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #666;"># </span><span style="color: #666;">update-grub</span>
+Generating grub configuration file ...
+Found background: /usr/share/images/grub/Apollo_17_The_Last_Moon_Shot_Edit1.tga
+Found background image: /usr/share/images/grub/Apollo_17_The_Last_Moon_Shot_Edit1.tga
+Found linux image: /boot/vmlinuz-3.13.0-29-generic
+Found initrd image: /boot/initrd.img-3.13.0-29-generic
+Found linux image: /boot/vmlinuz-3.13.0-27-generic
+Found initrd image: /boot/initrd.img-3.13.0-27-generic
+Found linux image: /boot/vmlinuz-3.13.0-24-generic
+Found initrd image: /boot/initrd.img-3.13.0-24-generic
+Found memtest86+ image: /boot/memtest86+.elf
+Found memtest86+ image: /boot/memtest86+.bin
+<span style="color: #800;">done</span>
+<span style="color: #666;"># </span><span style="color: #666;">grub-install /dev/sda</span>
+Installing for i386-pc platform.
+Installation finished. No error reported.
+</pre>
+</div>
+</div></li>
+
+<li><a id="orgheadline15"></a>更新initramfs<br  /><div class="outline-text-5" id="text-orgheadline15">
+<p>
+有时候删除内核模块之后，重启还是能看到已删除的模块载入到系统。这可能性是从<code>initramfs</code>中载入的，更新一下即可。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">update-initramfs -c -k 2.6.18-1-686
+</pre>
+</div>
+<dl class="org-dl">
+<dt>-c</dt><dd>表示新创建一个<code>initramfs</code></dd>
+<dt>-k</dt><dd>指定内核版本，可以用<code>uname -r</code>获取</dd>
+</dl>
+</div></li>
+
+<li><a id="orgheadline16"></a>去掉桌面显示主目录下的文件<br  /><div class="outline-text-5" id="text-orgheadline16">
+<p>
+编辑<code>~/.config/user-dirs.dirs</code>文件，直接清空即可。
+</p>
+</div></li>
+
+<li><a id="orgheadline17"></a>修改磁盘卷标<br  /><div class="outline-text-5" id="text-orgheadline17">
+<div class="org-src-container">
+
+<pre class="src src-sh">sudo e2label DEV LABEL                  <span style="color: #666;"># </span><span style="color: #666;">ext3/ext4</span>
+sudo btrfs filesystem label DEV LABEL   <span style="color: #666;"># </span><span style="color: #666;">btrfs</span>
+sudo ntfslabel DEV LABEL                <span style="color: #666;"># </span><span style="color: #666;">ntfs</span>
+</pre>
+</div>
+</div></li>
+<li><a id="orgheadline18"></a>触摸板配置<br  /><div class="outline-text-5" id="text-orgheadline18">
+<pre class="example">
+/etc/X11/&lt;cmdline&gt;
+/usr/etc/X11/&lt;cmdline&gt;
+/etc/X11/$XORGCONFIG
+/usr/etc/X11/$XORGCONFIG
+/etc/X11/xorg.conf-4
+/etc/X11/xorg.conf
+/etc/xorg.conf
+/usr/etc/X11/xorg.conf.&lt;hostname&gt;
+/usr/etc/X11/xorg.conf-4
+/usr/etc/X11/xorg.conf
+/usr/lib/X11/xorg.conf.&lt;hostname&gt;
+/usr/lib/X11/xorg.conf-4
+/usr/lib/X11/xorg.conf
+</pre>
+<p>
+建议将配置写入到 /etc/X11/$XORGCONFIG 中。
+</p>
+
+<pre class="example">
+/etc/X11/xorg.conf.d/70-synaptics.conf
+
+Section "InputClass"
+    Identifier "touchpad"
+    Driver "synaptics"
+    MatchIsTouchpad "on"
+        Option "TapButton1" "1"
+        Option "TapButton2" "3"
+        Option "TapButton3" "2"
+        Option "VertEdgeScroll" "on"
+        Option "VertTwoFingerScroll" "on"
+        Option "HorizEdgeScroll" "on"
+        Option "HorizTwoFingerScroll" "on"
+        Option "CircularScrolling" "on"
+        Option "CircScrollTrigger" "2"
+        Option "EmulateTwoFingerMinZ" "40"
+        Option "EmulateTwoFingerMinW" "8"
+        Option "CoastingSpeed" "0"
+        Option "FingerLow" "30"
+        Option "FingerHigh" "50"
+        Option "MaxTapTime" "125"
+        ...
+EndSection
+</pre>
+</div></li></ul>
+</div>
+<div id="outline-container-orgheadline20" class="outline-4">
+<h4 id="orgheadline20">语言环境</h4>
+<div class="outline-text-4" id="text-orgheadline20">
+<p>
+中文环境下需要通过如下命令添加<code>zh_CN.UTF-8</code>支持：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">sudo dpkg-reconfigure locales           <span style="color: #666;"># </span><span style="color: #666;">add zh_CN.UTF-8</span>
+sudo locale-gen zh_CN.UTF-8
+sudo locale
+</pre>
+</div>
+
+<p>
+如果没有添加中文支持，在启动文本编辑程序时可能出现如下提示而无法输入中文。
+</p>
+<pre class="example">
+(process:3747): Gtk-WARNING **: Locale not supported by C library.
+        Using the fallback 'C' locale.
+</pre>
+
+<p>
+为了能够在编辑程序中使用中文输入法，需要对文件<code>/etc/environment</code>做如下设置。
+</p>
+<pre class="example">
+LC_CTYPE="zh_CN.UTF-8"
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-orgheadline23" class="outline-3">
+<h3 id="orgheadline23">实用技术</h3>
+<div class="outline-text-3" id="text-orgheadline23">
+</div><div id="outline-container-orgheadline22" class="outline-4">
+<h4 id="orgheadline22">软件包管理</h4>
+<div class="outline-text-4" id="text-orgheadline22">
+<p>
+软件包管理主要需要熟悉的命令：<code>dpkg</code>、<code>apt-cache</code>、<code>apt-get</code>、<code>apt-file</code>等。
+</p>
+
+<p>
+查询软件包状态信息
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">dpkg -l | head
+<span style="color: #048;">Desired</span>=Unknown/Install/Remove/Purge/Hold
+| <span style="color: #048;">Status</span>=Not/Inst/Conf-files/Unpacked/halF-conf/Half-inst/trig-aWait/Trig-pend
+|/ Err?=(none)/Reinst-required (Status,Err: <span style="color: #048;">uppercase</span>=bad)
+||/ Name                      Version                         Architecture Description
++++-=========================-===============================-============-============
+ii  account-plugin-aim        3.8.6-0ubuntu9.2                amd64        Messaging ac
+ii  account-plugin-facebook   0.11+14.04.20140409.1-0ubuntu2  all          GNOME Contro
+ii  account-plugin-flickr     0.11+14.04.20140409.1-0ubuntu2  all          GNOME Contro
+ii  account-plugin-google     0.11+14.04.20140409.1-0ubuntu2  all          GNOME Contro
+ii  account-plugin-jabber     3.8.6-0ubuntu9.2                amd64        Messaging ac
+</pre>
+</div>
+
+<p>
+对安装包的操作：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #666;"># </span><span style="color: #666;">ref: dpkg man page</span>
+dpkg --listfiles &lt;package&gt;              <span style="color: #666;"># </span><span style="color: #666;">&#26597;&#35810;&#23646;&#20110;&#36719;&#20214;&#30340;&#25991;&#20214;</span>
+dpkg -s &lt;package&gt;                       <span style="color: #666;"># </span><span style="color: #666;">&#26597;&#35810;&#36719;&#20214;&#35814;&#32454;&#20449;&#24687;</span>
+dpkg -S &lt;package&gt;                       <span style="color: #666;"># </span><span style="color: #666;">&#20174;&#23433;&#35013;&#21253;&#20013;&#26597;&#35810;&#25991;&#20214;&#21517;</span>
+</pre>
+</div>
+
+<p>
+Ubuntu下还需要熟悉如下命令：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">apt-cache search                        <span style="color: #666;"># </span><span style="color: #666;">&#25628;&#32034;&#36719;&#20214;&#21253;</span>
+apt-cache show                          <span style="color: #666;"># </span><span style="color: #666;">&#33719;&#21462;&#36719;&#20214;&#21253;&#30456;&#20851;&#20449;&#24687;</span>
+apt-get remove
+apt-get remove --purge
+apt-get build-dep                       <span style="color: #666;"># </span><span style="color: #666;">&#23433;&#35013;&#32534;&#35793;&#29615;&#22659;</span>
+</pre>
+</div>
+
+<p>
+PPA叫Personal Package Archives，添加好PPA源之后在<code>/etc/apt/sources.list.d/</code>目录下就能看到对应的列表。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">sudo add-apt-repository ppa:user/name   <span style="color: #666;"># </span><span style="color: #666;">&#28155;&#21152;PPA</span>
+sudo add-apt-repository -r ppa:username <span style="color: #666;"># </span><span style="color: #666;">&#21024;&#38500;PPA</span>
+</pre>
+</div>
+</div>
 </div>
 </div>
 
-<div id="outline-container-orgheadline6" class="outline-4">
-<h4 id="orgheadline6">chrome浏览器配置</h4>
-<div class="outline-text-4" id="text-orgheadline6">
-<p>
-常用简单设置和链接如下：
-</p>
+<div id="outline-container-orgheadline24" class="outline-3">
+<h3 id="orgheadline24">参考资料</h3>
+<div class="outline-text-3" id="text-orgheadline24">
 <ul class="org-ul">
-<li>设置字体：chrome://settings/fonts</li>
-<li>如果要同步chrome书签和插件，在配置选项中登录谷歌帐号即可</li>
+<li><a href="http://wiki.ubuntu.org.cn/UbuntuSkills">Ubuntu命令技巧</a></li>
+<li><a href="http://askubuntu.com/questions/145241/how-do-i-run-update-grub-from-a-livecd">How do I run update-grub from a LiveCD</a></li>
+<li><a href="http://howtoubuntu.org/how-to-repair-restore-reinstall-grub-2-with-a-ubuntu-live-cd">How to Repair, Restore, or Reinstall Grub 2 with a Ubuntu Live CD or USB</a></li>
+<li><a href="https://www.linux.com/learn/tutorials/776643-how-to-rescue-a-non-booting-grub-2-on-linux/">How to Rescue a Non-booting GRUB 2 on Linux</a></li>
 </ul>
-</div>
-
-<div id="outline-container-orgheadline7" class="outline-5">
-<h5 id="orgheadline7">flash插件</h5>
-<div class="outline-text-5" id="text-orgheadline7">
-<p>
-由于谷歌的开源浏览器将不再支持Netscape浏览器插件API，Adobe公司的Flash将无法正常工作。用户可以使用Pepper Flash Player，这是谷歌浏览器上一款替代Adobe Flash的插件。
-</p>
-<div class="org-src-container">
-
-<pre class="src src-sh">sudo apt-get install pepperflashplugin-nonfree
-sudo update-pepperflashplugin-nonfree --install
-</pre>
-</div>
-<p>
-如果是ubuntu早期版本，需添加源：
-</p>
-<div class="org-src-container">
-
-<pre class="src src-sh">sudo add-apt-repository ppa:skunk/pepper-flash
-sudo apt-get update
-sudo apt-get install pepflashplugin-installer
-sudo update-pepperflashplugin-nonfree --install
-</pre>
-</div>
-</div>
-</div>
-</div>
-
-<div id="outline-container-orgheadline8" class="outline-4">
-<h4 id="orgheadline8"><del>过期信息</del></h4>
-<div class="outline-text-4" id="text-orgheadline8">
-<p>
-过期信息主要用于老版本，新版本16.04之后已经不再有相关问题。
-</p>
-</div>
-
-<div id="outline-container-orgheadline9" class="outline-5">
-<h5 id="orgheadline9"><del>给nautilus添加右键打开终端选项</del></h5>
-<div class="outline-text-5" id="text-orgheadline9">
-<div class="org-src-container">
-
-<pre class="src src-sh">sudo apt-get install nautilus-open-terminal
-</pre>
-</div>
-</div>
-</div>
-
-<div id="outline-container-orgheadline10" class="outline-5">
-<h5 id="orgheadline10"><del>安装jekyll</del></h5>
-<div class="outline-text-5" id="text-orgheadline10">
-<ul class="org-ul">
-<li><a href="http://blog.csdn.net/cschengvdn/article/details/42425271">http://blog.csdn.net/cschengvdn/article/details/42425271</a></li>
-<li><a href="http://www.linuxidc.com/Linux/2014-09/106771.htm">http://www.linuxidc.com/Linux/2014-09/106771.htm</a></li>
-</ul>
-
-<p>
-如果用<code>apt-get</code>安装jekyll失败，则可以用gem安装，首先需要修改gem源。
-</p>
-<div class="org-src-container">
-
-<pre class="src src-sh">gem sources -l
-gem sources --remove https://rubygems.org/
-gem sources -a https://ruby.taobao.org/
-</pre>
-</div>
-
-<p>
-然后利用gem安装：
-</p>
-<div class="org-src-container">
-
-<pre class="src src-sh">sudo apt-get install ruby1.9.1-dev
-sudo gem install jekyll v 2.5.3
-sudo gem install therubyracer
-sudo apt-get install curl
-curl --silent --location https://deb.nodesource.com/setup_0.12 | sudo bash -
-sudo apt-get install --yes nodejs build-essential
-</pre>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-
-<div id="outline-container-orgheadline15" class="outline-2">
-<h2 id="orgheadline15">常用工具简介</h2>
-<div class="outline-text-2" id="text-orgheadline15">
-</div><div id="outline-container-orgheadline14" class="outline-3">
-<h3 id="orgheadline14">分区工具</h3>
-<div class="outline-text-3" id="text-orgheadline14">
-</div><div id="outline-container-orgheadline13" class="outline-4">
-<h4 id="orgheadline13">修改分区名称</h4>
-<div class="outline-text-4" id="text-orgheadline13">
-<div class="org-src-container">
-
-<pre class="src src-sh">dosfslabel &lt;dev&gt; &lt;label&gt;                <span style="color: #666;"># </span><span style="color: #666;">fat</span>
-e2label &lt;dev&gt; &lt;label&gt;                   <span style="color: #666;"># </span><span style="color: #666;">ext</span>
-ntfslabel &lt;dev&gt; &lt;label&gt;                 <span style="color: #666;"># </span><span style="color: #666;">ntfsprogs: ntfs</span>
-</pre>
-</div>
-</div>
 </div>
 </div>
 </div>
