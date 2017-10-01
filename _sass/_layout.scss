@@ -185,7 +185,7 @@
     @include media-query($on-laptop) {
         display: none;
     }
-    padding: 1em;
+    padding-top: 0.5em;
 }
 
 .org-center {
