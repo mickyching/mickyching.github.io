@@ -118,7 +118,7 @@ a {
 blockquote {
     color: $note-color;
     padding: $text-margin;
-    border-left: solid 5px $note-color;
+    border-left: thick solid $note-color;
     background-color: $note-background;
     > :last-child {
         margin-bottom: 0;
