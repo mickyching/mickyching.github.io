@@ -1,0 +1,223 @@
+---
+title: 容器网络
+author: 敬叶
+categories: docker
+tags: docker network
+---
+<div id="table-of-contents"><h2>&#30446;&#24405;</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#orgheadline8">容器网络</a>
+<ul>
+<li><a href="#orgheadline2">单节点网络</a>
+<ul>
+<li><a href="#orgheadline1">单节点网路</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline7">跨节点网络</a>
+<ul>
+<li><a href="#orgheadline3">二层VLAN</a></li>
+<li><a href="#orgheadline4">路由方案</a></li>
+<li><a href="#orgheadline5">Overlay</a></li>
+<li><a href="#orgheadline6">Underlay</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#orgheadline9">参考资料</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline8" class="outline-2">
+<h2 id="orgheadline8">容器网络</h2>
+<div class="outline-text-2" id="text-orgheadline8">
+</div><div id="outline-container-orgheadline2" class="outline-3">
+<h3 id="orgheadline2">单节点网络</h3>
+<div class="outline-text-3" id="text-orgheadline2">
+</div><div id="outline-container-orgheadline1" class="outline-4">
+<h4 id="orgheadline1">单节点网路</h4>
+<div class="outline-text-4" id="text-orgheadline1">
+<dl class="org-dl">
+<dt>桥接模式</dt><dd>VETH + NAT
+<ul class="org-ul">
+<li>使用Linux网桥，docker0</li>
+<li>使用VETH对，一个在容器，一个在docker0</li>
+<li>该模式下容器没有公有IP，因为宿主机和VETH不在一个网段</li>
+<li>采用NAT技术绑定容器端口和宿主机端口才能和外界通信</li>
+<li>由于NAT在三层网络实现，传输效率较低</li>
+<li>外部访问容器：OUTER -&gt; HIP-PORT -&gt; DNAT -&gt; DIP-PORT -&gt; VETH</li>
+<li>容器访问外部：VETH -&gt; eth0 -&gt; SNAT -&gt; OUTER</li>
+<li>外部服务响应时不需要走DNAT，而是通过iptables转发</li>
+</ul></dd>
+
+<dt>主机模式</dt><dd>没有隔离
+<ul class="org-ul">
+<li>没有隔离网络环境，容易发生端口冲突</li>
+</ul></dd>
+
+<dt>容器模式</dt><dd>桥接模式的扩展
+<ul class="org-ul">
+<li>多个容器之间共享网络环境</li>
+<li>共享网络空间时，通常也会共享其他名字空间，如Kubernetes的Pod容器</li>
+</ul></dd>
+
+<dt>NONE模式</dt><dd>没有连网的容器
+<ul class="org-ul">
+<li>容器只有一个loopback网络设备</li>
+</ul></dd>
+</dl>
+
+<!--abstract-begin-->
+
+
+<div class="figure">
+<p><img src="/resource/docker/fig/docker-network.jpg" alt="docker-network.jpg" />
+</p>
+</div>
+
+<!--abstract-end-->
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline7" class="outline-3">
+<h3 id="orgheadline7">跨节点网络</h3>
+<div class="outline-text-3" id="text-orgheadline7">
+</div><div id="outline-container-orgheadline3" class="outline-4">
+<h4 id="orgheadline3">二层VLAN</h4>
+<div class="outline-text-4" id="text-orgheadline3">
+<p>
+二层VLAN就是将网络架构改造成互通的大二层网络，效率上比Overlay高。二层VLAN主要问题如下。
+</p>
+<ul class="org-ul">
+<li>需要二层网络设备支持，不够通用和灵活</li>
+<li>交换机的可用VLAN数量限制在4000个左右，影响容器规模</li>
+<li>大型数据中心使用VLAN会造成广播数据泛滥，影响带宽</li>
+<li>不同租户的IP不能重叠</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline4" class="outline-4">
+<h4 id="orgheadline4">路由方案</h4>
+<div class="outline-text-4" id="text-orgheadline4">
+<p>
+路由方案通过路由配置实现容器跨主机通信，每个容器像虚拟机一样分配一个业务IP。路由网络对现有网络设备影响比较大，路由器的路由表限制一般是两三万条。而容器的大部分应用场景是运行微服务，数量集很大。如果几万新的容器IP冲击到路由表里，导致下层的物理设备没办法承受；而且每一个容器都分配一个业务IP，业务IP消耗会很快。
+Calico的BGP模式正是使用的该方案。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline5" class="outline-4">
+<h4 id="orgheadline5">Overlay</h4>
+<div class="outline-text-4" id="text-orgheadline5">
+<p>
+Overlay网络无需改造网络架构，只需三层可达即可，将二层报文封装在IP报文中。这样能利用成熟的IP路由协议进行数据分发，采用隔离标识能够突破VLAN的数量限制，必要时把广播流量转化为组网流量避免广播数据泛滥。因此Overlay网络是最主流的容器跨节点路由和数据传输方案。
+</p>
+
+<p>
+Overlay网络的实现方式有多种，IETF制定了三种实现标准：
+VxLAN(虚拟可扩展LAN)、NVGRE(通用路由封装虚拟化网络)、SST(无状态传输协议)。其中VxLAN已成为Overlay网络的事实标准。在这三种标准以外，还有许多不成标准的Overlay通信协议，例如Flannel、Calico、Weave等工具都包含了一套自定义的Overlay网络协议，其中Flannel也支持VxLAN模式。这些自定义的网络协议通信效率远低于IETF的标准协议。
+</p>
+
+<p>
+Overlay主要分为L2/L3、L3/L3、L2L3/UDP。在L2/L3中，容器可以跨L3 Underlay进行L2通信，可以跨主机迁移不改变IP，不同租户的IP可以重叠，容器IP也可以和Underlay网络重叠。在L3/L3中，容器跨机迁移可能要改变IP地址，取决于Overlay L3是Flat还是Hierarchy。
+</p>
+
+<p>
+docker-1.9采用的正是IETF标准的VxLAN网络，并且是VxLAN中普遍认为最适合大规模的云计算虚拟化环境的SDN Controller模式。需要注意的是，为了使用跨节点通信功能，需要采用swarm作为集群解决方案，这也是docker-1.9和swarm-1.0同时发布的原因。附加使用条件还包括：
+</p>
+<ul class="org-ul">
+<li>内核不低于3.16</li>
+<li>额外配置存储服务，如：consul、etcd、zookeeper</li>
+<li>所有节点正常连接到配置存储服务</li>
+<li>所有docker daemon需要用<code>--cluster-store</code>和<code>--cluster-advertise</code>参数指定存储配置服务</li>
+</ul>
+
+<p>
+docker daemon配置举例：
+</p>
+<pre class="example">
+--cluster-advertise=eth1:2376 --cluster-store=consul://IP:8500
+--cluster-advertise=eth1:2376 --cluster-store=etcd://IP:2379
+</pre>
+
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #666;"># </span><span style="color: #666;">&#29983;&#25104;token&#65306;&#20351;&#29992;&#23448;&#26041;token</span>
+docker run -rm swarm create 6856663cdefdec325839a4b7e1de38e8
+<span style="color: #666;"># </span><span style="color: #666;">&#21019;&#24314;master&#65306;&#20219;&#36873;&#19968;&#20010;&#33410;&#28857;&#65292;&#20351;&#29992;&#19978;&#38754;&#29983;&#25104;&#30340;token</span>
+docker run -d -p 3375:2375 swarm manage token://TOKEN
+<span style="color: #666;"># </span><span style="color: #666;">&#21019;&#24314;agent&#65306;&#38656;&#35201;&#22312;&#25152;&#26377;&#33410;&#28857;&#25191;&#34892;</span>
+docker run -d swarm join -addr=IP:2375 token://TOKEN
+<span style="color: #666;"># </span><span style="color: #666;">&#21019;&#24314;Overlay&#32593;&#32476;&#65306;&#25152;&#26377;&#33410;&#28857;&#37117;&#20250;&#21019;&#24314;</span>
+docker -H tcp://MASTER:3375 network create -driver=overlay olay
+<span style="color: #666;"># </span><span style="color: #666;">&#21019;&#24314;&#23481;&#22120;</span>
+docker -H tcp://MASTER:3375 run -td -net olay -env=<span style="color: #800;">"constraint:node==swarm-agent-1"</span> busybox
+docker -H tcp://MASTER:3375 run -td -net olay -env=<span style="color: #800;">"constraint:node==swarm-agent-2"</span> busybox
+</pre>
+</div>
+
+<p>
+常见网络方案说明：
+</p>
+<dl class="org-dl">
+<dt>Docker Overlay</dt><dd>Overlay的VxLAN实现，和Flannel VxLAN相似
+<ul class="org-ul">
+<li>内核要求高、依赖外部存储、CPU和带宽利用率比flannel差</li>
+</ul></dd>
+
+<dt>Calico BGP</dt><dd>路由方案，基于BGP协议，通过三层路由实现
+<ul class="org-ul">
+<li>相关组件会在主机上生成大量路由表</li>
+<li>容器IP可以直接暴露给外部</li>
+</ul></dd>
+
+<dt>Calico IPIP</dt><dd>Overlay实现</dd>
+
+<dt>Flannel VxLAN</dt><dd>Overlay实现
+<ul class="org-ul">
+<li>由etcd维护路由表</li>
+<li>为每个主机的daemon分配一个网段</li>
+<li>暴露容器服务还是需要端口映射</li>
+</ul></dd>
+
+<dt>Flannel UDP</dt><dd>Overlay实现</dd>
+
+<dt>Weave UDP</dt><dd>Overlay实现，口碑不好，忽略之</dd>
+</dl>
+</div>
+</div>
+
+<div id="outline-container-orgheadline6" class="outline-4">
+<h4 id="orgheadline6">Underlay</h4>
+<div class="outline-text-4" id="text-orgheadline6">
+<p>
+由底层网络驱动将接口暴露给虚机或容器，两个驱动分别是MACVLAN和IPVLAN，比桥接和Overlay简单高效。
+</p>
+
+<p>
+MACVLAN允许在主机的单个物理接口后面创建多个虚拟网络接口，每个虚拟接口具有唯一的MAC和IP地址分配。有一个限制：IP地址需要在与物理接口相同的广播域。
+MACVLAN每个容器使用唯一的MAC地址，这可能导致启用了防止MAC欺骗的这种安全策略的网络交换机出现问题。该技术导致容器不能与底层主机通信，将主机和它上面运行的容器完全隔离。
+</p>
+
+<p>
+IPVLAN与MACVLAN类似，它创建新的虚拟网络接口并为每个IP地址分配一个唯一的IP地址，但他们的MAC和宿主机相同。
+IPVLAN可以在L2或L3模式下运行，
+IPVLAN L2模式要求分配给子接口的IP地址与物理接口在同一子网中。
+IPVLAN L3模式要求容器网络和IP地址在与父物理接口不同的子网上。
+</p>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline9" class="outline-2">
+<h2 id="orgheadline9">参考资料</h2>
+<div class="outline-text-2" id="text-orgheadline9">
+<ul class="org-ul">
+<li><a href="http://www.dockerinfo.net/4289.html">容器网络：盘点，解释与分析</a></li>
+</ul>
+</div>
+</div>
