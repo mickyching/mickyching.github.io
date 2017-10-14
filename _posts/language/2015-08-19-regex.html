@@ -1,0 +1,287 @@
+---
+title: 正则表达式
+author: 敬叶
+categories: language
+tags: regex
+---
+<div id="table-of-contents"><h2>&#30446;&#24405;</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#orgheadline1">Awk</a></li>
+<li><a href="#orgheadline2">Grep</a></li>
+<li><a href="#orgheadline3">Python re module</a></li>
+<li><a href="#orgheadline4">参考资料</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline1" class="outline-2">
+<h2 id="orgheadline1">Awk</h2>
+<div class="outline-text-2" id="text-orgheadline1">
+<div class="org-src-container">
+
+<pre class="src src-awk">expr ~ <span style="color: #800;">/r/</span>
+<span style="color: #800;">/r/</span> { action }                          <span style="color: #666;"># </span><span style="color: #666;">$0 ~ /r/ { action }</span>
+</pre>
+</div>
+
+<p>
+特殊字符包括：<code>^ $ . [ ] | ( ) * + ?</code>。
+</p>
+
+<dl class="org-dl">
+<dt>c</dt><dd>普通字符</dd>
+<dt>\c</dt><dd>转义字符</dd>
+<dt>.</dt><dd>任意字符，包括换行符</dd>
+<dt>^</dt><dd>字符串开头</dd>
+<dt>$</dt><dd>字符串结尾</dd>
+<dt>[c1c2c3&#x2026;]</dt><dd>匹配括号内任意字符</dd>
+<dt>[^c1c2c3&#x2026;]</dt><dd>匹配除括号内任意字符</dd>
+<dt>r1r2</dt><dd>连续匹配</dd>
+<dt>r1 | r2</dt><dd>选择匹配</dd>
+<dt>r*</dt><dd>重复匹配0次或多次</dd>
+<dt>r+</dt><dd>重复匹配多次</dd>
+<dt>r?</dt><dd>匹配0次或一次</dd>
+<dt>(r)</dt><dd>分组</dd>
+</dl>
+
+
+<dl class="org-dl">
+<dt><i>^[_a-zA-Z][_a-zA-Z0-9]*$</i></dt><dd>匹配AWK标识符</dd>
+<dt><i>^[-+]?([0-9]+\.?|\.[0-9])[0-9]*([eE][-+]?[0-9]+)?$</i></dt><dd>匹配数字</dd>
+</dl>
+</div>
+</div>
+
+<div id="outline-container-orgheadline2" class="outline-2">
+<h2 id="orgheadline2">Grep</h2>
+<div class="outline-text-2" id="text-orgheadline2">
+<pre class="example">
+[...]           匹配列表中任意一个字符
+[^...]          匹配列表外任意一个字符
+
+[:alnum:], [:alpha:], [:cntrl:], [:digit:], [:graph:], [:lower:], [:print:],
+[:punct:], [:space:], [:upper:], [:xdigit:]
+[[:alnum:]]     等价于[0-9A-Za-z]
+
+.               任意字符
+^ $             行首 行尾
+\&lt; \&gt;           词首 词尾
+\b \B           词边界 非词边界
+\w \W           [_[:alnum:]] [^_[:alnum:]]
+
+
+?               最多一次
+*               任意次
++               最少一次
+{n}             n次
+{n,}            至少n次
+{,m}            至多m次
+{n,m}           n次到m次之间
+|               选择任意一组匹配
+</pre>
+<p>
+如果使用基本正则表达式，<code>? + {} () |</code>将失去特殊含义，需要加上转义。所以当表达式含有这些元字符时，最好启用扩展正则表达式选项。
+</p>
+</div>
+</div>
+<div id="outline-container-orgheadline3" class="outline-2">
+<h2 id="orgheadline3">Python re module</h2>
+<div class="outline-text-2" id="text-orgheadline3">
+<!--abstract-begin-->
+<p>
+正则表达式被编译成字节码，然后用C编写的匹配引擎执行。元字符有其特殊含义，完整列表包括：<code>. ^ $ * + ? { [ ] \ | ( )</code>。中括号<code>[]</code>用来指定一个字符所属的字符集，如<code>[abc]</code>和<code>[a-c]</code>含义相同，比较重要的一点是元字符在字符集中会退化为普通字符，有两个例外，一个是放在首部的<code>^</code>字符，表示补集，另一个是转义字符。提到转义字符，它除了退化元字符的功能外，还能够转义普通字符以表示特殊字符集。
+</p>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">转义序列</th>
+<th scope="col" class="org-left">等价表达式</th>
+<th scope="col" class="org-left">含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">\d</td>
+<td class="org-left">[0-9]</td>
+<td class="org-left">数字</td>
+</tr>
+
+<tr>
+<td class="org-left">\D</td>
+<td class="org-left">[^0-9]</td>
+<td class="org-left">非数字</td>
+</tr>
+
+<tr>
+<td class="org-left">\s</td>
+<td class="org-left">[ \t\n\r\f\v]</td>
+<td class="org-left">空白字符</td>
+</tr>
+
+<tr>
+<td class="org-left">&sect;</td>
+<td class="org-left">[^ \t\n\r\f\v]</td>
+<td class="org-left">非空白字符</td>
+</tr>
+
+<tr>
+<td class="org-left">\w</td>
+<td class="org-left">[a-zA-Z0-9_]</td>
+<td class="org-left">字母数字</td>
+</tr>
+
+<tr>
+<td class="org-left">\W</td>
+<td class="org-left">[^a-zA-Z0-9_]</td>
+<td class="org-left">非字母数字</td>
+</tr>
+
+<tr>
+<td class="org-left">\A</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">只匹配字符串首</td>
+</tr>
+
+<tr>
+<td class="org-left">\Z</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">只匹配字符串尾</td>
+</tr>
+
+<tr>
+<td class="org-left">\b</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">零宽界定符：单词边界</td>
+</tr>
+
+<tr>
+<td class="org-left">\B</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">零宽界定符：非单词边界</td>
+</tr>
+</tbody>
+</table>
+
+<!--abstract-end-->
+
+<p>
+点号<code>.</code>用于匹配任何字符。
+</p>
+
+<p>
+星号<code>*</code>用于指定重复任意次，包括0次，等价于<code>{0,}</code>，加号<code>+</code>和星号的唯一区别是不允许0次，等价于<code>{1,}</code>。问号<code>?</code>允许0次或1次，等价于<code>{0,1}</code>。区间表示法<code>{m, n}</code>表示至少m次，最多n次，如果忽略下界则下界为0，如果忽略上界则上界为无穷大。
+</p>
+
+<p>
+反斜杠非常麻烦，比方要匹配的字符就是<code>\section</code>，编译正则表达式要保留反斜杠就必须转义，因此要传递<code>\\section</code>给编译器。为了传递<code>\\section</code>编译器，Python字符串就得保留两个反斜杠，因此要在Python字符串中写<code>\\\\section</code>，是不是很麻烦？不过好在Python提供了raw字符串，它不会对反斜杠转义，故<code>r"\\section"</code>就能够表示两个反斜杠。
+</p>
+
+<p>
+小括号用来分组，分组不好理解，举个例子：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-python"><span style="color: #800;">import</span> re
+<span style="color: #048;">p</span> = re.<span style="color: #800;">compile</span>(<span style="color: #800;">'(a(b)c)d'</span>)
+<span style="color: #048;">m</span> = p.match(<span style="color: #800;">'abcd'</span>)
+m.group(0)                              <span style="color: #666;"># </span><span style="color: #666;">'abcd'</span>
+m.group(1)                              <span style="color: #666;"># </span><span style="color: #666;">'abc'</span>
+m.group(2)                              <span style="color: #666;"># </span><span style="color: #666;">'b'</span>
+m.group(2,1,2)                          <span style="color: #666;"># </span><span style="color: #666;">('b', 'abc', 'b')</span>
+m.groups()                              <span style="color: #666;"># </span><span style="color: #666;">('abc', 'b') except 0</span>
+</pre>
+</div>
+
+<dl class="org-dl">
+<dt>|</dt><dd>相当于or</dd>
+<dt>^</dt><dd>匹配行首</dd>
+<dt>$</dt><dd>匹配行尾</dd>
+</dl>
+
+<p>
+模式需要编译，因为它是一个C扩展模块，编译好一个正则表达式对象之后就可以用来工作了，以下是编译后pattern的成员函数：
+</p>
+<dl class="org-dl">
+<dt>match</dt><dd>判定是否匹配，若匹配返回匹配对象，仅从字符串开始处匹配</dd>
+<dt>search</dt><dd>搜索匹配位置，若找到返回匹配对象</dd>
+<dt>findall</dt><dd>找出所有匹配，返回位置列表</dd>
+<dt>finditer</dt><dd>找出所有匹配，返回位置迭代器</dd>
+<dt>split(str, [maxn])</dt><dd>在匹配处分片</dd>
+<dt>sub(str, sstr, [count=0])</dt><dd>替换匹配子串，返回新字符串</dd>
+<dt>subn()</dt><dd>同<code>sub()</code>，返回新的字符串和次数</dd>
+</dl>
+
+<p>
+上面的成员函数返回一个匹配对象，匹配对象支持的方法如下：
+</p>
+<dl class="org-dl">
+<dt>group()</dt><dd>被匹配的字符串</dd>
+<dt>start()</dt><dd>匹配开始位置</dd>
+<dt>end()</dt><dd>匹配结束位置</dd>
+<dt>span()</dt><dd>匹配位置元组，即(start, end)</dd>
+</dl>
+
+<p>
+编译标志：
+</p>
+<dl class="org-dl">
+<dt>IGNORECASE</dt><dd>忽略大小写</dd>
+<dt>LOCALE</dt><dd>影响<code>\w \W \b \B</code></dd>
+<dt>MULTILINE</dt><dd>退化<code>^ $</code></dd>
+<dt>DOTALL</dt><dd>让<code>.</code>能够匹配换行</dd>
+<dt>VERBOSE</dt><dd>允许注释，使得代码可读性好</dd>
+</dl>
+
+<p>
+另外也可以直接调用全局函数<code>match()</code>、<code>search()</code>、<code>split()</code>等函数，这样可以省略编译步骤，让Python来帮我们做。
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-python"><span style="color: #048;">charref</span> = re.<span style="color: #800;">compile</span>(r<span style="color: #800;">"""&amp;[[]]  # Start of a numeric entity reference</span>
+<span style="color: #800;">(</span>
+<span style="color: #800;">[0-9]+[^0-9] |                  # Decimal form</span>
+<span style="color: #800;">0[0-7]+[^0-7] |                 # Octal form</span>
+<span style="color: #800;">x[0-9a-fA-F]+[^0-9a-fA-F]       # Hexadecimal form</span>
+<span style="color: #800;">)</span>
+<span style="color: #800;">"""</span>, re.VERBOSE)
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-python"><span style="color: #800;">import</span> re
+<span style="color: #048;">p</span> = re.<span style="color: #800;">compile</span>(r<span style="color: #800;">'\W+'</span>)
+<span style="color: #048;">p2</span> = re.<span style="color: #800;">compile</span>(r<span style="color: #800;">'(\W+)'</span>)
+<span style="color: #800;">print</span> p.split(<span style="color: #800;">'This... is a test.'</span>)
+<span style="color: #800;">print</span> p2.split(<span style="color: #800;">'This... is a test.'</span>)
+</pre>
+</div>
+
+<pre class="example">
+['This', 'is', 'a', 'test', '']
+['This', '... ', 'is', ' ', 'a', ' ', 'test', '.', '']
+</pre>
+</div>
+</div>
+
+<div id="outline-container-orgheadline4" class="outline-2">
+<h2 id="orgheadline4">参考资料</h2>
+<div class="outline-text-2" id="text-orgheadline4">
+<ul class="org-ul">
+<li><a href="http://man.linuxde.net/docs/shell_regex.html">Shell正则表达式</a></li>
+<li><a href="http://wiki.ubuntu.org.cn/Python%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%93%8D%E4%BD%9C%E6%8C%87%E5%8D%97">Python正则表达式操作指南</a></li>
+</ul>
+</div>
+</div>

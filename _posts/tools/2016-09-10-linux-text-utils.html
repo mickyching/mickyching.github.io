@@ -1,14 +1,10 @@
 ---
-title: Linux高级文本处理工具
+title: Linux文本处理工具
 author: 敬叶
 categories: tools
-tags: 笔记 linux
+tags: linux
 ---
-<dl class="post-meta">
-<dt class="post-meta">2016-09-10</dt><dd>敬叶 初稿</dd>
-</dl>
-<hr><br>
-<div id="table-of-contents"><h2>Table of Contents</h2>
+<div id="table-of-contents"><h2>&#30446;&#24405;</h2>
 <div id="text-table-of-contents">
 <ul>
 <li><a href="#orgheadline1">前言</a></li>
@@ -27,24 +23,13 @@ tags: 笔记 linux
 <li><a href="#orgheadline8">数据类型</a></li>
 <li><a href="#orgheadline9">表达算式</a></li>
 <li><a href="#orgheadline10">语句流程</a></li>
-<li><a href="#orgheadline13">函数</a>
-<ul>
-<li><a href="#orgheadline11">内置函数</a></li>
-<li><a href="#orgheadline12">自定义函数</a></li>
-</ul>
-</li>
+<li><a href="#orgheadline13">函数</a></li>
 </ul>
 </li>
 <li><a href="#orgheadline14">示例代码</a></li>
 </ul>
 </li>
-<li><a href="#orgheadline18">正则表达式</a>
-<ul>
-<li><a href="#orgheadline16">grep正则表达式</a></li>
-<li><a href="#orgheadline17">awk正则表达式</a></li>
-</ul>
-</li>
-<li><a href="#orgheadline19">参考资料</a></li>
+<li><a href="#orgheadline16">参考资料</a></li>
 </ul>
 </div>
 </div>
@@ -52,12 +37,10 @@ tags: 笔记 linux
 <div id="outline-container-orgheadline1" class="outline-2">
 <h2 id="orgheadline1">前言</h2>
 <div class="outline-text-2" id="text-orgheadline1">
-<!--abstract-begin-->
 <p>
 本文介绍的sed/awk是高级文本流处理工具，如果对这两个工具很熟悉，可以快速实现一些复杂的需求。两个工具比较而言，Sed的优势是文本流的增删替换，
 Awk的优势在于分列信息抽取。要高效的使用它们，还需要熟悉正则表达式，正则表达式虽然是相通的，但是这两个工具的写法却不尽相同。
 </p>
-<!--abstract-end-->
 </div>
 </div>
 
@@ -542,9 +525,7 @@ awk [-W option] [-F value] [-v <span style="color: #048;">var</span>=value] [-f 
 <div id="outline-container-orgheadline13" class="outline-4">
 <h4 id="orgheadline13">函数</h4>
 <div class="outline-text-4" id="text-orgheadline13">
-</div><div id="outline-container-orgheadline11" class="outline-5">
-<h5 id="orgheadline11">内置函数</h5>
-<div class="outline-text-5" id="text-orgheadline11">
+</div><ul class="org-ul"><li><a id="orgheadline11"></a>内置函数<br  /><div class="outline-text-5" id="text-orgheadline11">
 <dl class="org-dl">
 <dt>index(var, sub)</dt><dd>输出查找的索引，没找到返回0，索引从1开始计数</dd>
 <dt>length(var)</dt><dd>字符串长度</dd>
@@ -573,19 +554,15 @@ awk [-W option] [-F value] [-v <span style="color: #048;">var</span>=value] [-f 
 <dt>atan2(y,x) &#x2026;</dt><dd>cos(x) sin(x) exp(x) log(x) sqrt(x)
 int(x) rand(x) srand(x)</dd>
 </dl>
-</div>
-</div>
+</div></li>
 
-<div id="outline-container-orgheadline12" class="outline-5">
-<h5 id="orgheadline12">自定义函数</h5>
-<div class="outline-text-5" id="text-orgheadline12">
+<li><a id="orgheadline12"></a>自定义函数<br  /><div class="outline-text-5" id="text-orgheadline12">
 <div class="org-src-container">
 
 <pre class="src src-awk"><span style="color: #800;">function</span> <span style="color: #048; font-weight: bold;">name</span>( args ) { statements }
 </pre>
 </div>
-</div>
-</div>
+</div></li></ul>
 </div>
 </div>
 
@@ -638,83 +615,9 @@ $1 ~ <span style="color: #800;">/debit|loss/</span>  { sum -= $2 }
 </div>
 </div>
 
-<div id="outline-container-orgheadline18" class="outline-2">
-<h2 id="orgheadline18">正则表达式</h2>
-<div class="outline-text-2" id="text-orgheadline18">
-</div><div id="outline-container-orgheadline16" class="outline-3">
-<h3 id="orgheadline16">grep正则表达式</h3>
-<div class="outline-text-3" id="text-orgheadline16">
-<pre class="example">
-[...]           匹配列表中任意一个字符
-[^...]          匹配列表外任意一个字符
-
-[:alnum:], [:alpha:], [:cntrl:], [:digit:], [:graph:], [:lower:], [:print:],
-[:punct:], [:space:], [:upper:], [:xdigit:]
-[[:alnum:]]     等价于[0-9A-Za-z]
-
-.               任意字符
-^ $             行首 行尾
-\&lt; \&gt;           词首 词尾
-\b \B           词边界 非词边界
-\w \W           [_[:alnum:]] [^_[:alnum:]]
-
-
-?               最多一次
-*               任意次
-+               最少一次
-{n}             n次
-{n,}            至少n次
-{,m}            至多m次
-{n,m}           n次到m次之间
-|               选择任意一组匹配
-</pre>
-<p>
-如果使用基本正则表达式，<code>? + {} () |</code>将失去特殊含义，需要加上转义。所以当表达式含有这些元字符时，最好启用扩展正则表达式选项。
-</p>
-</div>
-</div>
-<div id="outline-container-orgheadline17" class="outline-3">
-<h3 id="orgheadline17">awk正则表达式</h3>
-<div class="outline-text-3" id="text-orgheadline17">
-<div class="org-src-container">
-
-<pre class="src src-awk">expr ~ <span style="color: #800;">/r/</span>
-<span style="color: #800;">/r/</span> { action }                          <span style="color: #666;"># </span><span style="color: #666;">$0 ~ /r/ { action }</span>
-</pre>
-</div>
-
-<p>
-特殊字符包括：<code>^ $ . [ ] | ( ) * + ?</code>。
-</p>
-
-<dl class="org-dl">
-<dt>c</dt><dd>普通字符</dd>
-<dt>\c</dt><dd>转义字符</dd>
-<dt>.</dt><dd>任意字符，包括换行符</dd>
-<dt>^</dt><dd>字符串开头</dd>
-<dt>$</dt><dd>字符串结尾</dd>
-<dt>[c1c2c3&#x2026;]</dt><dd>匹配括号内任意字符</dd>
-<dt>[^c1c2c3&#x2026;]</dt><dd>匹配除括号内任意字符</dd>
-<dt>r1r2</dt><dd>连续匹配</dd>
-<dt>r1 | r2</dt><dd>选择匹配</dd>
-<dt>r*</dt><dd>重复匹配0次或多次</dd>
-<dt>r+</dt><dd>重复匹配多次</dd>
-<dt>r?</dt><dd>匹配0次或一次</dd>
-<dt>(r)</dt><dd>分组</dd>
-</dl>
-
-
-<dl class="org-dl">
-<dt><i>^[_a-zA-Z][_a-zA-Z0-9]*$</i></dt><dd>匹配AWK标识符</dd>
-<dt><i>^[-+]?([0-9]+\.?|\.[0-9])[0-9]*([eE][-+]?[0-9]+)?$</i></dt><dd>匹配数字</dd>
-</dl>
-</div>
-</div>
-</div>
-
-<div id="outline-container-orgheadline19" class="outline-2">
-<h2 id="orgheadline19">参考资料</h2>
-<div class="outline-text-2" id="text-orgheadline19">
+<div id="outline-container-orgheadline16" class="outline-2">
+<h2 id="orgheadline16">参考资料</h2>
+<div class="outline-text-2" id="text-orgheadline16">
 <ul class="org-ul">
 <li><a href="https://www.gnu.org/software/sed/manual/html_node/Regular-Expressions.html">sed正则表达式</a></li>
 </ul>
