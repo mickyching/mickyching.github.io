@@ -4,8 +4,8 @@
 @charset "utf-8";
 
 
-$on-palm:          600px;
-$on-laptop:        1000px;
+$on-palm:          800px;
+$on-laptop:        1200px;
 
 @mixin media-query($device) {
     @media screen and (max-width: $device) {

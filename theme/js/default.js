@@ -3,7 +3,7 @@ $("#table-of-contents").hide();       // default hide toc
 
 // http://stackoverflow.com/questions/19291873/window-width-not-the-same-as-media-query
 function is_laptop() {
-  return window.matchMedia('(max-width: 1000px)').matches;
+  return window.matchMedia('(max-width: 1200px)').matches;
 }
 
 function hide_sidebar() {
@@ -26,8 +26,8 @@ function show_sidebar() {
     $("body").css("margin-left", "0px");
   }
   else {
-    $(".sidebar-toggler").css("left", "300px");
-    $("body").css("margin-left", "330px");
+    $(".sidebar-toggler").css("left", "320px");
+    $("body").css("margin-left", "350px");
   }
 
   localStorage.sidebar_hidden = 0;

@@ -26,7 +26,7 @@
     background-color: $side-background;
     left: 0;
     top: 0;
-    width: 300px;
+    width: 320px;
     height: 100%;
     clear: both;
     overflow-y: auto;
@@ -41,7 +41,7 @@
 .sidebar-toggler {
     position: fixed;
     a, &, &:visited {color: $side-color;}
-    left: 300px;
+    left: 320px;
     top: 0;
     width: 30px;
     height: 100%;
