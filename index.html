@@ -25,13 +25,10 @@ layout: body
         </span>
         <br>
       </div>
-      <hr>
-
     </header>
 
     <article class="post-content">
       {{ post.content | split:'<!--abstract-end-->' | first  | split:'<!--abstract-begin-->' | last }}
-      <a class="post-nav" href="{{ post.url | prepend: site.baseurl }}"> 阅读全文... </a>
     </article>
     {% endif %}
     {% endfor %}
