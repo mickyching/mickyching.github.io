@@ -126,7 +126,9 @@ blockquote {
     }
 }
 
-
+blockquote p {
+    margin-bottom: 0;
+}
 
 /**
  * Code formatting
