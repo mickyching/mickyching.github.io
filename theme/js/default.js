@@ -66,9 +66,11 @@ function css_hi_curlink() {
 function init_document() {
   $(".side-nav").each(css_hi_curlink);
 
-  var toc = document.getElementById("text-table-of-contents");
-  document.getElementById("sidebar-toc").innerHTML = toc.innerHTML;
-  $("#sidebar-toc ul ul ul ul").hide();
+    var toc = document.getElementById("text-table-of-contents");
+    if (toc != null) {
+        document.getElementById("sidebar-toc").innerHTML = toc.innerHTML;
+        $("#sidebar-toc ul ul ul ul").hide();
+    }
 }
 
 $(toggle_sidebar);
