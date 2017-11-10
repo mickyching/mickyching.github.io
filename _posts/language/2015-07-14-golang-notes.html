@@ -36,25 +36,30 @@ tags: golang
 </li>
 </ul>
 </li>
-<li><a href="#orgheadline23">编程实践</a>
+<li><a href="#orgheadline25">编程实践</a>
 <ul>
-<li><a href="#orgheadline18">并发编程</a>
+<li><a href="#orgheadline16">标准库</a>
 <ul>
-<li><a href="#orgheadline15">并发编程</a></li>
-<li><a href="#orgheadline16">过度并发</a></li>
-<li><a href="#orgheadline17">睡眠定时</a></li>
+<li><a href="#orgheadline15">常用包库</a></li>
 </ul>
 </li>
-<li><a href="#orgheadline22">项目管理</a>
+<li><a href="#orgheadline20">并发编程</a>
 <ul>
-<li><a href="#orgheadline19">基本配置</a></li>
-<li><a href="#orgheadline20">依赖管理</a></li>
-<li><a href="#orgheadline21">质量管理</a></li>
+<li><a href="#orgheadline17">并发编程</a></li>
+<li><a href="#orgheadline18">过度并发</a></li>
+<li><a href="#orgheadline19">睡眠定时</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline24">项目管理</a>
+<ul>
+<li><a href="#orgheadline21">基本配置</a></li>
+<li><a href="#orgheadline22">依赖管理</a></li>
+<li><a href="#orgheadline23">质量管理</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="#orgheadline24">参考资料</a></li>
+<li><a href="#orgheadline26">参考资料</a></li>
 </ul>
 </div>
 </div>
@@ -530,15 +535,206 @@ method value会复制接收对象，下面的代码中，如果<code>Print()</co
 </div>
 </div>
 
-<div id="outline-container-orgheadline23" class="outline-2">
-<h2 id="orgheadline23">编程实践</h2>
-<div class="outline-text-2" id="text-orgheadline23">
-</div><div id="outline-container-orgheadline18" class="outline-3">
-<h3 id="orgheadline18">并发编程</h3>
-<div class="outline-text-3" id="text-orgheadline18">
+<div id="outline-container-orgheadline25" class="outline-2">
+<h2 id="orgheadline25">编程实践</h2>
+<div class="outline-text-2" id="text-orgheadline25">
+</div><div id="outline-container-orgheadline16" class="outline-3">
+<h3 id="orgheadline16">标准库</h3>
+<div class="outline-text-3" id="text-orgheadline16">
 </div><div id="outline-container-orgheadline15" class="outline-4">
-<h4 id="orgheadline15">并发编程</h4>
+<h4 id="orgheadline15">常用包库</h4>
 <div class="outline-text-4" id="text-orgheadline15">
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">包名</th>
+<th scope="col" class="org-left">说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">bufio</td>
+<td class="org-left">有缓冲的I/O操作</td>
+</tr>
+
+<tr>
+<td class="org-left">bytes</td>
+<td class="org-left">对[]byte操作，类似strings包</td>
+</tr>
+
+<tr>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">类似IO缓冲，也实现了Reader/Buffer基于[]byte的缓冲</td>
+</tr>
+
+<tr>
+<td class="org-left">builtin</td>
+<td class="org-left">内建标识符文档</td>
+</tr>
+
+<tr>
+<td class="org-left">database.sql</td>
+<td class="org-left">提供SQL数据库接口</td>
+</tr>
+
+<tr>
+<td class="org-left">encoding</td>
+<td class="org-left">字节和文本转换接口，包括多个子包</td>
+</tr>
+
+<tr>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">常用子包：base64 binary csv json</td>
+</tr>
+
+<tr>
+<td class="org-left">errors</td>
+<td class="org-left">实现了创建错误值的函数</td>
+</tr>
+
+<tr>
+<td class="org-left">expvar</td>
+<td class="org-left">提供公共变量的标准接口，读写操作都是原子级的</td>
+</tr>
+
+<tr>
+<td class="org-left">flag</td>
+<td class="org-left">命令行标签解析</td>
+</tr>
+
+<tr>
+<td class="org-left">fmt</td>
+<td class="org-left">实现了类似C语言printf和scanf的格式化I/O</td>
+</tr>
+
+<tr>
+<td class="org-left">io</td>
+<td class="org-left">对I/O原语的基本接口</td>
+</tr>
+
+<tr>
+<td class="org-left">io.ioutil</td>
+<td class="org-left">实现I/O常用辅助函数</td>
+</tr>
+
+<tr>
+<td class="org-left">log</td>
+<td class="org-left">简单日志服务</td>
+</tr>
+
+<tr>
+<td class="org-left">log.syslog</td>
+<td class="org-left">提供一个简单的系统日志服务的接口</td>
+</tr>
+
+<tr>
+<td class="org-left">math.rand</td>
+<td class="org-left">伪随机数生成器</td>
+</tr>
+
+<tr>
+<td class="org-left">net</td>
+<td class="org-left">提供了可移植的网络I/O接口</td>
+</tr>
+
+<tr>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">包括TCP/IP、UDP、域名解析和Unix-socket</td>
+</tr>
+
+<tr>
+<td class="org-left">net.http</td>
+<td class="org-left">HTTP客户端和服务端的实现</td>
+</tr>
+
+<tr>
+<td class="org-left">net.http.pprof</td>
+<td class="org-left">HTTP服务返回runtime的统计数据</td>
+</tr>
+
+<tr>
+<td class="org-left">os</td>
+<td class="org-left">操作系统函数的不依赖平台的接口</td>
+</tr>
+
+<tr>
+<td class="org-left">os.exec</td>
+<td class="org-left">执行外部命令</td>
+</tr>
+
+<tr>
+<td class="org-left">path</td>
+<td class="org-left">实现了对斜杠分隔的路径的实用操作函数</td>
+</tr>
+
+<tr>
+<td class="org-left">path.filepath</td>
+<td class="org-left">兼容各操作系统的文件路径的实用操作函数</td>
+</tr>
+
+<tr>
+<td class="org-left">reflect</td>
+<td class="org-left">运行时反射</td>
+</tr>
+
+<tr>
+<td class="org-left">regexp</td>
+<td class="org-left">正则表达式搜索</td>
+</tr>
+
+<tr>
+<td class="org-left">sort</td>
+<td class="org-left">为切片及用户定义的集合的排序操作提供了原语</td>
+</tr>
+
+<tr>
+<td class="org-left">strconv</td>
+<td class="org-left">基本数据类型和其字符串表示的相互转换</td>
+</tr>
+
+<tr>
+<td class="org-left">strings</td>
+<td class="org-left">用于操作字符的简单函数</td>
+</tr>
+
+<tr>
+<td class="org-left">sync</td>
+<td class="org-left">提供了互斥锁这类的基本的同步原语</td>
+</tr>
+
+<tr>
+<td class="org-left">sync.atomic</td>
+<td class="org-left">提供了底层的原子性内存原语</td>
+</tr>
+
+<tr>
+<td class="org-left">time</td>
+<td class="org-left">时间的显示和测量用的函数</td>
+</tr>
+
+<tr>
+<td class="org-left">unsafe</td>
+<td class="org-left">包含有关于Go程序类型安全的所有操作</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline20" class="outline-3">
+<h3 id="orgheadline20">并发编程</h3>
+<div class="outline-text-3" id="text-orgheadline20">
+</div><div id="outline-container-orgheadline17" class="outline-4">
+<h4 id="orgheadline17">并发编程</h4>
+<div class="outline-text-4" id="text-orgheadline17">
 <p>
 在语言层面提供了<code>goroutine</code>，单个进程可以执行成千上万的并发任务，提供<code>channel</code>来通讯。
 <code>channel</code>在内部实现提供了同步机制，能确保并发安全，默认采用同步模式，接收和发送必须配对，否则一直阻塞。
@@ -616,9 +812,9 @@ send &lt;- 1
 </div>
 </div>
 
-<div id="outline-container-orgheadline16" class="outline-4">
-<h4 id="orgheadline16">过度并发</h4>
-<div class="outline-text-4" id="text-orgheadline16">
+<div id="outline-container-orgheadline18" class="outline-4">
+<h4 id="orgheadline18">过度并发</h4>
+<div class="outline-text-4" id="text-orgheadline18">
 <p>
 Go语言圣经中8.6节提供第一种通过tokens的方法来避免过度并发，原理上类似semaphore，但是这种方法并不是没有缺点的，当传递给信道的列表足够大时，仍然会有过度并发问题，此时将出现大量线程竞争semaphore的情况。
 </p>
@@ -629,9 +825,9 @@ Go语言圣经中8.6节提供第一种通过tokens的方法来避免过度并发
 </div>
 </div>
 
-<div id="outline-container-orgheadline17" class="outline-4">
-<h4 id="orgheadline17">睡眠定时</h4>
-<div class="outline-text-4" id="text-orgheadline17">
+<div id="outline-container-orgheadline19" class="outline-4">
+<h4 id="orgheadline19">睡眠定时</h4>
+<div class="outline-text-4" id="text-orgheadline19">
 <p>
 打点器和time.Sleep()都是借助定时器实现的，其中time.Sleep()包括三步：
 </p>
@@ -673,12 +869,12 @@ Go语言圣经中8.6节提供第一种通过tokens的方法来避免过度并发
 </div>
 </div>
 
-<div id="outline-container-orgheadline22" class="outline-3">
-<h3 id="orgheadline22">项目管理</h3>
-<div class="outline-text-3" id="text-orgheadline22">
-</div><div id="outline-container-orgheadline19" class="outline-4">
-<h4 id="orgheadline19">基本配置</h4>
-<div class="outline-text-4" id="text-orgheadline19">
+<div id="outline-container-orgheadline24" class="outline-3">
+<h3 id="orgheadline24">项目管理</h3>
+<div class="outline-text-3" id="text-orgheadline24">
+</div><div id="outline-container-orgheadline21" class="outline-4">
+<h4 id="orgheadline21">基本配置</h4>
+<div class="outline-text-4" id="text-orgheadline21">
 <p>
 常用环境变量如下：
 </p>
@@ -693,9 +889,9 @@ Go语言圣经中8.6节提供第一种通过tokens的方法来避免过度并发
 </dl>
 </div>
 </div>
-<div id="outline-container-orgheadline20" class="outline-4">
-<h4 id="orgheadline20">依赖管理</h4>
-<div class="outline-text-4" id="text-orgheadline20">
+<div id="outline-container-orgheadline22" class="outline-4">
+<h4 id="orgheadline22">依赖管理</h4>
+<div class="outline-text-4" id="text-orgheadline22">
 <p>
 每个包对应一个独立名字空间，包内的名字如果以大写字符开头那么该名字就是导出的。如果文件被声明为<code>package main</code>就是指定该文件为主程序，当一个包包含多个文件时，构建工具根据文件名排序发给编译器，编译器再逐个初始化。包文件中可以定义一个<code>init()</code>函数来指定初始化顺序。
 </p>
@@ -774,9 +970,9 @@ bytes提供的函数和对象集中在对字节切片的操作上，strings和by
 </div>
 </div>
 
-<div id="outline-container-orgheadline21" class="outline-4">
-<h4 id="orgheadline21">质量管理</h4>
-<div class="outline-text-4" id="text-orgheadline21">
+<div id="outline-container-orgheadline23" class="outline-4">
+<h4 id="orgheadline23">质量管理</h4>
+<div class="outline-text-4" id="text-orgheadline23">
 <div class="org-src-container">
 
 <pre class="src src-sh">godoc -http=:4001                       <span style="color: #666;"># </span><span style="color: #666;">&#29983;&#25104;&#26412;&#22320;&#25991;&#26723;</span>
@@ -819,9 +1015,9 @@ go tool vet source/directory
 </div>
 </div>
 
-<div id="outline-container-orgheadline24" class="outline-2">
-<h2 id="orgheadline24">参考资料</h2>
-<div class="outline-text-2" id="text-orgheadline24">
+<div id="outline-container-orgheadline26" class="outline-2">
+<h2 id="orgheadline26">参考资料</h2>
+<div class="outline-text-2" id="text-orgheadline26">
 <ul class="org-ul">
 <li><a href="http://studygolang.com/static/pkgdoc/index.html">标准库索引</a></li>
 <li><a href="https://docs.ruanjiadeng.com/gopl-zh/index.html">Go语言圣经（中文版）</a></li>
