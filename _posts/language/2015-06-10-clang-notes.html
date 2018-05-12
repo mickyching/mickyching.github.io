@@ -2,14 +2,9 @@
 title: C语言笔记
 author: 敬叶
 categories: language
-tags: 笔记 C
+tags: clang
 ---
-<dl class="post-meta">
-<dt class="post-meta">2015-06-10</dt><dd>敬叶 初稿</dd>
-<dt class="post-meta">2016-06-08</dt><dd>敬叶 重新整理排版</dd>
-</dl>
-<hr><br>
-<div id="table-of-contents"><h2>Table of Contents</h2>
+<div id="table-of-contents"><h2>&#30446;&#24405;</h2>
 <div id="text-table-of-contents">
 <ul>
 <li><a href="#orgheadline15">语法要点</a>
@@ -66,6 +61,7 @@ tags: 笔记 C
 </div>
 </div>
 
+
 <div id="outline-container-orgheadline15" class="outline-2">
 <h2 id="orgheadline15">语法要点</h2>
 <div class="outline-text-2" id="text-orgheadline15">
@@ -95,6 +91,9 @@ p = n * <span style="color: #800;">sizeof</span> * q;                     <span 
 apple = <span style="color: #800;">sizeof</span>(<span style="color: #800;">int</span>) * p;                <span style="color: #666;">// </span><span style="color: #666;">E</span>
 </pre>
 </div>
+
+<!--abstract-end-->
+
 <dl class="org-dl">
 <dt>A</dt><dd>先执行逻辑比较再进行位运算</dd>
 <dt>B</dt><dd>先计算加法再计算移位</dd>
@@ -111,17 +110,14 @@ apple = <span style="color: #800;">sizeof</span>(<span style="color: #800;">int<
   位与-逻辑-问条件，赋值-逗号-后排见
 </pre>
 
-<!--abstract-end-->
-
-<div class="org-center">
 
 <div class="figure">
-<p><img src="/resource/language/fig/clang/op-priority.png" alt="op-priority.png" />
+<p><img src="/resource/language/fig/clang-op-priority.png" alt="clang-op-priority.png" />
 </p>
 </div>
 </div>
 </div>
-</div>
+
 <div id="outline-container-orgheadline2" class="outline-4">
 <h4 id="orgheadline2">关键字</h4>
 <div class="outline-text-4" id="text-orgheadline2">
@@ -461,7 +457,7 @@ printf(<span style="color: #800;">"%d %d %d\n"</span>, <span style="color: #800;
 <span style="color: #666;"> *</span>
 <span style="color: #666;"> */</span>
 <span style="color: #800;">#define</span> <span style="color: #048; font-weight: bold;">container_of</span>(<span style="color: #048;">ptr</span>, <span style="color: #048;">type</span>, <span style="color: #048;">member</span>) ({                              \
-            <span style="color: #800;">const</span> typeof(((<span style="color: #800;">type</span> *)0)-&gt;member) *__mptr = (ptr);          \
+            <span style="color: #800;">const</span> <span style="color: #800;">typeof</span>(((<span style="color: #800;">type</span> *)0)-&gt;member) *<span style="color: #048;">__mptr</span> = (ptr);          \
             (<span style="color: #800;">type</span> *)((<span style="color: #800;">char</span> *)__mptr - offsetof(type, member));})
 </pre>
 </div>
@@ -540,12 +536,10 @@ a(u);                                   <span style="color: #666;">// </span><sp
 <div id="outline-container-orgheadline14" class="outline-3">
 <h3 id="orgheadline14">可执行程序</h3>
 <div class="outline-text-3" id="text-orgheadline14">
-<div class="org-center">
 
 <div class="figure">
-<p><img src="/resource/language/fig/clang/linux-mem-model.png" alt="linux-mem-model.png" />
+<p><img src="/resource/language/fig/linux-mem-model.png" alt="linux-mem-model.png" />
 </p>
-</div>
 </div>
 
 <p>

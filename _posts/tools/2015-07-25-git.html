@@ -2,63 +2,44 @@
 title: Git Introduction
 author: 敬叶
 categories: tools
-tags: 笔记 git
+tags: git
 ---
-<dl class="post-meta">
-<dt class="post-meta">2015-07-25</dt><dd>敬叶 初稿</dd>
-<dt class="post-meta">2016-06-04</dt><dd>敬叶 重新整理排版</dd>
-</dl>
-<hr><br>
-<div id="table-of-contents"><h2>Table of Contents</h2>
+<div id="table-of-contents"><h2>&#30446;&#24405;</h2>
 <div id="text-table-of-contents">
 <ul>
+<li><a href="#orgheadline19">git</a>
+<ul>
 <li><a href="#orgheadline1">基本概念</a></li>
-<li><a href="#orgheadline18">基本用法</a>
+<li><a href="#orgheadline18">基本使用</a>
 <ul>
-<li><a href="#orgheadline5">环境配置</a>
-<ul>
-<li><a href="#orgheadline2">初始化配置</a></li>
-<li><a href="#orgheadline3">提交代码</a></li>
-<li><a href="#orgheadline4">信息查看</a></li>
-</ul>
-</li>
-<li><a href="#orgheadline8">远程管理</a>
-<ul>
-<li><a href="#orgheadline6">远程配置</a></li>
-<li><a href="#orgheadline7">远程操作</a></li>
-</ul>
-</li>
-<li><a href="#orgheadline11">分支管理</a>
-<ul>
-<li><a href="#orgheadline9">分支管理</a></li>
-<li><a href="#orgheadline10">标签管理</a></li>
-</ul>
-</li>
+<li><a href="#orgheadline5">环境配置</a></li>
+<li><a href="#orgheadline8">远程管理</a></li>
+<li><a href="#orgheadline11">分支管理</a></li>
 <li><a href="#orgheadline12">错误追踪</a></li>
-<li><a href="#orgheadline17">实用操作</a>
+<li><a href="#orgheadline17">实用操作</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#orgheadline21">repo</a>
 <ul>
-<li><a href="#orgheadline13">暂存管理</a></li>
-<li><a href="#orgheadline14">仓库清理</a></li>
-<li><a href="#orgheadline15">选取提交</a></li>
-<li><a href="#orgheadline16">仓库打包</a></li>
+<li><a href="#orgheadline20">基本用法</a></li>
 </ul>
 </li>
-</ul>
-</li>
-<li><a href="#orgheadline20">repo</a>
-<ul>
-<li><a href="#orgheadline19">基本用法</a></li>
-</ul>
-</li>
-<li><a href="#orgheadline21">参考资料</a></li>
+<li><a href="#orgheadline22">参考资料</a></li>
 </ul>
 </div>
 </div>
 
-<div id="outline-container-orgheadline1" class="outline-2">
-<h2 id="orgheadline1">基本概念</h2>
-<div class="outline-text-2" id="text-orgheadline1">
+
+<div id="outline-container-orgheadline19" class="outline-2">
+<h2 id="orgheadline19">git</h2>
+<div class="outline-text-2" id="text-orgheadline19">
+</div><div id="outline-container-orgheadline1" class="outline-3">
+<h3 id="orgheadline1">基本概念</h3>
+<div class="outline-text-3" id="text-orgheadline1">
 <!--abstract-begin-->
+
 <p>
 Git是一个分布式版本控制软件，Linus Torvalds在2005年用十天时间编写出第一个git版本。相比于集中式版本控制软件，不需要服务端软件就能实现版本控制。
 Git最出色的是其合并追踪能力，我在实际使用中发现，借助Emacs编辑器<code>magit</code>插件可以非常优雅的处理<code>rebase</code>和<code>merge</code>过程中产生的冲突。
@@ -69,8 +50,9 @@ Git最出色的是其合并追踪能力，我在实际使用中发现，借助Em
 </p>
 
 <p>
-推荐在Emacs下利用<code>magit</code>插件做基本仓库管理，相比于直接用命令行，利用插件更加能够方便把代码和版本管理合二为一。例如diff区和对应代码之间来回跳转，选择性添加diff区等操作都比直接用命令行快捷很多。
+推荐在Emacs下利用<code>magit</code>插件做基本仓库管理，相比于直接用命令行，利用插件更加能够方便把代码和版本管理合二为一。例如差异区和代码之间跳转，选择性提交差异区等操作都比直接用命令行快捷很多。
 </p>
+
 <!--abstract-end-->
 
 <p>
@@ -123,7 +105,7 @@ Git最出色的是其合并追踪能力，我在实际使用中发现，借助Em
 
 <tr>
 <td class="org-left">objects/</td>
-<td class="org-left">数据对象，包括：commits、trees、blobs、tags等</td>
+<td class="org-left">数据对象，包括commits、trees、blobs、tags等</td>
 </tr>
 
 <tr>
@@ -134,16 +116,13 @@ Git最出色的是其合并追踪能力，我在实际使用中发现，借助Em
 </table>
 </div>
 </div>
-
-<div id="outline-container-orgheadline18" class="outline-2">
-<h2 id="orgheadline18">基本用法</h2>
-<div class="outline-text-2" id="text-orgheadline18">
-</div><div id="outline-container-orgheadline5" class="outline-3">
-<h3 id="orgheadline5">环境配置</h3>
-<div class="outline-text-3" id="text-orgheadline5">
-</div><div id="outline-container-orgheadline2" class="outline-4">
-<h4 id="orgheadline2">初始化配置</h4>
-<div class="outline-text-4" id="text-orgheadline2">
+<div id="outline-container-orgheadline18" class="outline-3">
+<h3 id="orgheadline18">基本使用</h3>
+<div class="outline-text-3" id="text-orgheadline18">
+</div><div id="outline-container-orgheadline5" class="outline-4">
+<h4 id="orgheadline5">环境配置</h4>
+<div class="outline-text-4" id="text-orgheadline5">
+</div><ul class="org-ul"><li><a id="orgheadline2"></a>初始化配置<br  /><div class="outline-text-5" id="text-orgheadline2">
 <div class="org-src-container">
 
 <pre class="src src-sh">git init                                <span style="color: #666;"># </span><span style="color: #666;">&#21021;&#22987;&#21270;&#20179;&#24211;</span>
@@ -161,12 +140,9 @@ git config [--global] user.email <span style="color: #800;">"mickyching@gmail.co
 <p>
 另外往往需要配置哪些文件需要忽略，这通过<code>.gitignore</code>文件来记录要忽略的文件或规则。
 </p>
-</div>
-</div>
+</div></li>
 
-<div id="outline-container-orgheadline3" class="outline-4">
-<h4 id="orgheadline3">提交代码</h4>
-<div class="outline-text-4" id="text-orgheadline3">
+<li><a id="orgheadline3"></a>提交代码<br  /><div class="outline-text-5" id="text-orgheadline3">
 <p>
 仓库一旦初始化就可以添加文件并提交了，更高级的可以选择添加一个diff区或一行修改等等。
 </p>
@@ -183,12 +159,12 @@ git commit --amend                      <span style="color: #666;"># </span><spa
 <p>
 仓库中的文件有三种状态，其转换关系如下图所示：
 </p>
-<div class="org-center">
+
+
 
 <div class="figure">
-<p><img src="/resource/tools/fig/git/git-status.png" alt="git-status.png" />
+<p><img src="/resource/tools/fig/git-status.png" alt="git-status.png" />
 </p>
-</div>
 </div>
 
 <p>
@@ -199,12 +175,9 @@ git commit --amend                      <span style="color: #666;"># </span><spa
 <pre class="src src-sh">git rm -r --cached &lt;files&gt;              <span style="color: #666;"># </span><span style="color: #666;">&#25764;&#38144;add&#28155;&#21152;&#30340;&#25991;&#20214;</span>
 </pre>
 </div>
-</div>
-</div>
+</div></li>
 
-<div id="outline-container-orgheadline4" class="outline-4">
-<h4 id="orgheadline4">信息查看</h4>
-<div class="outline-text-4" id="text-orgheadline4">
+<li><a id="orgheadline4"></a>信息查看<br  /><div class="outline-text-5" id="text-orgheadline4">
 <div class="org-src-container">
 
 <pre class="src src-sh">git status                              <span style="color: #666;"># </span><span style="color: #666;">&#26597;&#30475;&#39033;&#30446;&#29366;&#24577;</span>
@@ -232,23 +205,19 @@ lg = log --pretty=format:<span style="color: #800;">'%Cred%ad %h%Cgreen%d%&lt;|(
 <p>
 下图展示了用于查看不同节点间差异的方法。
 </p>
-<div class="org-center">
+
 
 <div class="figure">
-<p><img src="/resource/tools/fig/git/git-diff-status.png" alt="git-diff-status.png" />
+<p><img src="/resource/tools/fig/git-diff-status.png" alt="git-diff-status.png" />
 </p>
 </div>
-</div>
-</div>
-</div>
+</div></li></ul>
 </div>
 
-<div id="outline-container-orgheadline8" class="outline-3">
-<h3 id="orgheadline8">远程管理</h3>
-<div class="outline-text-3" id="text-orgheadline8">
-</div><div id="outline-container-orgheadline6" class="outline-4">
-<h4 id="orgheadline6">远程配置</h4>
-<div class="outline-text-4" id="text-orgheadline6">
+<div id="outline-container-orgheadline8" class="outline-4">
+<h4 id="orgheadline8">远程管理</h4>
+<div class="outline-text-4" id="text-orgheadline8">
+</div><ul class="org-ul"><li><a id="orgheadline6"></a>远程配置<br  /><div class="outline-text-5" id="text-orgheadline6">
 <p>
 创建ssh密钥以避免每次上传下载都要输入密码：
 </p>
@@ -281,12 +250,9 @@ Host github                             # 主机名，可任意命名
 <p>
 最后在远程服务器上设置好公钥，就可以无需输入密码实现上传和下载了。
 </p>
-</div>
-</div>
+</div></li>
 
-<div id="outline-container-orgheadline7" class="outline-4">
-<h4 id="orgheadline7">远程操作</h4>
-<div class="outline-text-4" id="text-orgheadline7">
+<li><a id="orgheadline7"></a>远程操作<br  /><div class="outline-text-5" id="text-orgheadline7">
 <div class="org-src-container">
 
 <pre class="src src-sh">git remote add &lt;repo-name&gt; &lt;repo-url&gt;   <span style="color: #666;"># </span><span style="color: #666;">&#28155;&#21152;&#36828;&#31243;&#20179;&#24211;&#22320;&#22336;</span>
@@ -299,18 +265,16 @@ git push &lt;repo-name&gt; &lt;branch&gt;           <span style="color: #666;">#
 git push &lt;repo-name&gt; &lt;a&gt;:&lt;b&gt;            <span style="color: #666;"># </span><span style="color: #666;">&#23558;&#20998;&#25903;a&#21457;&#36865;&#21040;&#36828;&#31243;&#20998;&#25903;b</span>
 git push &lt;repo-name&gt; :&lt;b&gt;               <span style="color: #666;"># </span><span style="color: #666;">&#21024;&#38500;&#36828;&#31243;&#20998;&#25903;</span>
 git push --tags                         <span style="color: #666;"># </span><span style="color: #666;">&#25512;&#36865;tag</span>
+git remote set-head origin --auto       <span style="color: #666;"># </span><span style="color: #666;">&#21487;&#29992;&#20110;&#20462;&#22797;remote/HEAD&#22833;&#25928;</span>
 </pre>
 </div>
-</div>
-</div>
+</div></li></ul>
 </div>
 
-<div id="outline-container-orgheadline11" class="outline-3">
-<h3 id="orgheadline11">分支管理</h3>
-<div class="outline-text-3" id="text-orgheadline11">
-</div><div id="outline-container-orgheadline9" class="outline-4">
-<h4 id="orgheadline9">分支管理</h4>
-<div class="outline-text-4" id="text-orgheadline9">
+<div id="outline-container-orgheadline11" class="outline-4">
+<h4 id="orgheadline11">分支管理</h4>
+<div class="outline-text-4" id="text-orgheadline11">
+</div><ul class="org-ul"><li><a id="orgheadline9"></a>分支管理<br  /><div class="outline-text-5" id="text-orgheadline9">
 <div class="org-src-container">
 
 <pre class="src src-sh">git branch [-vv]                        <span style="color: #666;"># </span><span style="color: #666;">&#26597;&#30475;&#20998;&#25903;&#65292;&#20887;&#20313;&#27169;&#24335;&#33021;&#26174;&#31034;&#36319;&#36394;&#23545;&#35937;</span>
@@ -321,8 +285,8 @@ git branch -dr &lt;remote/branch&gt;          <span style="color: #666;"># </spa
 git remote prune &lt;remote&gt;               <span style="color: #666;"># </span><span style="color: #666;">&#21024;&#38500;&#36828;&#31243;&#24050;&#32463;&#19981;&#23384;&#22312;&#30340;&#36319;&#36394;&#20998;&#25903;</span>
 git checkout &lt;branchname&gt;               <span style="color: #666;"># </span><span style="color: #666;">&#20999;&#25442;&#20998;&#25903;</span>
 git checkout &lt;commit&gt; -- &lt;filename&gt;     <span style="color: #666;"># </span><span style="color: #666;">&#26816;&#20986;&#25351;&#23450;&#25991;&#20214;</span>
-git rebase &lt;branchname&gt;                 <span style="color: #666;"># </span><span style="color: #666;">&#22522;&#20110;&#25351;&#23450;&#20998;&#25903;</span>
-git merge &lt;branchname&gt;                  <span style="color: #666;"># </span><span style="color: #666;">&#21512;&#24182;&#25351;&#23450;&#20998;&#25903;</span>
+git rebase &lt;branch-b&gt;                   <span style="color: #666;"># </span><span style="color: #666;">&#22522;&#20110;&#25351;&#23450;&#20998;&#25903;: ours=branch-b</span>
+git merge &lt;branch-b&gt;                    <span style="color: #666;"># </span><span style="color: #666;">&#21512;&#24182;&#25351;&#23450;&#20998;&#25903;: ours=branch-a</span>
 git reset &lt;commit&gt;                      <span style="color: #666;"># </span><span style="color: #666;">&#22797;&#20301;&#21040;&#25351;&#23450;&#25552;&#20132;</span>
 git revert &lt;commit&gt;                     <span style="color: #666;"># </span><span style="color: #666;">&#21453;&#36716;&#25552;&#20132;</span>
 </pre>
@@ -340,27 +304,23 @@ git revert &lt;commit&gt;                     <span style="color: #666;"># </spa
 <p>
 其实对于提交也需要同样注意，尽量做到每个提交都很好的完成一个提交的任务，如果代码改动很大，就要做成多个独立的提交。简单的说，每个提交要保证其正确性、可用性、可读性，不要滥用提交。
 </p>
-</div>
-</div>
+</div></li>
 
-<div id="outline-container-orgheadline10" class="outline-4">
-<h4 id="orgheadline10">标签管理</h4>
-<div class="outline-text-4" id="text-orgheadline10">
+<li><a id="orgheadline10"></a>标签管理<br  /><div class="outline-text-5" id="text-orgheadline10">
 <div class="org-src-container">
 
 <pre class="src src-sh">git tag &lt;v0.1&gt;                          <span style="color: #666;"># </span><span style="color: #666;">&#28155;&#21152;tag</span>
 git tag                                 <span style="color: #666;"># </span><span style="color: #666;">&#21015;&#20030;tag</span>
 </pre>
 </div>
-</div>
-</div>
+</div></li></ul>
 </div>
 
-<div id="outline-container-orgheadline12" class="outline-3">
-<h3 id="orgheadline12">错误追踪</h3>
-<div class="outline-text-3" id="text-orgheadline12">
+<div id="outline-container-orgheadline12" class="outline-4">
+<h4 id="orgheadline12">错误追踪</h4>
+<div class="outline-text-4" id="text-orgheadline12">
 <p>
-如果要查询一个文件合适由谁引入，或者文件中某一行何时由谁引入，可以用如下命令：
+如果要查询一个文件在何时由谁引入，或者文件中某一行何时由谁引入，可以用如下命令：
 </p>
 <div class="org-src-container">
 
@@ -390,12 +350,10 @@ git bisect HEAD1 HEAD2                  <span style="color: #666;"># </span><spa
 </div>
 </div>
 
-<div id="outline-container-orgheadline17" class="outline-3">
-<h3 id="orgheadline17">实用操作</h3>
-<div class="outline-text-3" id="text-orgheadline17">
-</div><div id="outline-container-orgheadline13" class="outline-4">
-<h4 id="orgheadline13">暂存管理</h4>
-<div class="outline-text-4" id="text-orgheadline13">
+<div id="outline-container-orgheadline17" class="outline-4">
+<h4 id="orgheadline17">实用操作</h4>
+<div class="outline-text-4" id="text-orgheadline17">
+</div><ul class="org-ul"><li><a id="orgheadline13"></a>暂存管理<br  /><div class="outline-text-5" id="text-orgheadline13">
 <div class="org-src-container">
 
 <pre class="src src-sh">git stash                               <span style="color: #666;"># </span><span style="color: #666;">&#28155;&#21152;&#24403;&#21069;&#20462;&#25913;&#21040;&#26242;&#23384;&#21306;</span>
@@ -403,12 +361,9 @@ git stash list                          <span style="color: #666;"># </span><spa
 git stash pop                           <span style="color: #666;"># </span><span style="color: #666;">&#24377;&#20986;&#26242;&#23384;&#21306;</span>
 </pre>
 </div>
-</div>
-</div>
+</div></li>
 
-<div id="outline-container-orgheadline14" class="outline-4">
-<h4 id="orgheadline14">仓库清理</h4>
-<div class="outline-text-4" id="text-orgheadline14">
+<li><a id="orgheadline14"></a>仓库清理<br  /><div class="outline-text-5" id="text-orgheadline14">
 <div class="org-src-container">
 
 <pre class="src src-sh">git clean -ndx                          <span style="color: #666;"># </span><span style="color: #666;">&#26174;&#31034;&#35201;&#21024;&#38500;&#30340;&#25991;&#20214;&#21015;&#34920;</span>
@@ -419,23 +374,17 @@ git gc                                  <span style="color: #666;"># </span><spa
 <p>
 所有的清理动作都应该慎重。
 </p>
-</div>
-</div>
+</div></li>
 
-<div id="outline-container-orgheadline15" class="outline-4">
-<h4 id="orgheadline15">选取提交</h4>
-<div class="outline-text-4" id="text-orgheadline15">
+<li><a id="orgheadline15"></a>选取提交<br  /><div class="outline-text-5" id="text-orgheadline15">
 <div class="org-src-container">
 
 <pre class="src src-sh">git cherry-pick &lt;commit&gt;                <span style="color: #666;"># </span><span style="color: #666;">&#36873;&#21462;&#25351;&#23450;&#25552;&#20132;&#25918;&#21040;&#24403;&#21069;&#20301;&#32622;</span>
 </pre>
 </div>
-</div>
-</div>
+</div></li>
 
-<div id="outline-container-orgheadline16" class="outline-4">
-<h4 id="orgheadline16">仓库打包</h4>
-<div class="outline-text-4" id="text-orgheadline16">
+<li><a id="orgheadline16"></a>仓库打包<br  /><div class="outline-text-5" id="text-orgheadline16">
 <div class="org-src-container">
 
 <pre class="src src-sh">git archive --prefix=<span style="color: #800;">"emacs/"</span> -o emacs.zip HEAD
@@ -443,19 +392,23 @@ git archive -o emacs-partial.tar HEAD lisp/ site-lisp/
 git archive --format=tar --prefix=<span style="color: #800;">"emacsd/"</span> master | gzip &gt; emacsd.tar.gz
 </pre>
 </div>
-</div>
+</div></li></ul>
 </div>
 </div>
 </div>
 
-<div id="outline-container-orgheadline20" class="outline-2">
-<h2 id="orgheadline20">repo</h2>
-<div class="outline-text-2" id="text-orgheadline20">
-</div><div id="outline-container-orgheadline19" class="outline-3">
-<h3 id="orgheadline19">基本用法</h3>
-<div class="outline-text-3" id="text-orgheadline19">
+<div id="outline-container-orgheadline21" class="outline-2">
+<h2 id="orgheadline21">repo</h2>
+<div class="outline-text-2" id="text-orgheadline21">
+</div><div id="outline-container-orgheadline20" class="outline-3">
+<h3 id="orgheadline20">基本用法</h3>
+<div class="outline-text-3" id="text-orgheadline20">
 <p>
-对于多个仓库的管理，git自带有submodule，但是我极力反对使用这个功能，关于其很多坑就不在这里讨论了。这里我推荐采用<code>repo</code>来管理多个仓库，毕竟其在谷歌Android项目中已经展现了优秀的能力。基本命令如下：
+对于多个仓库的管理，git自带有submodule，但是并不好用。这里推荐<code>repo</code>来管理多个仓库，谷歌在Android项目中的使用已经展现了repo优秀的能力。
+</p>
+
+<p>
+基本命令如下：
 </p>
 <div class="org-src-container">
 
@@ -567,7 +520,7 @@ repo version                            <span style="color: #666;"># </span><spa
 
 <tr>
 <td class="org-left">U</td>
-<td class="org-left">有冲突，Unmerged</td>
+<td class="org-left">有冲突未处理</td>
 <td class="org-left">&#xa0;</td>
 <td class="org-left">&#xa0;</td>
 </tr>
@@ -577,13 +530,13 @@ repo version                            <span style="color: #666;"># </span><spa
 </div>
 </div>
 
-<div id="outline-container-orgheadline21" class="outline-2">
-<h2 id="orgheadline21">参考资料</h2>
-<div class="outline-text-2" id="text-orgheadline21">
+<div id="outline-container-orgheadline22" class="outline-2">
+<h2 id="orgheadline22">参考资料</h2>
+<div class="outline-text-2" id="text-orgheadline22">
 <ul class="org-ul">
-<li>入门经典：<a href="https://git-scm.com/book/en/v2">Pro Git</a> | <a href="https://git-scm.com/book/zh/v2">中文版</a></li>
-<li>参考手册：<a href="https://git-scm.com/docs">Git Reference</a></li>
-<li>练手教程：<a href="https://www.atlassian.com/git/tutorials/">Become a git guru</a></li>
+<li><a href="https://git-scm.com/book/en/v2">Pro Git</a> | <a href="https://git-scm.com/book/zh/v2">中文版</a></li>
+<li><a href="https://git-scm.com/docs">Git Reference</a></li>
+<li><a href="https://www.atlassian.com/git/tutorials/">Become a git guru</a></li>
 <li><a href="http://www.ibm.com/developerworks/cn/opensource/os-cn-tourofgit/">开源分布式版本控制工具 —— Git之旅</a></li>
 </ul>
 </div>

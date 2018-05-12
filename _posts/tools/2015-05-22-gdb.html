@@ -2,46 +2,44 @@
 title: GDB Introduction
 author: 敬叶
 categories: tools
-tags: 笔记 gdb
+tags: gdb
 ---
-<dl class="post-meta">
-<dt class="post-meta">2015-05-22</dt><dd>敬叶 初稿</dd>
-<dt class="post-meta">2016-06-17</dt><dd>敬叶 重新整理排版</dd>
-</dl>
-<hr><br>
-<div id="table-of-contents"><h2>Table of Contents</h2>
+<div id="table-of-contents"><h2>&#30446;&#24405;</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#orgheadline9">GDB基本用法</a>
+<li><a href="#orgheadline8">GDB基本用法</a>
 <ul>
-<li><a href="#orgheadline1">编译选项</a></li>
+<li><a href="#orgheadline1">C语言编译选项</a></li>
 <li><a href="#orgheadline2">基本操作</a>
 <ul>
-<li><a href="#orgheadline3">启动选项</a></li>
-<li><a href="#orgheadline4">设置断点</a></li>
-<li><a href="#orgheadline5">分步执行</a></li>
-<li><a href="#orgheadline6">查看信息</a></li>
-<li><a href="#orgheadline7">更改状态</a></li>
+<li><a href="#orgheadline3">设置断点</a></li>
+<li><a href="#orgheadline4">分步执行</a></li>
+<li><a href="#orgheadline5">查看信息</a></li>
+<li><a href="#orgheadline6">更改状态</a></li>
+<li><a href="#orgheadline7">多线程调试</a></li>
 </ul>
 </li>
-<li><a href="#orgheadline8">多线程调试</a></li>
 </ul>
 </li>
-<li><a href="#orgheadline10">参考资料</a></li>
+<li><a href="#orgheadline9">参考资料</a></li>
 </ul>
 </div>
 </div>
 
-<div id="outline-container-orgheadline9" class="outline-2">
-<h2 id="orgheadline9">GDB基本用法</h2>
-<div class="outline-text-2" id="text-orgheadline9">
+
+<div id="outline-container-orgheadline8" class="outline-2">
+<h2 id="orgheadline8">GDB基本用法</h2>
+<div class="outline-text-2" id="text-orgheadline8">
 </div><div id="outline-container-orgheadline1" class="outline-3">
-<h3 id="orgheadline1">编译选项</h3>
+<h3 id="orgheadline1">C语言编译选项</h3>
 <div class="outline-text-3" id="text-orgheadline1">
 <!--abstract-begin-->
+
 <p>
 GCC将C代码编译成可执行程序，会执行预处理、编译、汇编和链接四个步骤。预处理包含头文件，替换宏定义。编译是由C代码生成汇编程序。汇编则是将汇编程序转换为目标二进制文件。链接是把目标文件和库链接在一起，生成一个可以运行的程序。
 </p>
+
+<!--abstract-end-->
 
 <p>
 常用选项如下所示。
@@ -53,7 +51,7 @@ GCC将C代码编译成可执行程序，会执行预处理、编译、汇编和�
 <dt>-o FILE</dt><dd>指定输出文件</dd>
 <dt>-M</dt><dd>输出依赖关系，包含系统头文件</dd>
 <dt>-MM</dt><dd>输出依赖关系，不包含系统头文件</dd>
-<dt>-MF FILE</dt><dd>指定用于输出依赖关系的文件</dd>
+<dt>-MF FILE</dt><dd>指定文件，用于保存输出依赖关系</dd>
 <dt>-I</dt><dd>指定头文件搜索路径</dd>
 <dt>-L</dt><dd>指定库文件搜索路径</dd>
 <dt>-lLIBNAME</dt><dd>指定链接库</dd>
@@ -63,7 +61,6 @@ GCC将C代码编译成可执行程序，会执行预处理、编译、汇编和�
 <dt>-static</dt><dd>禁止链接动态库</dd>
 <dt>-shared</dt><dd>生成共享对象，一般需要开启<code>-fPIC</code>选项</dd>
 </dl>
-<!--abstract-end-->
 </div>
 </div>
 
@@ -71,14 +68,11 @@ GCC将C代码编译成可执行程序，会执行预处理、编译、汇编和�
 <h3 id="orgheadline2">基本操作</h3>
 <div class="outline-text-3" id="text-orgheadline2">
 <p>
-调试工具的功能无非就是设置断点、单步执行、查看状态、改变状态这几个。
+这里介绍设置断点、单步执行、查看状态、改变状态这几个功能。
 </p>
-</div>
-<div id="outline-container-orgheadline3" class="outline-4">
-<h4 id="orgheadline3">启动选项</h4>
-<div class="outline-text-4" id="text-orgheadline3">
+
 <p>
-启动GDB常用有如下几种形式：
+在使用gdb功能之前，需要用gdb启动程序，启动方法如下所示。
 </p>
 <div class="org-src-container">
 
@@ -89,15 +83,14 @@ gdb -x scripts.gdb
 </pre>
 </div>
 </div>
-</div>
 
-<div id="outline-container-orgheadline4" class="outline-4">
-<h4 id="orgheadline4">设置断点</h4>
-<div class="outline-text-4" id="text-orgheadline4">
+<div id="outline-container-orgheadline3" class="outline-4">
+<h4 id="orgheadline3">设置断点</h4>
+<div class="outline-text-4" id="text-orgheadline3">
 <div class="org-src-container">
 
 <pre class="src src-sh">b LINE|FUNC|-NLINE|+NLINE               <span style="color: #666;"># </span><span style="color: #666;">&#25351;&#23450;&#26242;&#20572;&#20989;&#25968;&#12289;&#34892;&#21495;&#12289;&#34892;&#21495;&#20559;&#31227;&#37327;</span>
-b FILE:LINE|FILE:FUNC                   <span style="color: #666;"># </span><span style="color: #666;">&#26377;&#22810;&#20010;&#28304;&#25991;&#20214;&#26102;&#23450;&#20301;&#26041;&#27861;</span>
+b FILE:LINE|FILE:FUNC                   <span style="color: #666;"># </span><span style="color: #666;">&#26377;&#22810;&#20010;&#28304;&#25991;&#20214;&#26102;&#30340;&#23450;&#20301;&#26041;&#27861;</span>
 b *ADDR                                 <span style="color: #666;"># </span><span style="color: #666;">&#36816;&#34892;&#21040;&#25351;&#23450;&#20869;&#23384;&#22320;&#22336;&#22788;&#26242;&#20572;</span>
 b ARGS if CONDITION                     <span style="color: #666;"># </span><span style="color: #666;">&#25351;&#23450;&#26242;&#20572;&#30340;&#26465;&#20214;</span>
 clear                                   <span style="color: #666;"># </span><span style="color: #666;">&#28165;&#38500;&#25152;&#26377;&#20572;&#27490;&#28857;</span>
@@ -112,9 +105,9 @@ ignore BP N                             <span style="color: #666;"># </span><spa
 </div>
 </div>
 
-<div id="outline-container-orgheadline5" class="outline-4">
-<h4 id="orgheadline5">分步执行</h4>
-<div class="outline-text-4" id="text-orgheadline5">
+<div id="outline-container-orgheadline4" class="outline-4">
+<h4 id="orgheadline4">分步执行</h4>
+<div class="outline-text-4" id="text-orgheadline4">
 <div class="org-src-container">
 
 <pre class="src src-sh"><span style="color: #048; font-weight: bold;">r</span>(run) ARGS                             <span style="color: #666;"># </span><span style="color: #666;">&#36816;&#34892;&#31243;&#24207;</span>
@@ -129,9 +122,9 @@ ignore BP N                             <span style="color: #666;"># </span><spa
 </div>
 </div>
 
-<div id="outline-container-orgheadline6" class="outline-4">
-<h4 id="orgheadline6">查看信息</h4>
-<div class="outline-text-4" id="text-orgheadline6">
+<div id="outline-container-orgheadline5" class="outline-4">
+<h4 id="orgheadline5">查看信息</h4>
+<div class="outline-text-4" id="text-orgheadline5">
 <p>
 常用设置查看的信息：
 </p>
@@ -173,9 +166,9 @@ disassemble FUNC                        <span style="color: #666;"># </span><spa
 </div>
 </div>
 
-<div id="outline-container-orgheadline7" class="outline-4">
-<h4 id="orgheadline7">更改状态</h4>
-<div class="outline-text-4" id="text-orgheadline7">
+<div id="outline-container-orgheadline6" class="outline-4">
+<h4 id="orgheadline6">更改状态</h4>
+<div class="outline-text-4" id="text-orgheadline6">
 <div class="org-src-container">
 
 <pre class="src src-sh"><span style="color: #800;">set</span> args ARGS                           <span style="color: #666;"># </span><span style="color: #666;">&#35774;&#32622;&#31243;&#24207;&#21551;&#21160;&#21442;&#25968;&#65292;show args&#26597;&#30475;</span>
@@ -186,11 +179,10 @@ signal SIGNAL                           <span style="color: #666;"># </span><spa
 </div>
 </div>
 </div>
-</div>
 
-<div id="outline-container-orgheadline8" class="outline-3">
-<h3 id="orgheadline8">多线程调试</h3>
-<div class="outline-text-3" id="text-orgheadline8">
+<div id="outline-container-orgheadline7" class="outline-4">
+<h4 id="orgheadline7">多线程调试</h4>
+<div class="outline-text-4" id="text-orgheadline7">
 <div class="org-src-container">
 
 <pre class="src src-sh">info thread                             <span style="color: #666;"># </span><span style="color: #666;">&#26597;&#30475;&#24403;&#21069;&#36827;&#31243;&#30340;&#32447;&#31243;</span>
@@ -207,10 +199,11 @@ thread apply TID... command             <span style="color: #666;"># </span><spa
 </div>
 </div>
 </div>
+</div>
 
-<div id="outline-container-orgheadline10" class="outline-2">
-<h2 id="orgheadline10">参考资料</h2>
-<div class="outline-text-2" id="text-orgheadline10">
+<div id="outline-container-orgheadline9" class="outline-2">
+<h2 id="orgheadline9">参考资料</h2>
+<div class="outline-text-2" id="text-orgheadline9">
 <ul class="org-ul">
 <li><a href="https://sourceware.org/gdb/current/onlinedocs/gdb/">Debugging with gdb</a></li>
 <li><a href="http://wiki.ubuntu.org.cn/index.php?title=%E7%94%A8GDB%E8%B0%83%E8%AF%95%E7%A8%8B%E5%BA%8F&amp;variant=zh-hans">用GDB调试程序</a></li>

@@ -1,0 +1,241 @@
+---
+title: Linux网络指南
+author: 敬叶
+categories: linux
+tags: linux net
+---
+<div id="table-of-contents"><h2>&#30446;&#24405;</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#orgheadline4">SSH指南</a>
+<ul>
+<li><a href="#orgheadline1">基本概念</a>
+<ul>
+<li><a href="#orgheadline2">高效传输</a></li>
+<li><a href="#orgheadline3">端口转发</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#orgheadline8">网络诊断</a>
+<ul>
+<li><a href="#orgheadline7">常用工具</a>
+<ul>
+<li><a href="#orgheadline5">ping</a></li>
+<li><a href="#orgheadline6">netstat</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline4" class="outline-2">
+<h2 id="orgheadline4">SSH指南</h2>
+<div class="outline-text-2" id="text-orgheadline4">
+</div><div id="outline-container-orgheadline1" class="outline-3">
+<h3 id="orgheadline1">基本概念</h3>
+<div class="outline-text-3" id="text-orgheadline1">
+<!--abstract-begin-->
+
+<p>
+SSH是1995年由芬兰学者Tatu Ylonen设计，用于计算机之间加密登录。
+</p>
+
+<p>
+SSH功能：
+</p>
+<ul class="org-ul">
+<li>加密 SSH Client 端至 SSH Server 端之间的通讯数据。</li>
+<li>突破防火墙的限制完成一些之前无法建立的 TCP 连接。</li>
+</ul>
+
+<p>
+公钥登录的原理：
+</p>
+<ol class="org-ol">
+<li>远程主机发送随机字符串</li>
+<li>本地主机用私钥加密发给远程</li>
+<li>远程用公钥解密成功则允许登录</li>
+</ol>
+
+
+<!--abstract-end-->
+
+<p>
+客户端常用配置：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #666;"># </span><span style="color: #666;">file: ~/.ssh/config</span>
+Host *
+        ControlMaster auto
+        ControlPath ~/.ssh/%r@%h-%p
+        ControlPersist yes              <span style="color: #666;"># </span><span style="color: #666;">&#21551;&#29992;&#38271;&#36830;&#25509;</span>
+        Compression yes                 <span style="color: #666;"># </span><span style="color: #666;">&#21551;&#29992;&#21387;&#32553;&#65292;&#20256;&#36755;&#25552;&#21319;&#36895;&#24230;</span>
+</pre>
+</div>
+<p>
+长连接选项非常有用：
+</p>
+<ol class="org-ol">
+<li>重复登录不需要反复输入密码</li>
+<li>多个SSH连接共享同一个连接，如sftp、rsync、scp、git等</li>
+<li>提升scp复制性能，不必每个文件单独认证</li>
+</ol>
+
+<p>
+服务端常用配置：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #666;"># </span><span style="color: #666;">file: /etc/ssh/sshd_config</span>
+PermitRootLogin yes                     <span style="color: #666;"># </span><span style="color: #666;">&#25903;&#25345;root&#30331;&#24405;</span>
+RSAAuthentication yes
+PubkeyAuthentication yes
+AuthorizedKeysFile .ssh/authorized_keys
+</pre>
+</div>
+</div>
+
+<div id="outline-container-orgheadline2" class="outline-4">
+<h4 id="orgheadline2">高效传输</h4>
+<div class="outline-text-4" id="text-orgheadline2">
+<p>
+客户端zssh工具支持lrzsz传输文件，最大的好处是可在多次跳转之后直接传输文件。但需要在本地和远程都安装lrzsz工具。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">zssh user@host
+
+<span style="color: #666;"># </span><span style="color: #666;">local to remote</span>
+rz -be
+Ctrl-@
+sz -be files
+
+<span style="color: #666;"># </span><span style="color: #666;">remote to local</span>
+sz -be files
+Ctrl-@
+rz -be
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline3" class="outline-4">
+<h4 id="orgheadline3">端口转发</h4>
+<div class="outline-text-4" id="text-orgheadline3">
+<div class="org-src-container">
+
+<pre class="src src-sh">ssh -CNTfgqn2 -D 1080 user@host
+</pre>
+</div>
+<dl class="org-dl">
+<dt>-C </dt><dd>压缩数据传输</dd>
+<dt>-N </dt><dd>不执行SHELL</dd>
+<dt>-T </dt><dd>不分配伪终端</dd>
+<dt>-f </dt><dd>后台模式</dd>
+<dt>-g </dt><dd>允许打开的端口让远程主机访问</dd>
+<dt>-q </dt><dd>安静模式</dd>
+<dt>-n </dt><dd>配置stdin为/dev/null禁止从stdin读数据</dd>
+<dt>-2 </dt><dd>使用v2版协议</dd>
+<dt>-L </dt><dd>本地端口转发</dd>
+<dt>-R </dt><dd>远程端口转发</dd>
+<dt>-D </dt><dd>动态端口转发</dd>
+</dl>
+
+<p>
+启用上面的动态端口转发后，可以用如下命令启动chrome实现穿透。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">google-chrome --proxy-server=<span style="color: #800;">"socks://127.0.0.1:1080"</span>
+</pre>
+</div>
+
+<p>
+通过ssh隧道访问gitlab方法：达到 host &#x2013;&gt; proxy &#x2013;&gt; gitlab 效果。
+</p>
+<ol class="org-ol">
+<li><p>
+在host配置<code>~/.ssh/config</code>指定gitlab密钥
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">Host localhost
+        user git
+        IdentityFile ~/.ssh/micky.key
+</pre>
+</div></li>
+<li><p>
+启动本地转发
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">ssh -CNTfgqn2 -L 2222:gitlab.com:22 user@host
+</pre>
+</div></li>
+<li><p>
+拉取仓库
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">ssh://git@localhost:2222/repo/name.git
+</pre>
+</div></li>
+</ol>
+
+<p>
+参考资料
+</p>
+<ul class="org-ul">
+<li><a href="https://www.ibm.com/developerworks/cn/linux/l-cn-sshforward/">实战 SSH 端口转发</a></li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline8" class="outline-2">
+<h2 id="orgheadline8">网络诊断</h2>
+<div class="outline-text-2" id="text-orgheadline8">
+</div><div id="outline-container-orgheadline7" class="outline-3">
+<h3 id="orgheadline7">常用工具</h3>
+<div class="outline-text-3" id="text-orgheadline7">
+</div><div id="outline-container-orgheadline5" class="outline-4">
+<h4 id="orgheadline5">ping</h4>
+<div class="outline-text-4" id="text-orgheadline5">
+<dl class="org-dl">
+<dt>-s packagesize</dt><dd>指定数据包大小，单位为字节，默认56B</dd>
+<dt>-i seconds</dt><dd>时间间隔</dd>
+<dt>-c count</dt><dd>次数</dd>
+</dl>
+</div>
+</div>
+
+<div id="outline-container-orgheadline6" class="outline-4">
+<h4 id="orgheadline6">netstat</h4>
+<div class="outline-text-4" id="text-orgheadline6">
+<div class="org-src-container">
+
+<pre class="src src-sh">netstat                                 <span style="color: #666;"># </span><span style="color: #666;">&#26174;&#31034;&#24403;&#21069;&#24314;&#31435;&#30340;&#36830;&#25509;</span>
+netstat -nplt                           <span style="color: #666;"># </span><span style="color: #666;">&#26174;&#31034;&#27491;&#22312;&#30417;&#21548;&#30340;TCP&#26381;&#21153;</span>
+netstat -npltux                         <span style="color: #666;"># </span><span style="color: #666;">&#26174;&#31034;&#27491;&#22312;&#30417;&#21548;&#30340;TCP/UDP/UNIX&#26381;&#21153;</span>
+netstat -i                              <span style="color: #666;"># </span><span style="color: #666;">&#26174;&#31034;&#25152;&#26377;&#32593;&#32476;&#25509;&#21475;</span>
+</pre>
+</div>
+<dl class="org-dl">
+<dt>-n</dt><dd>直接显示地址，不转换为名字</dd>
+<dt>-p</dt><dd>显示进程PID和名字</dd>
+<dt>-i</dt><dd>显示网络接口</dd>
+<dt>-l</dt><dd>只显示正在监听的连接</dd>
+<dt>-t</dt><dd>显示TCP连接</dd>
+<dt>-u</dt><dd>显示UDP连接</dd>
+<dt>-x</dt><dd>显示UNIX连接</dd>
+<dt>-a</dt><dd>显示所有连接</dd>
+</dl>
+</div>
+</div>
+</div>
+</div>

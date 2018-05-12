@@ -7,41 +7,47 @@ tags: linux ubuntu
 <div id="table-of-contents"><h2>&#30446;&#24405;</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#orgheadline14">系统安装</a>
+<li><a href="#orgheadline16">系统安装</a>
 <ul>
-<li><a href="#orgheadline13">安装配置</a>
+<li><a href="#orgheadline15">安装配置</a>
 <ul>
 <li><a href="#orgheadline8">安装软件</a></li>
-<li><a href="#orgheadline12">实用配置</a></li>
+<li><a href="#orgheadline14">实用配置</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="#orgheadline35">系统管理</a>
+<li><a href="#orgheadline31">系统管理</a>
 <ul>
-<li><a href="#orgheadline17">网络管理</a>
+<li><a href="#orgheadline18">网络管理</a>
 <ul>
-<li><a href="#orgheadline15">基本配置</a></li>
-<li><a href="#orgheadline16">分析工具</a></li>
+<li><a href="#orgheadline17">基本配置</a></li>
 </ul>
 </li>
 <li><a href="#orgheadline20">用户管理</a>
 <ul>
-<li><a href="#orgheadline18">用戶管理</a></li>
-<li><a href="#orgheadline19">远程登录</a></li>
+<li><a href="#orgheadline19">用戶管理</a></li>
 </ul>
 </li>
-<li><a href="#orgheadline32">设备管理</a>
+<li><a href="#orgheadline28">设备管理</a>
 <ul>
 <li><a href="#orgheadline21">时间配置</a></li>
-<li><a href="#orgheadline25">文件系统</a></li>
-<li><a href="#orgheadline29">引导配置</a></li>
-<li><a href="#orgheadline31">内核配置</a></li>
+<li><a href="#orgheadline25">引导配置</a></li>
+<li><a href="#orgheadline27">内核配置</a></li>
 </ul>
 </li>
-<li><a href="#orgheadline34">软件管理</a>
+<li><a href="#orgheadline30">软件管理</a>
 <ul>
-<li><a href="#orgheadline33">Debian/Ubuntu</a></li>
+<li><a href="#orgheadline29">Debian/Ubuntu</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#orgheadline39">文件系统</a>
+<ul>
+<li><a href="#orgheadline38">文件系统</a>
+<ul>
+<li><a href="#orgheadline37">文件备份</a></li>
 </ul>
 </li>
 </ul>
@@ -50,12 +56,12 @@ tags: linux ubuntu
 </div>
 </div>
 
-<div id="outline-container-orgheadline14" class="outline-2">
-<h2 id="orgheadline14">系统安装</h2>
-<div class="outline-text-2" id="text-orgheadline14">
-</div><div id="outline-container-orgheadline13" class="outline-3">
-<h3 id="orgheadline13">安装配置</h3>
-<div class="outline-text-3" id="text-orgheadline13">
+<div id="outline-container-orgheadline16" class="outline-2">
+<h2 id="orgheadline16">系统安装</h2>
+<div class="outline-text-2" id="text-orgheadline16">
+</div><div id="outline-container-orgheadline15" class="outline-3">
+<h3 id="orgheadline15">安装配置</h3>
+<div class="outline-text-3" id="text-orgheadline15">
 </div><div id="outline-container-orgheadline8" class="outline-4">
 <h4 id="orgheadline8">安装软件</h4>
 <div class="outline-text-4" id="text-orgheadline8">
@@ -132,9 +138,9 @@ usermod -a -G vboxusers micky
 </div></li></ul>
 </div>
 
-<div id="outline-container-orgheadline12" class="outline-4">
-<h4 id="orgheadline12">实用配置</h4>
-<div class="outline-text-4" id="text-orgheadline12">
+<div id="outline-container-orgheadline14" class="outline-4">
+<h4 id="orgheadline14">实用配置</h4>
+<div class="outline-text-4" id="text-orgheadline14">
 </div><ul class="org-ul"><li><a id="orgheadline9"></a>去掉桌面显示主目录下的文件<br  /><div class="outline-text-5" id="text-orgheadline9">
 <p>
 Ubuntu配置方法：编辑<code>~/.config/user-dirs.dirs</code>文件，直接清空即可。
@@ -194,20 +200,49 @@ sudo locale
 <pre class="example">
 LC_CTYPE="zh_CN.UTF-8"
 </pre>
+</div></li>
+
+<li><a id="orgheadline12"></a>DNS配置<br  /><div class="outline-text-5" id="text-orgheadline12">
+<p>
+在 /etc/network/interfaces 中添加 dns-nameservers/dns-search/dns-domain 等配置
+</p>
+</div></li>
+
+<li><a id="orgheadline13"></a>终端<br  /><div class="outline-text-5" id="text-orgheadline13">
+<p>
+Tmux是一个支持分屏的终端，可以直接通过apt-get安装：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">sudo apt-get install tmux
+</pre>
+</div>
+
+<p>
+在gnome-terminal中输入tmux即可进入tmux终端。
+Tmux基本概念包括：
+</p>
+<dl class="org-dl">
+<dt>server</dt><dd>输入tmux命令开启一个服务</dd>
+<dt>session</dt><dd>一个服务包含多个会话</dd>
+<dt>window</dt><dd>一个会话包含多个窗口</dd>
+<dt>pane</dt><dd>一个窗口包含多个面板</dd>
+</dl>
 </div></li></ul>
 </div>
 </div>
 </div>
 
-<div id="outline-container-orgheadline35" class="outline-2">
-<h2 id="orgheadline35">系统管理</h2>
-<div class="outline-text-2" id="text-orgheadline35">
-</div><div id="outline-container-orgheadline17" class="outline-3">
-<h3 id="orgheadline17">网络管理</h3>
-<div class="outline-text-3" id="text-orgheadline17">
-</div><div id="outline-container-orgheadline15" class="outline-4">
-<h4 id="orgheadline15">基本配置</h4>
-<div class="outline-text-4" id="text-orgheadline15">
+
+<div id="outline-container-orgheadline31" class="outline-2">
+<h2 id="orgheadline31">系统管理</h2>
+<div class="outline-text-2" id="text-orgheadline31">
+</div><div id="outline-container-orgheadline18" class="outline-3">
+<h3 id="orgheadline18">网络管理</h3>
+<div class="outline-text-3" id="text-orgheadline18">
+</div><div id="outline-container-orgheadline17" class="outline-4">
+<h4 id="orgheadline17">基本配置</h4>
+<div class="outline-text-4" id="text-orgheadline17">
 <p>
 基本网络接口控制可以通过<code>ifconfig</code>命令配置，但是该命令只能临时配置，持久化需要通过配置文件实现。
 </p>
@@ -239,36 +274,14 @@ mtu 9000                                <span style="color: #666;"># </span><spa
 </div>
 </div>
 </div>
-
-<div id="outline-container-orgheadline16" class="outline-4">
-<h4 id="orgheadline16">分析工具</h4>
-<div class="outline-text-4" id="text-orgheadline16">
-<p>
-探测网络连通性，常用<code>ping</code>命令，该命令最终要的参数如下：
-</p>
-<dl class="org-dl">
-<dt>-s packagesize</dt><dd>指定数据包大小，单位为字节，默认56B</dd>
-<dt>-i seconds</dt><dd>时间间隔</dd>
-<dt>-c count</dt><dd>次数</dd>
-</dl>
-
-<p>
-检查服务端口可用<code>netstat</code>命令：
-</p>
-<dl class="org-dl">
-<dt>netstat</dt><dd>显示当前建立的连接</dd>
-<dt>netstat -lnptux</dt><dd>显示正在监听的服务，包括TCP、UDP和UNIX</dd>
-</dl>
-</div>
-</div>
 </div>
 
 <div id="outline-container-orgheadline20" class="outline-3">
 <h3 id="orgheadline20">用户管理</h3>
 <div class="outline-text-3" id="text-orgheadline20">
-</div><div id="outline-container-orgheadline18" class="outline-4">
-<h4 id="orgheadline18">用戶管理</h4>
-<div class="outline-text-4" id="text-orgheadline18">
+</div><div id="outline-container-orgheadline19" class="outline-4">
+<h4 id="orgheadline19">用戶管理</h4>
+<div class="outline-text-4" id="text-orgheadline19">
 <p>
 账户管理相关配置文件如下表所示。
 </p>
@@ -337,52 +350,11 @@ id user                                 <span style="color: #666;"># </span><spa
 </pre>
 </div>
 </div>
-
-<div id="outline-container-orgheadline19" class="outline-4">
-<h4 id="orgheadline19">远程登录</h4>
-<div class="outline-text-4" id="text-orgheadline19">
-<p>
-对于要输入动态密码登录跳板机的情况，不仅非常麻烦，而且还可能会有时间限制，如一分钟只能登录一次这样的情况。利用SSH的ControlPersist特性，可以让多条连接共享，这样不用每次都输入用户名、密码。
-</p>
-
-<p>
-配置<code>~/.ssh/config</code>如下：
-</p>
-
-<div class="org-src-container">
-
-<pre class="src src-sh">Host *
-        ControlMaster auto
-        ControlPath ~/.ssh/%r@%h-%p
-        ControlPersist yes
-        Compression yes
-</pre>
 </div>
 
-<p>
-连接共享不止可以帮助你共享多个SSH连接，如果你需要通过SFTP与服务器传输文件，你会发现，它们使用的依然是同一条连接，如果你使用的Bash，你会发现，SSH甚至支持Tab对服务器端文件进行自动补全，共享连接选项对于那些需要借助SSH的工具，比如rsync，git等等也同样有效。
-</p>
-
-<p>
-如果你发现自己每条需要连接同一个服务器无数次，那么长连接选项就是为你准备的。打开之后即使关闭了所有的已连接ssh连接，一段时间内也能无需密码重新连接。这个选项对于通过scp拷贝多个文件提速尤其明显，因为你不在需要为每个文件做单独的认证了。
-</p>
-
-<p>
-Compression为压缩选项，打开之后加快数据传输速度。
-</p>
-
-<p>
-参考链接：
-</p>
-<ul class="org-ul">
-<li><a href="http://www.hi-linux.com/2016/04/13/%E5%88%A9%E7%94%A8ControlPersist%E7%89%B9%E6%80%A7%E8%87%AA%E5%8A%A8%E7%99%BB%E9%99%86SSH%E6%9C%8D%E5%8A%A1%E5%99%A8/">利用ControlPersist特性自动登陆SSH服务器</a></li>
-</ul>
-</div>
-</div>
-</div>
-<div id="outline-container-orgheadline32" class="outline-3">
-<h3 id="orgheadline32">设备管理</h3>
-<div class="outline-text-3" id="text-orgheadline32">
+<div id="outline-container-orgheadline28" class="outline-3">
+<h3 id="orgheadline28">设备管理</h3>
+<div class="outline-text-3" id="text-orgheadline28">
 </div><div id="outline-container-orgheadline21" class="outline-4">
 <h4 id="orgheadline21">时间配置</h4>
 <div class="outline-text-4" id="text-orgheadline21">
@@ -397,96 +369,9 @@ debian下的时间通常比windows快8个小时，这在双系统上很容易测
 </div>
 </div>
 <div id="outline-container-orgheadline25" class="outline-4">
-<h4 id="orgheadline25">文件系统</h4>
+<h4 id="orgheadline25">引导配置</h4>
 <div class="outline-text-4" id="text-orgheadline25">
-</div><ul class="org-ul"><li><a id="orgheadline22"></a>修改磁盘卷标<br  /><div class="outline-text-5" id="text-orgheadline22">
-<div class="org-src-container">
-
-<pre class="src src-sh">sudo e2label DEV LABEL                  <span style="color: #666;"># </span><span style="color: #666;">ext3/ext4</span>
-sudo btrfs filesystem label DEV LABEL   <span style="color: #666;"># </span><span style="color: #666;">btrfs</span>
-sudo ntfslabel DEV LABEL                <span style="color: #666;"># </span><span style="color: #666;">ntfs</span>
-</pre>
-</div>
-</div></li>
-<li><a id="orgheadline23"></a>启动NFS服务<br  /><div class="outline-text-5" id="text-orgheadline23">
-<p>
-安装NFS服务工具：
-</p>
-<div class="org-src-container">
-
-<pre class="src src-sh">sudo apt-get install nfs-kernel-server
-</pre>
-</div>
-
-<p>
-编辑<code>/etc/exports</code>添加如下一行。
-</p>
-<div class="org-src-container">
-
-<pre class="src src-sh">/home/micky/dev/nfs   *(ro,sync,no_root_squash)
-</pre>
-</div>
-
-<p>
-重启NFS服务。
-</p>
-<div class="org-src-container">
-
-<pre class="src src-sh">sudo service nfs-kernel-server restart
-</pre>
-</div>
-
-<p>
-客户端只需要挂载即可使用：
-</p>
-<div class="org-src-container">
-
-<pre class="src src-sh">mount -t nfs -o <span style="color: #048;">proto</span>=tcp,<span style="color: #048;">port</span>=2049,nolock 192.168.1.67:/home/micky/dev/nfs /mnt/
-</pre>
-</div>
-</div></li>
-<li><a id="orgheadline24"></a>自动挂载USB设备<br  /><div class="outline-text-5" id="text-orgheadline24">
-<p>
-创建文件<code>/etc/udev/rules.d/87-usb-automount.rules</code>
-</p>
-
-<div class="org-src-container">
-
-<pre class="src src-sh">KERNEL!=<span style="color: #800;">"sd[a-z][0-9]"</span>, <span style="color: #048;">GOTO</span>=<span style="color: #800;">"exit_automount"</span>
-<span style="color: #666;"># </span><span style="color: #666;">Import FS info</span>
-IMPORT{program}=<span style="color: #800;">"/sbin/blkid -o udev -p %N"</span>
-<span style="color: #666;"># </span><span style="color: #666;">Get a label if present, otherwise specify one</span>
-ENV{ID_FS_LABEL}!=<span style="color: #800;">""</span>, ENV{dir_name}=<span style="color: #800;">"%E{ID_FS_LABEL}"</span>
-ENV{ID_FS_LABEL}==<span style="color: #800;">""</span>, ENV{dir_name}=<span style="color: #800;">"Disk-%k"</span>
-<span style="color: #666;"># </span><span style="color: #666;">Global mount options</span>
-<span style="color: #048;">ACTION</span>==<span style="color: #800;">"add"</span>, ENV{mount_options}=<span style="color: #800;">"relatime"</span>
-<span style="color: #666;"># </span><span style="color: #666;">Filesystem-specific mount options</span>
-<span style="color: #048;">ACTION</span>==<span style="color: #800;">"add"</span>, ENV{ID_FS_TYPE}==<span style="color: #800;">"vfat|ntfs"</span>, ENV{mount_options}=<span style="color: #800;">"$env{mount_options},utf8,gid=100,umask=002"</span>
-<span style="color: #666;"># </span><span style="color: #666;">Mount the device</span>
-<span style="color: #048;">ACTION</span>==<span style="color: #800;">"add"</span>, <span style="color: #048;">RUN</span>+=<span style="color: #800;">"/bin/mkdir -p /media/%E{dir_name}"</span>, <span style="color: #048;">RUN</span>+=<span style="color: #800;">"/bin/mount -o $env{mount_options} /dev/%k /media/%E{dir_name}"</span>
-<span style="color: #666;"># </span><span style="color: #666;">Clean up after removal</span>
-<span style="color: #048;">ACTION</span>==<span style="color: #800;">"remove"</span>, ENV{dir_name}!=<span style="color: #800;">""</span>, <span style="color: #048;">RUN</span>+=<span style="color: #800;">"/bin/umount /dev/%k"</span>
-<span style="color: #048;">ACTION</span>==<span style="color: #800;">"remove"</span>, ENV{dir_name}!=<span style="color: #800;">""</span>, <span style="color: #048;">RUN</span>+=<span style="color: #800;">"/bin/umount -l /media/%E{dir_name}"</span>, <span style="color: #048;">RUN</span>+=<span style="color: #800;">"/bin/rmdir /media/%E{dir_name}"</span>
-<span style="color: #666;"># </span><span style="color: #666;">Exit</span>
-<span style="color: #048;">LABEL</span>=<span style="color: #800;">"exit_automount"</span>
-</pre>
-</div>
-
-<p>
-更新配置：
-</p>
-<div class="org-src-container">
-
-<pre class="src src-sh">udevadm control --reload-rules
-</pre>
-</div>
-</div></li></ul>
-</div>
-
-<div id="outline-container-orgheadline29" class="outline-4">
-<h4 id="orgheadline29">引导配置</h4>
-<div class="outline-text-4" id="text-orgheadline29">
-</div><ul class="org-ul"><li><a id="orgheadline26"></a>通过USB Live CD安装grub<br  /><div class="outline-text-5" id="text-orgheadline26">
+</div><ul class="org-ul"><li><a id="orgheadline22"></a>通过USB Live CD安装grub<br  /><div class="outline-text-5" id="text-orgheadline22">
 <div class="org-src-container">
 
 <pre class="src src-sh">sudo mount /dev/sda5 /mnt
@@ -499,7 +384,7 @@ sudo grub-install --root-directory=/mnt /dev/sda
 </pre>
 </div>
 </div></li>
-<li><a id="orgheadline27"></a>处理隐藏GRUB<br  /><div class="outline-text-5" id="text-orgheadline27">
+<li><a id="orgheadline23"></a>处理隐藏GRUB<br  /><div class="outline-text-5" id="text-orgheadline23">
 <p>
 如果执行<code>update-grub2</code>更新grub动作的时候能看到如下提示信息，则说明GRUB被隐藏了，启动的时候也看不到选择界面。
 </p>
@@ -516,7 +401,7 @@ when GRUB_HIDDEN_TIMEOUT is set is no longer supported.
 处理办法是编辑<code>/etc/default/grub</code>注释掉<code>GRUB_HIDDEN_TIMEOUT</code>行。
 </p>
 </div></li>
-<li><a id="orgheadline28"></a>通过GRUB rescue修复grub<br  /><div class="outline-text-5" id="text-orgheadline28">
+<li><a id="orgheadline24"></a>通过GRUB rescue修复grub<br  /><div class="outline-text-5" id="text-orgheadline24">
 <div class="org-src-container">
 
 <pre class="src src-sh">grub&gt; set <span style="color: #048;">pager</span>=1
@@ -579,10 +464,10 @@ Installation finished. No error reported.
 </div></li></ul>
 </div>
 
-<div id="outline-container-orgheadline31" class="outline-4">
-<h4 id="orgheadline31">内核配置</h4>
-<div class="outline-text-4" id="text-orgheadline31">
-</div><ul class="org-ul"><li><a id="orgheadline30"></a>更新initramfs<br  /><div class="outline-text-5" id="text-orgheadline30">
+<div id="outline-container-orgheadline27" class="outline-4">
+<h4 id="orgheadline27">内核配置</h4>
+<div class="outline-text-4" id="text-orgheadline27">
+</div><ul class="org-ul"><li><a id="orgheadline26"></a>更新initramfs<br  /><div class="outline-text-5" id="text-orgheadline26">
 <p>
 有时候删除内核模块之后，重启还是能看到已删除的模块载入到系统。这可能性是从<code>initramfs</code>中载入的，更新一下即可。
 </p>
@@ -599,12 +484,12 @@ Installation finished. No error reported.
 </div>
 </div>
 
-<div id="outline-container-orgheadline34" class="outline-3">
-<h3 id="orgheadline34">软件管理</h3>
-<div class="outline-text-3" id="text-orgheadline34">
-</div><div id="outline-container-orgheadline33" class="outline-4">
-<h4 id="orgheadline33">Debian/Ubuntu</h4>
-<div class="outline-text-4" id="text-orgheadline33">
+<div id="outline-container-orgheadline30" class="outline-3">
+<h3 id="orgheadline30">软件管理</h3>
+<div class="outline-text-3" id="text-orgheadline30">
+</div><div id="outline-container-orgheadline29" class="outline-4">
+<h4 id="orgheadline29">Debian/Ubuntu</h4>
+<div class="outline-text-4" id="text-orgheadline29">
 <p>
 软件包管理主要需要熟悉的命令：<code>dpkg</code>、<code>apt-cache</code>、<code>apt-get</code>、<code>apt-file</code>等。
 </p>
@@ -663,6 +548,212 @@ sudo add-apt-repository -r ppa:username <span style="color: #666;"># </span><spa
 </pre>
 </div>
 </div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline39" class="outline-2">
+<h2 id="orgheadline39">文件系统</h2>
+<div class="outline-text-2" id="text-orgheadline39">
+</div><div id="outline-container-orgheadline38" class="outline-3">
+<h3 id="orgheadline38">文件系统</h3>
+<div class="outline-text-3" id="text-orgheadline38">
+</div><ul class="org-ul"><li><a id="orgheadline32"></a>修改磁盘卷标<br  /><div class="outline-text-5" id="text-orgheadline32">
+<div class="org-src-container">
+
+<pre class="src src-sh">sudo e2label DEV LABEL                  <span style="color: #666;"># </span><span style="color: #666;">ext3/ext4</span>
+sudo btrfs filesystem label DEV LABEL   <span style="color: #666;"># </span><span style="color: #666;">btrfs</span>
+sudo ntfslabel DEV LABEL                <span style="color: #666;"># </span><span style="color: #666;">ntfs</span>
+</pre>
+</div>
+</div></li>
+<li><a id="orgheadline33"></a>启动NFS服务<br  /><div class="outline-text-5" id="text-orgheadline33">
+<p>
+安装NFS服务工具：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">sudo apt-get install nfs-kernel-server
+</pre>
+</div>
+
+<p>
+编辑<code>/etc/exports</code>添加如下一行。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">/home/micky/dev/nfs   *(ro,sync,no_root_squash)
+</pre>
+</div>
+
+<p>
+重启NFS服务。
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">sudo service nfs-kernel-server restart
+</pre>
+</div>
+
+<p>
+客户端只需要挂载即可使用：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">mount -t nfs -o <span style="color: #048;">proto</span>=tcp,<span style="color: #048;">port</span>=2049,nolock 192.168.1.67:/home/micky/dev/nfs /mnt/
+</pre>
+</div>
+</div></li>
+
+<li><a id="orgheadline34"></a>启动NFS服务 on Centos<br  /><div class="outline-text-5" id="text-orgheadline34">
+<pre class="example">
+yum -y install nfs-utils rpcbind
+
+vi /etc/exports
+/share     *(rw,sync,no_root_squash)
+
+service rpcbind start
+service nfs start
+
+on client:
+mount -t nfs -o proto=tcp,port=2049,nolock 192.168.153.59:/data /home/nfs59
+</pre>
+</div></li>
+
+<li><a id="orgheadline35"></a>自动挂载USB设备<br  /><div class="outline-text-5" id="text-orgheadline35">
+<p>
+创建文件<code>/etc/udev/rules.d/87-usb-automount.rules</code>
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">KERNEL!=<span style="color: #800;">"sd[a-z][0-9]"</span>, <span style="color: #048;">GOTO</span>=<span style="color: #800;">"exit_automount"</span>
+<span style="color: #666;"># </span><span style="color: #666;">Import FS info</span>
+IMPORT{program}=<span style="color: #800;">"/sbin/blkid -o udev -p %N"</span>
+<span style="color: #666;"># </span><span style="color: #666;">Get a label if present, otherwise specify one</span>
+ENV{ID_FS_LABEL}!=<span style="color: #800;">""</span>, ENV{dir_name}=<span style="color: #800;">"%E{ID_FS_LABEL}"</span>
+ENV{ID_FS_LABEL}==<span style="color: #800;">""</span>, ENV{dir_name}=<span style="color: #800;">"Disk-%k"</span>
+<span style="color: #666;"># </span><span style="color: #666;">Global mount options</span>
+<span style="color: #048;">ACTION</span>==<span style="color: #800;">"add"</span>, ENV{mount_options}=<span style="color: #800;">"relatime"</span>
+<span style="color: #666;"># </span><span style="color: #666;">Filesystem-specific mount options</span>
+<span style="color: #048;">ACTION</span>==<span style="color: #800;">"add"</span>, ENV{ID_FS_TYPE}==<span style="color: #800;">"vfat|ntfs"</span>, ENV{mount_options}=<span style="color: #800;">"$env{mount_options},utf8,gid=100,umask=002"</span>
+<span style="color: #666;"># </span><span style="color: #666;">Mount the device</span>
+<span style="color: #048;">ACTION</span>==<span style="color: #800;">"add"</span>, <span style="color: #048;">RUN</span>+=<span style="color: #800;">"/bin/mkdir -p /media/%E{dir_name}"</span>, <span style="color: #048;">RUN</span>+=<span style="color: #800;">"/bin/mount -o $env{mount_options} /dev/%k /media/%E{dir_name}"</span>
+<span style="color: #666;"># </span><span style="color: #666;">Clean up after removal</span>
+<span style="color: #048;">ACTION</span>==<span style="color: #800;">"remove"</span>, ENV{dir_name}!=<span style="color: #800;">""</span>, <span style="color: #048;">RUN</span>+=<span style="color: #800;">"/bin/umount /dev/%k"</span>
+<span style="color: #048;">ACTION</span>==<span style="color: #800;">"remove"</span>, ENV{dir_name}!=<span style="color: #800;">""</span>, <span style="color: #048;">RUN</span>+=<span style="color: #800;">"/bin/umount -l /media/%E{dir_name}"</span>, <span style="color: #048;">RUN</span>+=<span style="color: #800;">"/bin/rmdir /media/%E{dir_name}"</span>
+<span style="color: #666;"># </span><span style="color: #666;">Exit</span>
+<span style="color: #048;">LABEL</span>=<span style="color: #800;">"exit_automount"</span>
+</pre>
+</div>
+
+<p>
+更新配置：
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">udevadm control --reload-rules
+</pre>
+</div>
+</div></li>
+
+<div id="outline-container-orgheadline37" class="outline-4">
+<h4 id="orgheadline37">文件备份</h4>
+<div class="outline-text-4" id="text-orgheadline37">
+</div><ul class="org-ul"><li><a id="orgheadline36"></a>rsync<br  /><div class="outline-text-5" id="text-orgheadline36">
+<p>
+1，rsync可以再中断传输之后恢复传输
+2，rsync只传输源文件和目标文件之间不一致的部分
+3，rsync可以执行完整或增量备份
+4，可以使用基于ssh等方式传输文件
+5，可以保持原有文件的所有属性信息
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">Local:  rsync [OPTION...] SRC... [DEST]
+
+Access via remote shell:
+  Pull: rsync [OPTION...] [USER@]HOST:SRC... [DEST]
+  Push: rsync [OPTION...] SRC... [USER@]HOST:DEST
+
+Access via rsync daemon:
+  Pull: rsync [OPTION...] [USER@]HOST::SRC... [DEST]
+        rsync [OPTION...] rsync://[USER@]HOST[:PORT]/SRC... [DEST]
+  Push: rsync [OPTION...] SRC... [USER@]HOST::DEST
+        rsync [OPTION...] SRC... rsync://[USER@]HOST[:PORT]/DEST
+
+Usages with just one SRC arg and no DEST arg will list the source files instead of copying.
+</pre>
+</div>
+
+<p>
+常用选项
+</p>
+<dl class="org-dl">
+<dt>-a, &#x2013;archive</dt><dd>归档模式，表示以递归方式传输文件，并保持所有文件属性，等于-rlptgoD</dd>
+<dt>-r, &#x2013;recursive</dt><dd>对子目录以递归模式处理</dd>
+<dt>-l, &#x2013;links</dt><dd>保留软链接</dd>
+<dt>-p, &#x2013;perms</dt><dd>保持文件权限</dd>
+<dt>-t, &#x2013;times</dt><dd>保持文件时间信息</dd>
+<dt>-g, &#x2013;group</dt><dd>保持文件属组信息</dd>
+<dt>-o, &#x2013;owner</dt><dd>保持文件属主信息</dd>
+<dt>-D, &#x2013;devices</dt><dd>保持设备文件信息</dd>
+
+<dt>-c, &#x2013;checksum</dt><dd>打开校验开关，强制对文件传输进行校验</dd>
+<dt>-v, &#x2013;verbose</dt><dd>详细模式输出</dd>
+<dt>-H, &#x2013;hard-links</dt><dd>保留硬链接</dd>
+<dt>-E, &#x2013;executability</dt><dd>保留可执行权限</dd>
+<dt>&#x2013;progress</dt><dd>显示进度</dd>
+<dt>&#x2013;log-file=FILE</dt><dd>指定日志文件</dd>
+
+<dt>-n, &#x2013;dry-run</dt><dd>显示哪些文件将被传输</dd>
+<dt>-u, &#x2013;update</dt><dd>只进行更新，跳过比源头更新的文件</dd>
+<dt>-b, &#x2013;backup</dt><dd>创建备份，被覆盖的文件会被重命名为~filename
+<dl class="org-dl">
+<dt>&#x2013;suffix=SUFFIX</dt><dd>定义备份文件前缀</dd>
+<dt>&#x2013;backup-dir=DIR</dt><dd>指定备份目录</dd>
+</dl></dd>
+
+<dt>-w, &#x2013;whole-file</dt><dd>完全复制，不进行增量检测</dd>
+<dt>-x, &#x2013;one-file-system</dt><dd>不跨越文件系统边界</dd>
+<dt>-R, &#x2013;relative</dt><dd>使用相对路径信息</dd>
+<dt>-z, &#x2013;compress</dt><dd>在传输时对备份文件进行压缩处理</dd>
+<dt>-S, &#x2013;sparse</dt><dd>对稀疏文件进行特殊处理以节省DST的空间</dd>
+<dt>-q, &#x2013;quiet</dt><dd>精简输出模式</dd>
+<dt>&#x2013;existing</dt><dd>只备份DST存在的文件，忽略新建文件</dd>
+<dt>&#x2013;delete</dt><dd>删除DST有而SRC没有的文件</dd>
+<dt>&#x2013;delete-excluded</dt><dd>删除DST中被指定排除的文件</dd>
+<dt>&#x2013;delete-after</dt><dd>传输结束之后再删除</dd>
+<dt>&#x2013;ignore-errors</dt><dd>当删除出现错误时，忽略错误并继续删除</dd>
+<dt>&#x2013;force</dt><dd>强制删除非空的目录</dd>
+<dt>&#x2013;bwlimit=KBPS</dt><dd>限制IO带宽</dd>
+</dl>
+
+<p>
+符号链接选项说明：
+</p>
+<dl class="org-dl">
+<dt>&#x2013;copy-links</dt><dd>将所有链接变成普通文件</dd>
+<dt>&#x2013;links &#x2013;copy-unsafe-links</dt><dd>复制安全链接，不安全链接变为普通文件</dd>
+<dt>&#x2013;links &#x2013;safe-links</dt><dd>复制安全链接，跳过不安全链接</dd>
+<dt>&#x2013;links</dt><dd>复制所有符号链接</dd>
+<dt>&#x2013;copy-unsafe-links</dt><dd>不安全链接变为普通文件，跳过安全链接</dd>
+<dt>-K, &#x2013;keep-dirlinks</dt><dd>保留目录符号链接</dd>
+<dt>-k, &#x2013;copy-dirlinks</dt><dd>替换目录符合链接为普通目录</dd>
+</dl>
+
+<div class="org-src-container">
+
+<pre class="src src-sh"><span style="color: #666;"># </span><span style="color: #666;">&#20840;&#37327;&#21516;&#27493;&#21629;&#20196;</span>
+rsync -acvKHE --progress --log-file=rsync.log SRC DST
+<span style="color: #666;"># </span><span style="color: #666;">&#22686;&#37327;&#21516;&#27493;&#21629;&#20196;</span>
+rsync -acvKHEu --progress --log-file=rsync.log SRC DST
+<span style="color: #666;"># </span><span style="color: #666;">&#26174;&#31034;&#21516;&#27493;&#21015;&#34920;</span>
+rsync -acvKHEn SRC DST
+</pre>
+</div>
+</div></li></ul>
 </div>
 </div>
 </div>
