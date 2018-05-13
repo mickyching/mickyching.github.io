@@ -1,0 +1,430 @@
+---
+title: Docker Introduction
+author: 敬叶
+categories: linux
+tags: docker
+---
+<div id="table-of-contents"><h2>&#30446;&#24405;</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#orgheadline11">基本概念</a>
+<ul>
+<li><a href="#orgheadline8">基本概念</a>
+<ul>
+<li><a href="#orgheadline1">历史简介</a></li>
+<li><a href="#orgheadline2">docker</a></li>
+<li><a href="#orgheadline3">namespace</a></li>
+<li><a href="#orgheadline4">cgroup</a></li>
+<li><a href="#orgheadline5">fs</a></li>
+</ul>
+</li>
+<li><a href="#orgheadline10">使用要点</a>
+<ul>
+<li><a href="#orgheadline9">构建镜像</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#orgheadline12">参考资料</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgheadline11" class="outline-2">
+<h2 id="orgheadline11">基本概念</h2>
+<div class="outline-text-2" id="text-orgheadline11">
+</div><div id="outline-container-orgheadline8" class="outline-3">
+<h3 id="orgheadline8">基本概念</h3>
+<div class="outline-text-3" id="text-orgheadline8">
+</div><div id="outline-container-orgheadline1" class="outline-4">
+<h4 id="orgheadline1">历史简介</h4>
+<div class="outline-text-4" id="text-orgheadline1">
+<!--abstract-begin-->
+
+<p>
+Docker项目最初由dotCloud公司发起，2013年开源，该项目的成功导致在2013年底dotCloud公司更名为Docker。
+Docker使用Go语言开发，基于Linux的namespace+cgroup实现进程隔离控制，并通过容器镜像进行分发。
+OCI（开放容器接口）协议包括运行时和镜像两部分内容，目前容器技术在实现上已不止docker一种，但基本都是遵守OCI规范的。
+</p>
+
+<p>
+运行时在实现上最初基于LXC，之后为libcontainer，再演变为runC和containerd。其中runC就是OCI协议运行时部分的参考实现，containerd只是守护进程，向上提供统一gRPC接口。
+containerd和runC已加入到CNCF（云原生）项目。
+</p>
+
+<p>
+容器镜像可以看作是一层一层的数据，镜像本身都是只读的，在容器运行时，最上层（运行时层）是可写的，下面的（镜像层）仍然都是只读层。命令<code>docker create</code>执行完成就会生成一个可写层，供容器运行时使用。
+</p>
+
+<!--abstract-end-->
+
+
+<div class="figure">
+<p><img src="/resource/linux/fig/docker-fs.png" alt="docker-fs.png" />
+</p>
+</div>
+
+<p>
+容器最核心的价值是打包应用环境，解决分布式系统运维问题。容器和镜像仓库可以很好解决单节点部署问题。但构建分布式运维平台，还需要编排、调度、伸缩、监控、容错、负载均衡、服务发现、滚动升级等诸多容器本身没有的功能。本文单讲容器相关内容。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline2" class="outline-4">
+<h4 id="orgheadline2">docker</h4>
+<div class="outline-text-4" id="text-orgheadline2">
+<p>
+一个较为完整的容器功能包括客户端、服务端、镜像仓库、容器、镜像、网络。客户端供用户操作，服务端即daeon进程，镜像仓库用于分发镜像，剩下的容器、镜像和网络实际是三个驱动，docker在设计是采用接口加驱动的方法，可以在统一接口的前提下，在不同场景下使用不同的驱动。
+</p>
+
+<p>
+在早期所有功能都集中在daemon中，后来由于标准化拆成多个组件，从docker-1.11开始已经有了containerd和runC组件。在不同版本，启动方法也有所不同。
+</p>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<tbody>
+<tr>
+<td class="org-left">docker-1.8-</td>
+<td class="org-left">docker -d</td>
+</tr>
+
+<tr>
+<td class="org-left">docker-1.8</td>
+<td class="org-left">docker daemon</td>
+</tr>
+
+<tr>
+<td class="org-left">docker-1.11</td>
+<td class="org-left">dockerd</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+细分后的模块：
+</p>
+<dl class="org-dl">
+<dt>dockerd</dt><dd>容器守护进程，调用containerd管理容器生命周期，其他模块管理镜像存储等</dd>
+<dt>containerd</dt><dd>包括运行时和镜像管理，向daemon提供gRPC接口</dd>
+<dt>RunC</dt><dd>RunC是按照OCF标准的具体实现，供containerd调用，负责容器起停和资源隔离等</dd>
+</dl>
+</div>
+</div>
+
+<div id="outline-container-orgheadline3" class="outline-4">
+<h4 id="orgheadline3">namespace</h4>
+<div class="outline-text-4" id="text-orgheadline3">
+<p>
+Linux名字空间有六个，如下所示。
+</p>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<tbody>
+<tr>
+<td class="org-left">CLONE_NEWNS</td>
+<td class="org-left">Linux 2.4.19</td>
+</tr>
+
+<tr>
+<td class="org-left">CLONE_NEWUTS</td>
+<td class="org-left">Linux 2.6.19</td>
+</tr>
+
+<tr>
+<td class="org-left">CLONE_NEWIPC</td>
+<td class="org-left">Linux 2.6.19</td>
+</tr>
+
+<tr>
+<td class="org-left">CLONE_NEWPID</td>
+<td class="org-left">Linux 2.6.24</td>
+</tr>
+
+<tr>
+<td class="org-left">CLONE_NEWNET</td>
+<td class="org-left">Linux 2.6.24 - Linux 2.6.29</td>
+</tr>
+
+<tr>
+<td class="org-left">CLONE_NEWUSER</td>
+<td class="org-left">Linux 2.6.23 - Linux 3.8</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+创建进程调用clone()时指定相关标志位可以实现隔离，另外还有两个和名字空间相关的接口，
+setns用于加入到某个名字空间，unshare用于脱离某个名字空间。
+</p>
+
+<p>
+USER名字空间用于实现在容器中看到的是root用户权限，但实际在宿主上并非root权限这样的功能，以提升安全性。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline4" class="outline-4">
+<h4 id="orgheadline4">cgroup</h4>
+<div class="outline-text-4" id="text-orgheadline4">
+<p>
+控制组可用于限制容器所能使用的资源，如CPU、内存和磁盘等。控制组在功能上包括限制、审计、优先级和运行控制等。控制组在工作上按子系统划分，包括如下子系统，可以通过<code>lssubsys</code>来查看。
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<tbody>
+<tr>
+<td class="org-left">cpu cpuacct cpuset</td>
+<td class="org-left">CPU控制、审计、独立CPU</td>
+</tr>
+
+<tr>
+<td class="org-left">memory</td>
+<td class="org-left">内存限制</td>
+</tr>
+
+<tr>
+<td class="org-left">blkio</td>
+<td class="org-left">IO限制</td>
+</tr>
+
+<tr>
+<td class="org-left">net_cls net_prio</td>
+<td class="org-left">网络等级、流量优先级</td>
+</tr>
+
+<tr>
+<td class="org-left">devices</td>
+<td class="org-left">设备访问</td>
+</tr>
+
+<tr>
+<td class="org-left">freezer</td>
+<td class="org-left">挂起或恢复任务</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+只需在cgroup/memory下创建一个目录就创建出一个memory的cgroup，该目录中会自动创建出所需文件。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline5" class="outline-4">
+<h4 id="orgheadline5">fs</h4>
+<div class="outline-text-4" id="text-orgheadline5">
+<p>
+容器镜像基于分层的思想构建，实现这些分层理念，需要用到UnionFS，而UnionFS在具体实现起来又有很多方法，因而出现了不同的存储驱动方案。
+</p>
+
+<p>
+容器存储会用到COW（写时复制）技术，多个进程共享同一份文件，当有进程要写入时，把要写入的部分复制给进程用于写入，这样可以让所有程序共享镜像层。
+</p>
+
+<p>
+容器在实现上都是采用抽象接口加底层驱动的方式来做的，驱动分三类：运行时、存储、网络。
+</p>
+
+<p>
+主要存储驱动如下所示：
+</p>
+
+
+<div class="figure">
+<p><img src="/resource/linux/fig/docker-fs-driver.png" alt="docker-fs-driver.png" />
+</p>
+</div>
+
+<p>
+另外需要注意docker-1.10对镜像存储驱动做了大改，原来的层ID是随机生成的，修改后基于内容SHA256计算，这样做的目的是借助CAS（Content Addressable Storage）提升安全性，可以在拉取或推送镜像时进行完整性校验。
+</p>
+</div>
+
+<ul class="org-ul"><li><a id="orgheadline6"></a>DeviceMapper<br  /><div class="outline-text-5" id="text-orgheadline6">
+<p>
+DeviceMapper基于Linux内核的Device Mapper框架实现。该框架实现了物理设备与虚拟存储的映射，或虚拟设备与虚拟设备的映射。基于该框架可以实现磁盘自由划分，如LVM2、software RAIDs、dm-cryptdisk encryption等。
+Device Mapper框架提供两个功能：thin-provisioning和snapshot。
+</p>
+<dl class="org-dl">
+<dt>thin-provisioning</dt><dd>类似虚拟内存，提供给使用者的空间只有在使用者进行写操作时才真正进行分配。假设使用者有一块100g的thin块设备，使用了20g，实际系统提供的大小就是20g，只有当使用者进行存储操作时才分配更多的空间，直到100g。</dd>
+<dt>snapshot</dt><dd>快照是一种COW策略的实现，假设从A设备做快照得到B设备时，并未对A进行完整拷贝，而是当对B设备进行写操作时，才将需要改变的那部分做属于B设备的拷贝。</dd>
+</dl>
+
+<p>
+DeviceMapper借助thin-provisioning和snapshot实现了镜像的分层结构和存储优化。
+</p>
+
+<p>
+在用devicemapper作为驱动的docker中，每个镜像和容器都对应一个设备，通过对镜像做snapshot操作得到容器，所以容器中拥有镜像的内容且操作这些内容不影响镜像本身，因为容器和镜像对应不同的设备。
+</p>
+
+<p>
+DeviceMapper的大致思路是，先通过虚拟化技术得到一个thin-pool设备（可理解成一个资源池），接着在thin-pool上建立一个基础设备，此后docker上所有镜像和容器都是基于此设备的snapshot。
+</p>
+
+<p>
+DeviceMapper有两种模式可选，loop-lvm和direct-lvm。两个模式的区别就在建立thin-pool的方法不同。
+</p>
+
+<p>
+loop-lvm：不推荐用于生产环境，容器数量增大时性能急剧下降
+</p>
+<ul class="org-ul">
+<li>创建两个稀疏文件data和metadata</li>
+<li>将这两个文件映射成两个块设备（loopback块设备）</li>
+<li>将两个设备通过内核中Device Mapper映射成thin-pool</li>
+</ul>
+
+<p>
+direct-lvm：利用了基于Device Mapper的LVM
+</p>
+<ul class="org-ul">
+<li>将空余块设备（可以是分区）创建成physical volume（pv）</li>
+<li>在由这些PV组成volume group（vg）</li>
+<li>从vg中建立两个logical volume（lv），data和matedata</li>
+<li>将data和matedata映射成thin-pool</li>
+</ul>
+
+<p>
+可通过lsblk查看设备信息，loop-lvm可以看到是loop设备，而direct-lvm为块设备。
+</p>
+</div></li>
+
+<li><a id="orgheadline7"></a>OverlayFS<br  /><div class="outline-text-5" id="text-orgheadline7">
+<p>
+OverlayFS和Aufs相比主要是设计上更简单并在linux-3.18加入到了内核中。由于OverlayFS只工作在两层，比Aufs的多层查询性能也会好点。也支持页缓存，多个容器共享页，高效利用内存。
+</p>
+
+<p>
+目前docker搞了两个基于overlayfs的存储驱动，overlay2驱动对inode性能做了优化，原生支持多层镜像（最大128），但是只支持linux-4.0以上的版本。
+</p>
+
+<p>
+OverlayFS在设计上只有两层，镜像在底层，容器运行时在上层，统一出来就是合并层。创建一个容器时，overlay驱动将合并层提供给容器使用。
+</p>
+
+<p>
+这就是说多层镜像不能对应多层OverlayFS，而是使用一个目录来表示一个层，并利用硬链接技术来引用底层数据。镜像数据存储在<code>/var/lib/docker/overlay2</code>目录下。
+</p>
+
+<ul class="org-ul">
+<li>读取时，从上层开始找，找到就读取，否则就找下层。</li>
+<li>写入时，如果上层有文件就直接写，没有就复制下层到上层再写入。</li>
+<li>删除时，通过创建特殊文件或目录表示文件或目录已删除。</li>
+<li>重命名，只允许原路经和目标路径都在顶层才能操作，否则返回EXDEV</li>
+</ul>
+
+<p>
+注意事项：
+</p>
+<ul class="org-ul">
+<li>overlay驱动会消耗大量inode，overlay2不存在此问题</li>
+<li>首次写入引发的向上复制，大文件会增加复制负担</li>
+<li>open：对同一个路径的文件打开，指定模式不同（RO/RW），实际指向的文件可能会不一样</li>
+<li>rename：和aufs一样，只能顶层之间的路径相互重命名</li>
+</ul>
+
+<p>
+目前overlayfs是存储驱动首选。
+</p>
+</div></li></ul>
+</div>
+</div>
+<div id="outline-container-orgheadline10" class="outline-3">
+<h3 id="orgheadline10">使用要点</h3>
+<div class="outline-text-3" id="text-orgheadline10">
+</div><div id="outline-container-orgheadline9" class="outline-4">
+<h4 id="orgheadline9">构建镜像</h4>
+<div class="outline-text-4" id="text-orgheadline9">
+<div class="org-src-container">
+
+<pre class="src src-dockerfile"><span style="color: #800;">FROM</span> ubuntu:14.04.2                     <span style="color: #666;"># </span><span style="color: #666;">&#22522;&#20934;&#38236;&#20687;</span>
+<span style="color: #800;">MAINTAINER</span> mickyching@gmail.com         <span style="color: #666;"># </span><span style="color: #666;">&#20316;&#32773;</span>
+<span style="color: #800;">ARG</span> <span style="color: #048;">Name</span>=micky                          <span style="color: #666;"># </span><span style="color: #666;">ARG&#20165;&#22312;&#26500;&#24314;&#38236;&#20687;&#26102;&#26377;&#25928;</span>
+<span style="color: #800;">ENV</span> <span style="color: #048;">GOPATH</span>=/home/go <span style="color: #048;">GOROOT</span>=/home/go     <span style="color: #666;"># </span><span style="color: #666;">ENV&#22312;&#23481;&#22120;&#36816;&#34892;&#26102;&#20063;&#26377;&#25928;</span>
+<span style="color: #800;">LABEL</span> <span style="color: #048;">Owner</span>=$<span style="color: #048;">Name</span>                       <span style="color: #666;"># </span><span style="color: #666;">&#26631;&#31614;</span>
+<span style="color: #800;">RUN</span> useradd -m micky &amp;&amp; apt-get update  <span style="color: #666;"># </span><span style="color: #666;">&#25191;&#34892;&#21629;&#20196;</span>
+<span style="color: #800;">USER</span> micky                              <span style="color: #666;"># </span><span style="color: #666;">&#20999;&#25442;&#29992;&#25143;</span>
+<span style="color: #800;">WORKDIR</span> /home/micky                     <span style="color: #666;"># </span><span style="color: #666;">&#20999;&#25442;&#24037;&#20316;&#30446;&#24405;</span>
+<span style="color: #800;">COPY</span> calc.py ./                         <span style="color: #666;"># </span><span style="color: #666;">&#22797;&#21046;&#25991;&#20214;</span>
+<span style="color: #800;">VOLUME</span> /data                            <span style="color: #666;"># </span><span style="color: #666;">&#25346;&#36733;&#30446;&#24405;&#65292;&#20301;&#20110;&#65306;/var/lib/docker/volumes/</span>
+<span style="color: #800;">EXPOSE</span> 22                               <span style="color: #666;"># </span><span style="color: #666;">&#26292;&#38706;&#31471;&#21475;</span>
+<span style="color: #800;">CMD</span> [1+1]                               <span style="color: #666;"># </span><span style="color: #666;">&#21551;&#21160;&#21629;&#20196;</span>
+<span style="color: #800;">ENTRYPOINT</span> [<span style="color: #800;">"./calc.py"</span>]                <span style="color: #666;"># </span><span style="color: #666;">Init&#31243;&#24207;</span>
+</pre>
+</div>
+
+<p>
+要点：
+</p>
+<ul class="org-ul">
+<li>尽量减少ENV和RUN的调用次数，这样可以减少镜像层数</li>
+<li>在VOLUME指令后对其目录的写入操作都不会记录到镜像</li>
+<li>在一个干净的目录中执行build命令，因为构建是会将整个目录发送给daemon</li>
+</ul>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">docker build -t calc .                  <span style="color: #666;"># </span><span style="color: #666;">&#32534;&#35793;</span>
+docker run --rm calc <span style="color: #800;">'1+1'</span>              <span style="color: #666;"># </span><span style="color: #666;">&#36816;&#34892;</span>
+</pre>
+</div>
+
+<pre class="example">
+root@f38c87f2a42d:/# mount
+...
+/dev/disk/by-uuid/1fec...ebdf on /etc/hostname type ext4 ...
+/dev/disk/by-uuid/1fec...ebdf on /etc/hosts type ext4 ...
+/dev/disk/by-uuid/1fec...ebdf on /etc/resolv.conf type ext4 ...
+...
+</pre>
+<p>
+不要在容器镜像中修改这些配置，而应该启动容器时通过命令行指定相关参数。
+</p>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline12" class="outline-2">
+<h2 id="orgheadline12">参考资料</h2>
+<div class="outline-text-2" id="text-orgheadline12">
+<ul class="org-ul">
+<li><a href="https://coolshell.cn/articles/17010.html">DOCKER基础技术：LINUX NAMESPACE（上）</a></li>
+<li><a href="https://coolshell.cn/articles/17029.html">DOCKER基础技术：LINUX NAMESPACE（下）</a></li>
+<li><a href="https://coolshell.cn/articles/17049.html">DOCKER基础技术：LINUX CGROUP</a></li>
+<li><a href="https://coolshell.cn/articles/17061.html">DOCKER基础技术：AUFS</a></li>
+<li><a href="https://coolshell.cn/articles/17200.html">DOCKER基础技术：DEVICEMAPPER</a></li>
+<li><a href="https://blog.csdn.net/a85880819/article/details/52448654">容器和存储驱动</a></li>
+<li><a href="https://www.cnblogs.com/styshoo/p/6503953.html">OVERLAYFS简介</a></li>
+<li><a href="https://segmentfault.com/a/1190000007168476#articleHeader9">Docker存储方式选型建议</a></li>
+<li><a href="http://dockone.io/article/1765">深入了解Docker存储驱动</a></li>
+<li><a href="http://dockone.io/article/1513">Docker存储驱动性能测试</a></li>
+<li><a href="https://www.zybuluo.com/babydragon/note/641399">Docker、Containerd、RunC&#x2026;：你应该知道的所有</a></li>
+<li><a href="https://deepzz.com/post/dockerfile-reference.html">Dockerfile 参考文档</a></li>
+<li><a href="https://deepzz.com/post/docker-compose-file.html">Docker compose file 参考文档</a></li>
+<li><a href="http://www.sohu.com/a/204226151_629652">直击阿里双11神秘技术：PB级大规模文件分发系统“蜻蜓”</a></li>
+<li><a href="http://dockone.io/article/2877">如何把Docker镜像分发速度提升90%</a></li>
+</ul>
+</div>
+</div>
