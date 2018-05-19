@@ -1,0 +1,15 @@
+---
+layout: body
+---
+
+<div class="home">
+  <h3>paxos</h3>
+  {% for post in site.tags["paxos"] %}
+  <meta class="post-meta">
+    <a href="{{ post.url | prepend: site.baseurl }}">
+      <span class="post-meta"> {{ post.date | date: "%Y-%m-%d" }} </span>
+      {{ post.title }}
+    </a>
+  </meta>
+  {% endfor %}
+</div>

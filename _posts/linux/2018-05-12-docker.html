@@ -1,5 +1,5 @@
 ---
-title: Docker Introduction
+title: 容器简介
 author: 敬叶
 categories: linux
 tags: docker
@@ -7,7 +7,7 @@ tags: docker
 <div id="table-of-contents"><h2>&#30446;&#24405;</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#orgheadline11">基本概念</a>
+<li><a href="#orgheadline16">基本概念</a>
 <ul>
 <li><a href="#orgheadline8">基本概念</a>
 <ul>
@@ -18,21 +18,31 @@ tags: docker
 <li><a href="#orgheadline5">fs</a></li>
 </ul>
 </li>
-<li><a href="#orgheadline10">使用要点</a>
+<li><a href="#orgheadline15">镜像仓库</a>
 <ul>
 <li><a href="#orgheadline9">构建镜像</a></li>
+<li><a href="#orgheadline10">harbor</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="#orgheadline12">参考资料</a></li>
+<li><a href="#orgheadline23">容器云</a>
+<ul>
+<li><a href="#orgheadline22">微服务</a>
+<ul>
+<li><a href="#orgheadline21">微服务</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#orgheadline24">参考资料</a></li>
 </ul>
 </div>
 </div>
 
-<div id="outline-container-orgheadline11" class="outline-2">
-<h2 id="orgheadline11">基本概念</h2>
-<div class="outline-text-2" id="text-orgheadline11">
+<div id="outline-container-orgheadline16" class="outline-2">
+<h2 id="orgheadline16">基本概念</h2>
+<div class="outline-text-2" id="text-orgheadline16">
 </div><div id="outline-container-orgheadline8" class="outline-3">
 <h3 id="orgheadline8">基本概念</h3>
 <div class="outline-text-3" id="text-orgheadline8">
@@ -350,9 +360,9 @@ OverlayFS在设计上只有两层，镜像在底层，容器运行时在上层�
 </div></li></ul>
 </div>
 </div>
-<div id="outline-container-orgheadline10" class="outline-3">
-<h3 id="orgheadline10">使用要点</h3>
-<div class="outline-text-3" id="text-orgheadline10">
+<div id="outline-container-orgheadline15" class="outline-3">
+<h3 id="orgheadline15">镜像仓库</h3>
+<div class="outline-text-3" id="text-orgheadline15">
 </div><div id="outline-container-orgheadline9" class="outline-4">
 <h4 id="orgheadline9">构建镜像</h4>
 <div class="outline-text-4" id="text-orgheadline9">
@@ -403,12 +413,176 @@ root@f38c87f2a42d:/# mount
 </p>
 </div>
 </div>
+<div id="outline-container-orgheadline10" class="outline-4">
+<h4 id="orgheadline10">harbor</h4>
+<div class="outline-text-4" id="text-orgheadline10">
+<p>
+有了镜像之后就面临一个存储和分发的问题，除了使用共有镜像仓库，也可以搭建私有镜像仓库，私有仓库体验上更快更安全。
+</p>
+
+<p>
+这里讨论如下几个问题：
+</p>
+<ol class="org-ol">
+<li>数据存储如何管理</li>
+<li>安全认证如何实现</li>
+<li>如何提升可用性</li>
+<li>如何跨地域</li>
+</ol>
+</div>
+
+<ul class="org-ul"><li><a id="orgheadline11"></a>数据存储<br  /><div class="outline-text-5" id="text-orgheadline11">
+<p>
+在存储方面，docker开源了distribution，用于实现镜像仓库的存储。
+</p>
+</div></li>
+
+<li><a id="orgheadline12"></a>认证授权<br  /><div class="outline-text-5" id="text-orgheadline12">
+<p>
+在帐号方面，可以使用vmware开源的harbor。为了使harbor和自身帐号系统相通，需要改动认证相关的代码，来实现认证和鉴权。如何觉得harbor自带的UI不满足要求，还可以独立设计UI，这是也是目前很多公共镜像仓库的做法。
+</p>
+
+
+<div class="figure">
+<p><img src="/resource/linux/fig/harbor-arch.png" alt="harbor-arch.png" />
+</p>
+</div>
+
+<p>
+Harbor的主要模块如上图所示，功能如下：
+</p>
+<ul class="org-ul">
+<li>proxy 即nginx反向代理</li>
+<li>registry 即docker开源的distribution</li>
+<li>UI 是harbor的核心服务，提供认证和界面</li>
+<li>DB 数据库可用mysql服务</li>
+<li>log 用rsyslog收集日志</li>
+</ul>
+
+<p>
+为了跟进一步说明harbor工作原理，这里以docker login为例说明：
+</p>
+<ol class="org-ol">
+<li>docker login url 发出请求到url:443（或url:80）</li>
+<li>proxy收到请求，代理给registry</li>
+<li>registry服务那里配置了token服务地址，返回401错误和token服务地址</li>
+<li>docker客户端向token服务地址发送用户名和密码请求token</li>
+<li>proxy将请求代理给token服务</li>
+<li>token服务校验成功后生成token并返回</li>
+<li>登录成功后，docker会把用户名和密码保存在本地</li>
+</ol>
+
+<p>
+其他操作和docker login一样，如docker push操作过程如下：
+</p>
+<ol class="org-ol">
+<li>重复docker login过程，发送请求到proxy，代理到registry，进而得到token服务地址</li>
+<li>docker向token服务请求token，这里会提供额外信息，指明操作类型（push/pull）和对象（image）</li>
+<li>请求通过proxy代理给token服务，服务进行认证和鉴权，鉴权成功就返回token</li>
+<li>docker得到token后，向registry发出推送请求，registrya验证token后开始传输</li>
+</ol>
+
+<p>
+Harbor的每个项目有三种角色：管理员、开发、访客。管理员可以管理帐号，开发可以读写仓库，访客只能读仓库。
+</p>
+</div></li>
+
+<li><a id="orgheadline13"></a>高可用性<br  /><div class="outline-text-5" id="text-orgheadline13">
+<p>
+可用性提升一般采用LB负载均衡实现，即LB后面可以挂多个Harbor，这些Harbor本身无状态，至于数据部分采用共享存储，如多个Harbor共享一块网盘，这里还需注意共享存储一般只用于一个地域。负载均衡方法还需要考虑用户session如何在多实例上共享，如使用redis进行共享。
+</p>
+</div></li>
+
+<li><a id="orgheadline14"></a>跨域同步<br  /><div class="outline-text-5" id="text-orgheadline14">
+<p>
+最后一个问题是在地域规模扩大时，如何提升镜像仓库的性能和可用性。
+</p>
+
+<p>
+主从模式可以有效解决分发问题，写入还是直接写到中央数据中心。对于分发地域较广的情况，可以在此基础上增加分层，通过多级分层以减少中央分发压力。
+</p>
+
+
+<div class="figure">
+<p><img src="/resource/linux/fig/harbor-master-slave.png" alt="harbor-master-slave.png" />
+</p>
+</div>
+
+<p>
+如果镜像被删除，缓存节点是如何知道被删除或者有更新，确保缓存可以得到最新的镜像。
+</p>
+
+<p>
+采用这种分级的方式仍然不能解决写入问题，对于跨境仓库，需要多数据中心，单个数据中心会导致境外上传缓慢。跨中心复制可以用Job Service组件，Job Service会将执行进度更新到DB中，用户可以查看进度。实现上接收API请求并调度任务，但是要考虑如何限流以及如何干预复制过程（如取消、重试）。
+</p>
+
+<p>
+复制是针对项目来手动触发的，一般不做跨数据中心自动同步。
+</p>
+</div></li></ul>
+</div>
 </div>
 </div>
 
-<div id="outline-container-orgheadline12" class="outline-2">
-<h2 id="orgheadline12">参考资料</h2>
-<div class="outline-text-2" id="text-orgheadline12">
+<div id="outline-container-orgheadline23" class="outline-2">
+<h2 id="orgheadline23">容器云</h2>
+<div class="outline-text-2" id="text-orgheadline23">
+</div><div id="outline-container-orgheadline22" class="outline-3">
+<h3 id="orgheadline22">微服务</h3>
+<div class="outline-text-3" id="text-orgheadline22">
+</div><div id="outline-container-orgheadline21" class="outline-4">
+<h4 id="orgheadline21">微服务</h4>
+<div class="outline-text-4" id="text-orgheadline21">
+</div><ul class="org-ul"><li><a id="orgheadline17"></a>什么是微服务<br  /><div class="outline-text-5" id="text-orgheadline17">
+<p>
+微服务是一种高内聚、松耦合的架构风格。
+</p>
+</div></li>
+
+<li><a id="orgheadline18"></a>微服务的好处<br  /><div class="outline-text-5" id="text-orgheadline18">
+<ul class="org-ul">
+<li>敏捷开发：技术栈灵活，可以应对需求频繁变更</li>
+<li>敏捷发布：独立部署，没有依赖，不用完整编译一个完整单体发布</li>
+<li>伸缩性好：水平扩展、按需扩展</li>
+<li>鲁棒性好：可用性高</li>
+<li>减少冗余：减少代码、模块、功能冗余</li>
+</ul>
+</div></li>
+
+<li><a id="orgheadline19"></a>微服务的问题<br  /><div class="outline-text-5" id="text-orgheadline19">
+<ul class="org-ul">
+<li>技术栈灵活导致环境复杂：该问题由docker天生解决</li>
+<li>服务规模上升导致发布复杂：需要编排支持，可由kubernetes解决</li>
+<li>全局监控</li>
+<li>分布式问题追踪</li>
+<li>资源竞争时如何处理：如优先级控制</li>
+<li>完整体系支撑：如网络、存储等</li>
+</ul>
+</div></li>
+
+<li><a id="orgheadline20"></a>微服务的需求<br  /><div class="outline-text-5" id="text-orgheadline20">
+<ul class="org-ul">
+<li>安全 登录 鉴权 隔离</li>
+<li>文档 仓库 部署 编排 集成 测试 终端</li>
+<li>注册 发现 均衡 伸缩 升级 灰度 回滚</li>
+<li>过滤 流控 熔断 降级 容错 灾备</li>
+<li>日志 聚合 监控 汇聚 检查 恢复 告警</li>
+<li>网络 存储</li>
+</ul>
+
+
+<div class="figure">
+<p><img src="/resource/linux/fig/docker-micro-service.png" alt="docker-micro-service.png" />
+</p>
+</div>
+</div></li></ul>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline24" class="outline-2">
+<h2 id="orgheadline24">参考资料</h2>
+<div class="outline-text-2" id="text-orgheadline24">
 <ul class="org-ul">
 <li><a href="https://coolshell.cn/articles/17010.html">DOCKER基础技术：LINUX NAMESPACE（上）</a></li>
 <li><a href="https://coolshell.cn/articles/17029.html">DOCKER基础技术：LINUX NAMESPACE（下）</a></li>
@@ -425,6 +599,9 @@ root@f38c87f2a42d:/# mount
 <li><a href="https://deepzz.com/post/docker-compose-file.html">Docker compose file 参考文档</a></li>
 <li><a href="http://www.sohu.com/a/204226151_629652">直击阿里双11神秘技术：PB级大规模文件分发系统“蜻蜓”</a></li>
 <li><a href="http://dockone.io/article/2877">如何把Docker镜像分发速度提升90%</a></li>
+<li><a href="http://7xrubd.com1.z0.glb.clouddn.com/%E5%BE%AE%E6%9C%8D%E5%8A%A1%E5%AE%B9%E5%99%A8%E5%8C%96%E7%9A%84%E6%8C%91%E6%88%98%E5%92%8C%E8%A7%A3%E5%86%B3%E4%B9%8B%E9%81%93%20.pdf">微服务容器化的挑战和解决之道</a></li>
+<li><a href="https://www.kancloud.cn/infoq/micro-service-architecture/56310">微服务架构探讨</a></li>
+<li><a href="https://my.oschina.net/zhanghaiyang/blog/725728">从单体架构到微服务的服务化演进之路</a></li>
 </ul>
 </div>
 </div>
