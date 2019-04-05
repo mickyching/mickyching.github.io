@@ -12,7 +12,7 @@
 .site-subtitle {
     font-size: $font-size-level-5;
     line-height: $tall-line-height;
-    &, &:link, &:visited {color: $note-background;}
+    &, &:link, &:visited {color: $side-color;}
     @include media-query($on-laptop) {
         display: none;
     }
@@ -26,7 +26,7 @@
     background-color: $side-background;
     left: 0;
     top: 0;
-    width: 320px;
+    width: 370px;
     height: 100%;
     clear: both;
     overflow-y: auto;
@@ -41,7 +41,7 @@
 .sidebar-toggler {
     position: fixed;
     a, &, &:visited {color: $side-color;}
-    left: 320px;
+    left: 370px;
     top: 0;
     width: 30px;
     height: 100%;
@@ -53,7 +53,7 @@
 }
 .site-header,
 .site-footer {
-    max-width: 1000px;
+    max-width: 1600px;
     margin-right: $block-margin;
     @include media-query($on-laptop) {
         margin: 0 auto;
@@ -62,7 +62,7 @@
 
 .page-heading {}
 .page-content {
-    max-width: 1000px;
+    max-width: 1600px;
     margin-right: 20px;
     @include media-query($on-laptop) {
         margin: 0 auto;

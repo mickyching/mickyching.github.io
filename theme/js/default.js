@@ -26,8 +26,8 @@ function show_sidebar() {
     $("body").css("margin-left", "0px");
   }
   else {
-    $(".sidebar-toggler").css("left", "320px");
-    $("body").css("margin-left", "350px");
+    $(".sidebar-toggler").css("left", "370px");
+    $("body").css("margin-left", "400px");
   }
 
   localStorage.sidebar_hidden = 0;

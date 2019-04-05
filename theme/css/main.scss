@@ -15,7 +15,7 @@ $on-laptop:        1200px;
 
 // Our variables
 $base-font-family: Helvetica, Arial, sans-serif;
-$base-font-size:   16px;
+$base-font-size:   18px;
 $font-size-level-1:$base-font-size * 2.0;
 $font-size-level-2:$base-font-size * 1.8;
 $font-size-level-3:$base-font-size * 1.6;
@@ -32,11 +32,11 @@ $paper-margin:     30px;
 $block-margin:     10px;
 $text-margin:      5px;
 
-$wall-background:  #113344;
-$wall-color:       #FFFFEE;
+$wall-background:  #FFFFEE;
+$wall-color:       #112233;
 
-$side-background:  #115566;
-$side-color:       #EEEEDD;
+$side-background:  #EEEEEE;
+$side-color:       #221133;
 
 $text-background:  #FFFFF0;
 $text-color:       #001122;
@@ -47,7 +47,7 @@ $code-color:       #660000;
 $note-background:  #EEEECC;
 $note-color:       #AA0000;
 
-$tags-background:  #00BBDD;
+$tags-background:  #CCCCCC;
 $tags-color:       #330000;
 
 $link-color:       #004466;
