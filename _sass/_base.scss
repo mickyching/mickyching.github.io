@@ -14,13 +14,17 @@ dl, dd, ol, ul, figure {
  * Basic styling
  */
 body {
+    margin-left: 400px;
     font-family: $base-font-family;
     font-size: $base-font-size;
     line-height: $base-line-height;
     font-weight: 300;
     color: $text-color;
-    background-color: $background-color;
+    background-color: $wall-background;
     -webkit-text-size-adjust: 100%;
+    @include media-query($on-laptop) {
+        margin: 0 auto;
+    }
 }
 
 
@@ -32,9 +36,13 @@ h1, h2, h3, h4, h5, h6,
 p, blockquote, pre,
 ul, ol, dl, figure,
 %vertical-rhythm {
-    margin-bottom: $spacing-unit / 2;
+    margin-bottom: $block-margin;
 }
 
+table{
+    margin: 0.5em 0 0.5em 0;
+    width: 80%;
+}
 
 
 /**
@@ -46,16 +54,16 @@ img {
 }
 
 
+.figure {
+    text-align: center;
+}
 
-/**
- * Figures
- */
 figure > img {
     display: block;
 }
 
 figcaption {
-    font-size: $small-font-size;
+    font-size: $font-size-level-7;
 }
 
 
@@ -64,17 +72,20 @@ figcaption {
  * Lists
  */
 ul, ol {
-    margin-left: $spacing-unit;
+    margin-left: 2em;
 }
 
 li {
     > ul,
     > ol {
-         margin-bottom: 0;
+        margin-left: 1em;
+        margin-bottom: 0;
     }
 }
 
-
+ul {
+    list-style: disc;
+}
 
 /**
  * Headings
@@ -89,17 +100,10 @@ h1, h2, h3, h4, h5, h6 {
  * Links
  */
 a {
-    color: $brand-color;
+    color: $link-color;
     text-decoration: none;
-
-    &:visited {
-        color: darken($brand-color, 15%);
-    }
-
-    &:hover {
-        color: $text-color;
-        text-decoration: underline;
-    }
+    &:hover {color: $note-color;}
+    &:visited {}
 }
 
 
@@ -108,39 +112,41 @@ a {
  * Blockquotes
  */
 blockquote {
-    color: $grey-color;
-    border-left: 4px solid $grey-color-light;
-    padding-left: $spacing-unit / 2;
-    font-size: 18px;
-    letter-spacing: -1px;
-    font-style: italic;
-
+    color: $note-color;
+    padding: $text-margin;
+    border-left: thick solid $note-color;
+    background-color: $note-background;
     > :last-child {
         margin-bottom: 0;
     }
+    @include media-query($on-laptop) {
+        margin: 0 auto;
+    }
 }
 
-
+blockquote p {
+    margin-bottom: 0;
+}
 
 /**
  * Code formatting
  */
-pre,
-code {
-    font-size: 15px;
-    border: 1px solid $grey-color-light;
-    border-radius: 3px;
-    background-color: #eef;
+pre, code {
+    font-size: $font-size-level-7;
+    color: $text-color;
+    overflow: auto;
 }
 
 code {
+    color: $code-color;
     padding: 1px 5px;
 }
 
 pre {
-    padding: 8px 12px;
-    overflow-x: scroll;
-
+    padding: $text-margin $block-margin;
+    color: $text-color;
+    background-color: $code-background;
+    overflow: auto;
     > code {
         border: 0;
         padding-right: 0;
@@ -148,26 +154,33 @@ pre {
     }
 }
 
+pre .line-number {
+    color:black;
+    display:block;
+    float:left;
+    margin:0 0.5em 0 -1em;
+    border-right:1px solid;
+    text-align:right;
+}
 
+pre .line-number span {
+    display:block;
+    padding:0 0.5em 0 1em;
+    min-width:2em;
+}
+
+pre .cl {
+    display:block;
+    clear:both;
+}
 
 /**
  * Wrapper
  */
 .wrapper {
-    max-width: -webkit-calc(#{$content-width} - (#{$spacing-unit} * 2));
-    max-width:         calc(#{$content-width} - (#{$spacing-unit} * 2));
-    margin-right: auto;
-    margin-left: auto;
-    padding-right: $spacing-unit;
-    padding-left: $spacing-unit;
-    @extend %clearfix;
-
-    @include media-query($on-laptop) {
-        max-width: -webkit-calc(#{$content-width} - (#{$spacing-unit}));
-        max-width:         calc(#{$content-width} - (#{$spacing-unit}));
-        padding-right: $spacing-unit / 2;
-        padding-left: $spacing-unit / 2;
-    }
+    margin-bottom: $text-margin;
+    max-width: 1600px;
+    padding: 0 auto;
 }
 
 
@@ -198,7 +211,51 @@ pre {
         vertical-align: middle;
 
         path {
-            fill: $grey-color;
+            fill: $wall-color;
         }
     }
 }
+
+th {
+    color: $side-color;
+    background-color: $side-background;
+    padding: 0.2em 1em;
+    text-align: left;
+}
+td {
+    font-family: monospace;
+    padding: 0.2em 1em;
+}
+tr:nth-child(2n+1) {
+    background-color: $text-background;
+}
+tr:nth-child(2n+2) {
+    background-color: $code-background;
+}
+dl {
+    @extend %clearfix;
+}
+
+dt {
+    font-family: monospace;
+    font-weight: bold;
+    color: $link-color;
+    margin-left: 2em;
+    margin-right: -4em;
+    padding: 0 0.5em;
+    float: left;
+    clear: left;
+}
+
+dd {
+    font-family: monospace;
+    margin: 0 0 0 4em;
+    float: left;
+    padding: 0 0.5em;
+}
+
+.center {
+    text-align: center;
+}
+.footpara:nth-child(2) { display: inline; }
+.footpara {display:block;}

@@ -1,236 +1,188 @@
-/**
- * Site header
- */
-.site-header {
-    border-top: 5px solid $grey-color-dark;
-    border-bottom: 1px solid $grey-color-light;
-    min-height: 56px;
-
-    // Positioning context for the mobile navigation icon
-    position: relative;
-}
 
 .site-title {
-    font-size: 26px;
-    line-height: 56px;
-    letter-spacing: -1px;
-    margin-bottom: 0;
-    float: left;
-
-    &,
-    &:visited {
-        color: $grey-color-dark;
-    }
-}
-
-.site-nav {
-    float: right;
-    line-height: 56px;
-
-    .menu-icon {
+    margin-top: $block-margin;
+    font-size: $font-size-level-1;
+    line-height: $tall-line-height;
+    &, &:link, &:visited {color: $wall-color;}
+    @include media-query($on-laptop) {
         display: none;
     }
+}
 
-    .page-link {
-        color: $text-color;
-        line-height: $base-line-height;
-
-        // Gaps between nav items, but not on the first one
-        &:not(:first-child) {
-            margin-left: 20px;
-        }
+.site-subtitle {
+    font-size: $font-size-level-5;
+    line-height: $tall-line-height;
+    &, &:link, &:visited {color: $side-color;}
+    @include media-query($on-laptop) {
+        display: none;
     }
+}
+
+.sidebar {
+    position: fixed;
+    a, &, &:visited {color: $side-color;}
+    margin: 0;
+    padding: 5px;
+    background-color: $side-background;
+    left: 0;
+    top: 0;
+    width: 370px;
+    height: 100%;
+    clear: both;
+    overflow-y: auto;
+    overflow-x: hidden;
+    @include media-query($on-laptop) {
+        position: relative;
+        padding: 0;
+        width: 100%;
+        background-color: $side-background;
+    }
+}
+.sidebar-toggler {
+    position: fixed;
+    a, &, &:visited {color: $side-color;}
+    left: 370px;
+    top: 0;
+    width: 30px;
+    height: 100%;
+    @include media-query($on-laptop) {
+        position: relative;
+        left: 0;
+        width: 100%;
+    }
+}
+.site-header,
+.site-footer {
+    max-width: 1600px;
+    margin-right: $block-margin;
+    @include media-query($on-laptop) {
+        margin: 0 auto;
+    }
+}
+
+.page-heading {}
+.page-content {
+    max-width: 1600px;
+    margin-right: 20px;
+    @include media-query($on-laptop) {
+        margin: 0 auto;
+    }
+    h1 {font-size: $font-size-level-1; color: #005555; text-align: center;}
+    h2 {font-size: $font-size-level-2; color: #000077; border-left: solid 8px; padding-left: 5px;}
+    h3 {font-size: $font-size-level-3; color: #880000; border-left: solid 8px; padding-left: 5px;}
+    h4 {font-size: $font-size-level-4; color: #005500; border-left: solid 8px; padding-left: 5px;}
+    h5 {font-size: $font-size-level-5; color: #880088;}
+    h6 {font-size: $font-size-level-6; color: #000077;}
+}
+
+.post {
+    padding: $paper-margin;
+    background-color: $text-background;
+    @include media-query($on-palm) {
+        padding: $paper-margin 5px;
+    }
+}
+.post-header {}
+.post-title {
+    &, &:link, &:visited {color: $link-color;}
+}
+.post-meta {color: $link-color;}
+.post-content {margin-bottom: $paper-margin;}
+.post-link {font-size: $font-size-level-2;}
+.post-tags {
+    font-family: monospace;
+    background-color: $tags-background;
+    padding: 1px $text-margin;
+    overflow: auto;
+    &, &:link, &:visited {color: $tags-color;}
+    &:hover {background-color: $pick-background;}
+}
+.post-nav {
+    font-family: monospace;
+    background-color: $tags-background;
+    padding: 1px $text-margin;
+    overflow: auto;
+    &, &:link, &:visited {color: $tags-color;}
+    &:hover {background-color: $pick-background;}
+}
+.post-prev {
+    float: left;
+    width: 50%;
+    text-align: left;
+}
+.post-next {
+    float: left;
+    width: 50%;
+    text-align: right;
+}
+.post-list {
+    margin-left: 0;
+    list-style: none;
+    > li {margin-bottom: $block-margin;}
+}
+
+.pagination {text-align: center;}
+
+.footer-col-wrapper {
+    font-size: smaller;
+    &, &:link, &:visited {color: $wall-color;}
+    @extend %clearfix;
+}
+
+.footer-col-1 {
+    width: 40%;
+    float: left;
+    margin-left: 10%;
 
     @include media-query($on-palm) {
-        position: absolute;
-        top: 9px;
-        right: 30px;
-        background-color: $background-color;
-        border: 1px solid $grey-color-light;
-        border-radius: 5px;
-        text-align: right;
+        width: 40%;
+        margin-left: $block-margin;
+    }
+}
+.footer-col-2 {
+    width: 40%;
+    float: left;
+    text-align: right;
+    margin-right: 10%;
 
-        .menu-icon {
-            display: block;
-            float: right;
-            width: 36px;
-            height: 26px;
-            line-height: 0;
-            padding-top: 10px;
-            text-align: center;
-
-            > svg {
-                width: 18px;
-                height: 15px;
-
-                path {
-                    fill: $grey-color-dark;
-                }
-            }
-        }
-
-        .trigger {
-            clear: both;
-            display: none;
-        }
-
-        &:hover .trigger {
-            display: block;
-            padding-bottom: 5px;
-        }
-
-        .page-link {
-            display: block;
-            padding: 5px 10px;
-        }
+    @include media-query($on-palm) {
+        width: 56%;
+        margin-right: 0;
     }
 }
 
-
-
-/**
- * Site footer
- */
-.site-footer {
-    border-top: 1px solid $grey-color-light;
-    padding: $spacing-unit 0;
-}
-
-.footer-heading {
-    font-size: 18px;
-    margin-bottom: $spacing-unit / 2;
-}
-
+.username,
 .contact-list,
 .social-media-list {
     list-style: none;
     margin-left: 0;
+    &, &:link, &:visited {color: $wall-color;}
 }
 
-.footer-col-wrapper {
-    font-size: 15px;
-    color: $grey-color;
-    margin-left: -$spacing-unit / 2;
-    @extend %clearfix;
-}
-
-.footer-col {
-    float: left;
-    margin-bottom: $spacing-unit / 2;
-    padding-left: $spacing-unit / 2;
-}
-
-.footer-col-1 {
-    width: -webkit-calc(35% - (#{$spacing-unit} / 2));
-    width:         calc(35% - (#{$spacing-unit} / 2));
-}
-
-.footer-col-2 {
-    width: -webkit-calc(20% - (#{$spacing-unit} / 2));
-    width:         calc(20% - (#{$spacing-unit} / 2));
-}
-
-.footer-col-3 {
-    width: -webkit-calc(45% - (#{$spacing-unit} / 2));
-    width:         calc(45% - (#{$spacing-unit} / 2));
-}
-
-@include media-query($on-laptop) {
-    .footer-col-1,
-    .footer-col-2 {
-        width: -webkit-calc(50% - (#{$spacing-unit} / 2));
-        width:         calc(50% - (#{$spacing-unit} / 2));
+.side-nav {
+    img {
+        width: 1.5em;
+        height: 1.5em;
+        background-position: 1em 1em;
+        background-repeat: no-repeat;
+        border-radius: 1em;
+        -webkit-border-radius: 1em;
+        -moz-border-radius: 1em;
     }
-
-    .footer-col-3 {
-        width: -webkit-calc(100% - (#{$spacing-unit} / 2));
-        width:         calc(100% - (#{$spacing-unit} / 2));
-    }
+    font-size: $font-size-level-5;
+    padding: 0.2em $block-margin;
+    line-height: $tall-line-height;
+    &, &:link, &:visited {color: $side-color; }
+    &:hover {color: $side-color; }
 }
 
-@include media-query($on-palm) {
-    .footer-col {
-        float: none;
-        width: -webkit-calc(100% - (#{$spacing-unit} / 2));
-        width:         calc(100% - (#{$spacing-unit} / 2));
-    }
-}
-
-
-
-/**
- * Page content
- */
-.page-content {
-    padding: $spacing-unit 0;
-}
-
-.page-heading {
-    font-size: 20px;
-}
-
-.post-list {
-    margin-left: 0;
-    list-style: none;
-
-    > li {
-        margin-bottom: $spacing-unit;
-    }
-}
-
-.post-meta {
-    font-size: $small-font-size;
-    color: $grey-color;
-}
-
-.post-link {
-    display: block;
-    font-size: 24px;
-}
-
-
-
-/**
- * Posts
- */
-.post-header {
-    margin-bottom: $spacing-unit;
-}
-
-.post-title {
-    font-size: 42px;
-    letter-spacing: -1px;
-    line-height: 1;
-
+.side-toc {
     @include media-query($on-laptop) {
-        font-size: 36px;
+        display: none;
     }
+    padding-top: 0.5em;
 }
 
-.post-content {
-    margin-bottom: $spacing-unit;
-
-    h2 {
-        font-size: 32px;
-
-        @include media-query($on-laptop) {
-            font-size: 28px;
-        }
-    }
-
-    h3 {
-        font-size: 26px;
-
-        @include media-query($on-laptop) {
-            font-size: 22px;
-        }
-    }
-
-    h4 {
-        font-size: 20px;
-
-        @include media-query($on-laptop) {
-            font-size: 18px;
-        }
-    }
+.org-center {
+    text-align: center;
 }

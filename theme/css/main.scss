@@ -1,0 +1,61 @@
+---
+# Only the main Sass file needs front matter (the dashes are enough)
+---
+@charset "utf-8";
+
+
+$on-palm:          800px;
+$on-laptop:        1200px;
+
+@mixin media-query($device) {
+    @media screen and (max-width: $device) {
+        @content;
+    }
+}
+
+// Our variables
+$base-font-family: Helvetica, Arial, sans-serif;
+$base-font-size:   18px;
+$font-size-level-1:$base-font-size * 2.0;
+$font-size-level-2:$base-font-size * 1.8;
+$font-size-level-3:$base-font-size * 1.6;
+$font-size-level-4:$base-font-size * 1.4;
+$font-size-level-5:$base-font-size * 1.2;
+$font-size-level-6:$base-font-size * 1.0;
+$font-size-level-7:$base-font-size * 1.0;
+
+$tall-line-height: 2.0;
+$base-line-height: 1.5;
+
+$title-margin:     60px;
+$paper-margin:     30px;
+$block-margin:     10px;
+$text-margin:      5px;
+
+$wall-color:       #112233;
+$wall-background:  #FFFFEE;
+
+$side-color:       #EEDDCC;
+$side-background:  #004466;
+
+$text-color:       #001122;
+$text-background:  #FFFFF0;
+
+$code-color:       #660000;
+$code-background:  #DDDDDD;
+
+$note-color:       #AA0000;
+$note-background:  #EEEECC;
+
+$tags-color:       #330000;
+$tags-background:  #CCCCCC;
+
+$link-color:       #004466;
+$pick-background:  #EECC55;
+
+// Import partials from `sass_dir` (defaults to `_sass`)
+@import
+        "base",
+        "layout",
+        "syntax-highlighting"
+;

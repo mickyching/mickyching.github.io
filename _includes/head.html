@@ -6,7 +6,38 @@
   <title>{% if page.title %}{{ page.title }}{% else %}{{ site.title }}{% endif %}</title>
   <meta name="description" content="{% if page.excerpt %}{{ page.excerpt | strip_html | strip_newlines | truncate: 160 }}{% else %}{{ site.description }}{% endif %}">
 
-  <link rel="stylesheet" href="{{ "/css/main.css" | prepend: site.baseurl }}">
+  <link rel="stylesheet" href="{{ "/theme/css/main.css" | prepend: site.baseurl }}">
+  <link rel="icon" href="{{ "/theme/icon/leaf.png" | prepend: site.baseurl }}">
+  <link rel="shortcut icon" href="{{ "/theme/icon/leaf.png" | prepend: site.baseurl }}">
   <link rel="canonical" href="{{ page.url | replace:'index.html','' | prepend: site.baseurl | prepend: site.url }}">
   <link rel="alternate" type="application/rss+xml" title="{{ site.title }}" href="{{ "/feed.xml" | prepend: site.baseurl | prepend: site.url }}" />
+
+  <script src="/theme/js/jquery-2.1.1.min.js"></script>
+  <script src="/theme/js/default.js"></script>
+
+
 </head>
+
+<header>
+  <div class="sidebar">
+    <div>
+      <a class="side-nav" href="{{ site.baseurl }}/"><image src="/theme/icon/leaf.png"></a>
+      <a class="side-nav" href="{{ "/menu/links.html" | prepend: site.baseurl }}">链接</a>
+      <a class="side-nav" href="{{ "/menu/categories.html" | prepend: site.baseurl }}">分类</a>
+    </div>
+
+    <div class="side-toc">
+      <hr>
+      <div id="sidebar-toc" class="side-toc">
+        <div align="center">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar-toggler">
+    <div id="sidebar-status">
+
+    </div>
+  </div>
+</header>

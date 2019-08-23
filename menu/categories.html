@@ -1,0 +1,37 @@
+---
+layout: body
+---
+
+<div class="home">
+
+  <h2>分类</h2>
+  {% assign tags_list = site.categories | sort %}
+  <ul class="tag-box inline">
+    {% for tag in tags_list %}
+    <a class="post-tags" href="#{{ tag[0] }}">{{ tag[0] }}<span><sup>{{ tag[1].size }}</sup></span></a>
+    {% endfor %}
+  </ul>
+
+  {% for tag in tags_list %}
+  <h3 id="{{ tag[0] }}">{{ tag[0] }}</h3>
+  <ul>
+    {% assign pages_list = tag[1] %}
+    {% for post in pages_list %}
+    {% if post.title != null %}
+    {% if group == null or group == post.group %}
+    <li class="post-list">
+      <a href="{{ post.url }}">
+        <span class="post-meta">{{ post.date | date: "%Y-%m-%2d" }}</span>
+        <span>{{ post.title }}</span>
+      </a>
+    </li>
+    {% endif %}
+    {% endif %}
+    {% endfor %}
+    {% assign pages_list = nil %}
+    {% assign group = nil %}
+  </ul>
+  {% endfor %}
+  {% assign tags_list = nil %}
+
+</div>
