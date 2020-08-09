@@ -40,10 +40,8 @@ ul, ol, dl, figure,
 }
 
 table{
-    margin: 0 auto;
-    margin-top: 0.5em;
-    margin-bottom: 0.5em;
-    width: 90%;
+    margin: 0.5em 0 0.5em 0;
+    min-width: 80%;
 }
 
 
@@ -104,7 +102,7 @@ h1, h2, h3, h4, h5, h6 {
 a {
     color: $link-color;
     text-decoration: none;
-    &:hover {color: $note-color;}
+    &:hover {color: $note-color; font-weight: bolder;}
     &:visited {}
 }
 
@@ -140,8 +138,10 @@ pre, code {
 }
 
 code {
-    color: $code-color;
-    padding: 1px 5px;
+    color: $note-color;
+    background-color: $note-background;
+    font-weight: bold;
+    padding: 0 0.25em;
 }
 
 pre {
@@ -156,14 +156,32 @@ pre {
     }
 }
 
+pre .line-number {
+    color: $code-color;
+    display:block;
+    float:left;
+    text-align:right;
+}
 
+pre .line-number span {
+    display:block;
+    min-width: 2em;
+    margin-right: 0.5em;
+    padding-right: 0.5em;
+    border-right: 1px solid $link-color;
+}
+
+pre .cl {
+    display:block;
+    clear:both;
+}
 
 /**
  * Wrapper
  */
 .wrapper {
     margin-bottom: $text-margin;
-    max-width: 1600px;
+    max-width: 1200px;
     padding: 0 auto;
 }
 
@@ -200,25 +218,23 @@ pre {
     }
 }
 
-table {
-    min-width: 80%;
-}
-
 th {
     background-color: $note-background;
     padding: 0.2em 1em;
     text-align: left;
+    border: 3px solid;
+    border-collapse: collapse;
 }
 td {
     font-family: monospace;
     padding: 0.2em 1em;
+    border: 1px solid #888;
+    border-collapse: collapse;
 }
-tr:nth-child(2n+1) {
-    background-color: $text-background;
+tbody {
+    border: 3px solid;
 }
-tr:nth-child(2n+2) {
-    background-color: $code-background;
-}
+
 dl {
     @extend %clearfix;
 }
@@ -226,21 +242,19 @@ dl {
 dt {
     font-family: monospace;
     font-weight: bold;
-    color: $meta-color;
-    margin: 0;
+    color: $link-color;
+    margin-left: 2em;
+    margin-right: -4em;
     padding: 0 0.5em;
-    width: 28%;
     float: left;
     clear: left;
 }
 
 dd {
     font-family: monospace;
-    margin: 0;
+    margin: 0 0 0 4em;
     float: left;
     padding: 0 0.5em;
-    border-left: solid 2px $meta-color;
-    width: 65%;
 }
 
 .center {

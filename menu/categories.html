@@ -2,18 +2,24 @@
 layout: body
 ---
 
+<div id="table-of-contents"><h2>&#30446;&#24405;</h2>
+  <div id="text-table-of-contents">
+    {% assign tags_list = site.categories | sort %}
+    {% for tag in tags_list %}
+    <ul>
+      <li><a href="#{{ tag[0] }}">{{tag[0]}}({{ tag[1].size }})</a></li>
+    </ul>
+    {% endfor %}
+    {% assign tags_list = nil %}
+  </div>
+</div>
+
 <div class="home">
 
-  <h2>分类</h2>
   {% assign tags_list = site.categories | sort %}
-  <ul class="tag-box inline">
-    {% for tag in tags_list %}
-    <a class="post-tags" href="#{{ tag[0] }}">{{ tag[0] }}<span><sup>{{ tag[1].size }}</sup></span></a>
-    {% endfor %}
-  </ul>
-
   {% for tag in tags_list %}
-  <h3 id="{{ tag[0] }}">{{ tag[0] }}</h3>
+
+  <h2 id="{{ tag[0] }}">{{ tag[0] }}<span><sup>{{ tag[1].size }}</sup></span></h2>
   <ul>
     {% assign pages_list = tag[1] %}
     {% for post in pages_list %}

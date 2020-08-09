@@ -1,14 +1,14 @@
 # Site settings
-title: 叶
+title: 一叶空间
 subtitle: 一花一世界 一叶一清凉
-email: mickyching@gmail.com
+email: mickyching@qq.com
 description:
   一花一世界 一叶一清凉
 
 baseurl: ""
-url: "http://mickyching.github.io"
-host: localhost
-port: 4001
+url: "http://lotleaf.com"
+host: 0.0.0.0
+port: 3000
 
 github_username: mickyching
 

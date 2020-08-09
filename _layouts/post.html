@@ -3,35 +3,16 @@ layout: default
 ---
 <div class="post">
   <script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-  <script src="/theme/js/post.js"></script>
 
   <header class="post-header">
     <h1 class="post-title">{{ page.title }}</h1>
     <p class="post-meta">
-    {% for tag in page.tags %}
-    <a class="post-tags" href="/resource/tags/{{ tag }}.html">{{ tag }}</a>
-    {% endfor %}
-    <span style="float: right">
-      {{ page.date | date: "%Y年%m月%d日" }} {{ page.author }}
-    </span>
-    <br>
     </p>
   </header>
 
-  <hr>
-  <br>
+  <hr><br>
   <article class="post-content">
     {{ content }}
-
-    <br>
-    <hr>
-    <br>
-    <div class="post-prev">
-      <a class="post-nav" href="{{ page.previous.url | prepend: site.baseurl | replace: '//', '/' }}">上一篇</a>
-    </div>
-    <div class="post-next">
-      <a class="post-nav" href="{{ page.next.url | prepend: site.baseurl | replace: '//', '/' }}">下一篇</a>
-    </div>
   </article>
 
 </div>

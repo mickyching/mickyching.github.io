@@ -5,7 +5,7 @@
 
 
 $on-palm:          800px;
-$on-laptop:        1200px;
+$on-laptop:        1000px;
 
 @mixin media-query($device) {
     @media screen and (max-width: $device) {
@@ -15,7 +15,7 @@ $on-laptop:        1200px;
 
 // Our variables
 $base-font-family: Helvetica, Arial, sans-serif;
-$base-font-size:   18px;
+$base-font-size:   16px;
 $font-size-level-1:$base-font-size * 2.0;
 $font-size-level-2:$base-font-size * 1.8;
 $font-size-level-3:$base-font-size * 1.6;
@@ -32,27 +32,28 @@ $paper-margin:     30px;
 $block-margin:     10px;
 $text-margin:      5px;
 
-$wall-background:  #FFFFEE;
 $wall-color:       #112233;
+$wall-background:  #555555;
 
-$side-background:  #EEEEEE;
-$side-color:       #221133;
+$side-color:       #112233;
+$side-background:  #FFFFFF;
 
-$text-background:  #FFFFF0;
 $text-color:       #001122;
+$text-background:  #FFFFF0;
 
-$code-background:  #DDDDDD;
 $code-color:       #660000;
+$code-background:  #EEEEEE;
 
-$note-background:  #EEEECC;
 $note-color:       #AA0000;
+$note-background:  #EEEECC;
 
-$tags-background:  #CCCCCC;
 $tags-color:       #330000;
+$tags-background:  #CCCCCC;
 
 $link-color:       #004466;
 $pick-background:  #EECC55;
-$meta-color:       #006644;
+
+$meta-color:       #555555;
 
 // Import partials from `sass_dir` (defaults to `_sass`)
 @import
